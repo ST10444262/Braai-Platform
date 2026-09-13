@@ -22,8 +22,8 @@ backend/.vs/
 [Oo]bj/
 TestResults/
 
-backend/appsettings.*.json
-!backend/appsettings.json
+**/appsettings.json
+**/appsettings.*.json
 
 # IDE & tools
 .vs/
