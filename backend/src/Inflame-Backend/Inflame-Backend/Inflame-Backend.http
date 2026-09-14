@@ -1,0 +1,6 @@
+@Inflame_Backend_HostAddress = http://localhost:5282
+
+GET {{Inflame_Backend_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

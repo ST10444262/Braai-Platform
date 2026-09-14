@@ -1,13 +1,55 @@
 # Next.js / Node
 frontend/node_modules/
 frontend/.next/
-frontend/.env*
+frontend/out/
+frontend/coverage/
+
+# Package Manager Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+.env*
+!.env.example
+!.env.template
 
 # C# .NET Core
 backend/**/bin/
 backend/**/obj/
 backend/.vs/
-backend/appsettings.Development.json
+[Bb]in/
+[Oo]bj/
+TestResults/
+
+**/appsettings.json
+**/appsettings.*.json
+
+# IDE & tools
+.vs/
+.vscode/
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.userprefs
+*.workspace
+
+[Ll]og/
+[Ll]ogs/
+build/
+dist/
+
+# Nuget
+*.nupkg
+*.snupkg
+**/packages/*
+!**/packages/build/
+project.lock.json
+project.assets.json
+*.nuget.props
+*.nuget.targets
 
 # OS Files
 .DS_Store
