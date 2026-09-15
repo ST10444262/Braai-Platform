@@ -11,6 +11,9 @@ builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
+//------------------------------------------------------------------------------------------//
+#region Adds Services
+
 // Register Data Instances as Singletons
 var redisConnectionString = builder.Configuration.GetConnectionString("Redis") ?? "localhost";
 builder.Services.AddSingleton(sp => new RedisInstance(redisConnectionString));
@@ -21,6 +24,9 @@ builder.Services.AddSingleton(sp => new SupabaseInstance(supabaseUrl, supabaseKe
 
 builder.Services.AddScoped<PostgresProductRepository>();
 builder.Services.AddScoped<IProductRepository>(sp => new CachedProductRepository(sp.GetRequiredService<PostgresProductRepository>(), sp.GetRequiredService<RedisInstance>()));
+
+#endregion
+//------------------------------------------------------------------------------------------//
 
 var app = builder.Build();
 
