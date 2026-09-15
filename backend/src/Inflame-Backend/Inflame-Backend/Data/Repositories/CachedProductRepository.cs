@@ -8,6 +8,11 @@ using System.Threading.Tasks;
 
 namespace Inflame_Backend.Data.Repositories
 {
+
+    /// <summary>
+    /// Caching decorator implementing IProductRepository around Upstash Redis.
+    /// Intercepts read queries to fetch cached JSON from Upstash Redis, falling back to Supabase on misses.
+    /// </summary>
     public class CachedProductRepository : IProductRepository
     {
         private readonly IProductRepository _innerRepository;
