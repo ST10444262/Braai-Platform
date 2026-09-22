@@ -1,6 +1,7 @@
 
 using Inflame_Backend.Data.Instances;
 using Inflame_Backend.Data.Repositories;
+using Inflame_Backend.Data.Repositories.ProductCatalog;
 
 
 var builder = WebApplication.CreateBuilder(args);
