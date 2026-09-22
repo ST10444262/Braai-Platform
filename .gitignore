@@ -54,3 +54,4 @@ project.assets.json
 # OS Files
 .DS_Store
 Thumbs.db
+/.agents
