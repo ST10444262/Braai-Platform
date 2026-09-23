@@ -1,11 +1,11 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 
-namespace Inflame_Backend.Controllers
+namespace Inflame_Backend.Controllers.Admin
 {
     /// <summary>
-    /// Logic for handling account-related actions, such as user authentication, registration, and profile management.
+    /// Controller for managing product categories, including actions for listing, creating, updating, and deleting products.
     /// </summary>
-    public class AccountController : Controller
+    public class ProductCategoryController : Controller
     {
         public IActionResult Index()
         {
