@@ -4,6 +4,7 @@ using Inflame_Backend.Data.Repositories;
 using Inflame_Backend.Data.Repositories.ProductCatalog;
 using Inflame_Backend.Data.Repositories.CRM;
 using Inflame_Backend.Data.Repositories.CustomBuild;
+using Inflame_Backend.Data.Adapters;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -24,6 +25,8 @@ builder.Services.AddSingleton(sp => new RedisInstance(redisConnectionString));
 var supabaseUrl = builder.Configuration["Supabase:Url"] ?? string.Empty;
 var supabaseKey = builder.Configuration["Supabase:Key"] ?? string.Empty;
 builder.Services.AddSingleton(sp => new SupabaseInstance(supabaseUrl, supabaseKey));
+
+builder.Services.AddScoped<IStorageAdapter, SupabaseStorageAdapter>();
 
 builder.Services.AddScoped<PostgresProductRepository>();
 builder.Services.AddScoped<IProductRepository>(sp => new CachedProductRepository(sp.GetRequiredService<PostgresProductRepository>(), sp.GetRequiredService<RedisInstance>()));
