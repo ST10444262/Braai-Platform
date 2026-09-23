@@ -10,7 +10,6 @@ namespace Inflame_Backend.Data.Repositories.CRM
     /// </summary>
     public interface IInvoiceRecordRepository : IBaseRepository<InvoiceRecord>
     {
-        Task<InvoiceRecord?> GetByIdAsync(Guid id);
     }
 }
 //---------------------END OF FILE------------------------------------------------------------------//

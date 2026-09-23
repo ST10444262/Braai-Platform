@@ -10,7 +10,6 @@ namespace Inflame_Backend.Data.Repositories.ProductCatalog
     /// </summary>
     public interface IFireplaceProductRepository : IBaseRepository<FireplaceProduct>
     {
-        Task<FireplaceProduct?> GetByIdAsync(Guid id);
     }
 }
 //---------------------END OF FILE------------------------------------------------------------------//

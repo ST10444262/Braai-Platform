@@ -21,17 +21,6 @@ namespace Inflame_Backend.Data.Repositories.CustomBuild
         {
         }
         #endregion
-        //------------------------------------------------------------------------------------------//
-        /// <summary>
-        /// Fetch a GalleryImage by its unique identifier.
-        /// </summary>
-        /// <param name="id"></param>
-        /// <returns></returns>
-        public async Task<GalleryImage?> GetByIdAsync(Guid id)
-        {
-            var response = await _supabaseInstance.Client.From<GalleryImage>().Where(x => x.PhotoId == id).Single();
-            return response;
-        }
     }
 }
 //---------------------END OF FILE------------------------------------------------------------------//

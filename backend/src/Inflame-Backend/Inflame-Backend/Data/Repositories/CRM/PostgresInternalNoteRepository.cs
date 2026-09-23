@@ -21,17 +21,6 @@ namespace Inflame_Backend.Data.Repositories.CRM
         {
         }
         #endregion
-        //------------------------------------------------------------------------------------------//
-        /// <summary>
-        /// Fetch a InternalNote by its unique identifier.
-        /// </summary>
-        /// <param name="id"></param>
-        /// <returns></returns>
-        public async Task<InternalNote?> GetByIdAsync(Guid id)
-        {
-            var response = await _supabaseInstance.Client.From<InternalNote>().Where(x => x.NoteId == id).Single();
-            return response;
-        }
     }
 }
 //---------------------END OF FILE------------------------------------------------------------------//

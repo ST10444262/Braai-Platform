@@ -21,17 +21,6 @@ namespace Inflame_Backend.Data.Repositories.ProductCatalog
         {
         }
         #endregion
-        //------------------------------------------------------------------------------------------//
-        /// <summary>
-        /// Fetch a ProductImage by its unique identifier.
-        /// </summary>
-        /// <param name="id"></param>
-        /// <returns></returns>
-        public async Task<ProductImage?> GetByIdAsync(Guid id)
-        {
-            var response = await _supabaseInstance.Client.From<ProductImage>().Where(x => x.ImageId == id).Single();
-            return response;
-        }
     }
 }
 //---------------------END OF FILE------------------------------------------------------------------//

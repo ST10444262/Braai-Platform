@@ -60,6 +60,32 @@ namespace Inflame_Backend.Data.DataLayer
         }
         //------------------------------------------------------------------------------------------//
         /// <summary>
+        /// Retrieves an entity by its unique identifier, checking the cache first.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public async Task<T?> GetByIdAsync(Guid id)
+        {
+            string cacheKey = $"{_cacheKeyPrefix}:{id}";
+
+            var cachedValue = await _redisDatabase.StringGetAsync(cacheKey);
+            if (!cachedValue.IsNullOrEmpty)
+            {
+                return JsonSerializer.Deserialize<T>((string)cachedValue!);
+            }
+
+            var entity = await _innerRepository.GetByIdAsync(id);
+
+            if (entity != null)
+            {
+                string serialized = JsonSerializer.Serialize(entity);
+                await _redisDatabase.StringSetAsync(cacheKey, serialized, CacheExpiration);
+            }
+
+            return entity;
+        }
+        //------------------------------------------------------------------------------------------//
+        /// <summary>
         /// Adds a new entity to the underlying repository and invalidates the relevant cache entries in Redis.
         /// </summary>
         /// <param name="entity"></param>
