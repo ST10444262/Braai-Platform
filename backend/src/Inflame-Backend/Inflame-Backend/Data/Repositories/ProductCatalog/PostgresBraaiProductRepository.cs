@@ -21,17 +21,6 @@ namespace Inflame_Backend.Data.Repositories.ProductCatalog
         {
         }
         #endregion
-        //------------------------------------------------------------------------------------------//
-        /// <summary>
-        /// Fetch a BraaiProduct by its unique identifier.
-        /// </summary>
-        /// <param name="id"></param>
-        /// <returns></returns>
-        public async Task<BraaiProduct?> GetByIdAsync(Guid id)
-        {
-            var response = await _supabaseInstance.Client.From<BraaiProduct>().Where(x => x.ProductId == id).Single();
-            return response;
-        }
     }
 }
 //---------------------END OF FILE------------------------------------------------------------------//

@@ -10,7 +10,6 @@ namespace Inflame_Backend.Data.Repositories.CRM
     /// </summary>
     public interface IEnquiryRepository : IBaseRepository<Enquiry>
     {
-        Task<Enquiry?> GetByIdAsync(Guid id);
     }
 }
 //---------------------END OF FILE------------------------------------------------------------------//

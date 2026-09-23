@@ -21,17 +21,6 @@ namespace Inflame_Backend.Data.Repositories.CRM
         {
         }
         #endregion
-        //------------------------------------------------------------------------------------------//
-        /// <summary>
-        /// Fetch a Enquiry by its unique identifier.
-        /// </summary>
-        /// <param name="id"></param>
-        /// <returns></returns>
-        public async Task<Enquiry?> GetByIdAsync(Guid id)
-        {
-            var response = await _supabaseInstance.Client.From<Enquiry>().Where(x => x.EnquiryId == id).Single();
-            return response;
-        }
     }
 }
 //---------------------END OF FILE------------------------------------------------------------------//

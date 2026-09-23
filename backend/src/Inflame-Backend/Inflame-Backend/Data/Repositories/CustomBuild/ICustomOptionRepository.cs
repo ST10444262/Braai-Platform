@@ -10,7 +10,6 @@ namespace Inflame_Backend.Data.Repositories.CustomBuild
     /// </summary>
     public interface ICustomOptionRepository : IBaseRepository<CustomOption>
     {
-        Task<CustomOption?> GetByIdAsync(Guid id);
     }
 }
 //---------------------END OF FILE------------------------------------------------------------------//

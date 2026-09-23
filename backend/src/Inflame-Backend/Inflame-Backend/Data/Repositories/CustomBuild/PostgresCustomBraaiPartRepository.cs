@@ -21,17 +21,6 @@ namespace Inflame_Backend.Data.Repositories.CustomBuild
         {
         }
         #endregion
-        //------------------------------------------------------------------------------------------//
-        /// <summary>
-        /// Fetch a CustomBraaiPart by its unique identifier.
-        /// </summary>
-        /// <param name="id"></param>
-        /// <returns></returns>
-        public async Task<CustomBraaiPart?> GetByIdAsync(Guid id)
-        {
-            var response = await _supabaseInstance.Client.From<CustomBraaiPart>().Where(x => x.PartId == id).Single();
-            return response;
-        }
     }
 }
 //---------------------END OF FILE------------------------------------------------------------------//

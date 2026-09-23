@@ -1,11 +1,11 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 
-namespace Inflame_Backend.Controllers
+namespace Inflame_Backend.Controllers.Admin
 {
     /// <summary>
-    /// Controller for managing CRM (Customer Relationship Management) functionalities, including actions for handling customer interactions, data management, and related operations.
+    /// Logic for handling account-related actions, such as user authentication, registration, and profile management.
     /// </summary>
-    public class CRMController : Controller
+    public class AccountController : Controller
     {
         public IActionResult Index()
         {

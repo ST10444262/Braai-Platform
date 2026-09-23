@@ -26,32 +26,6 @@ namespace Inflame_Backend.Data.Repositories.ProductCatalog
             _innerSpecificRepository = innerRepository;
         }
         #endregion
-        //------------------------------------------------------------------------------------------//
-        /// <summary>
-        /// Retrieves a ProductImage by its unique identifier, checking the cache first.
-        /// </summary>
-        /// <param name="id"></param>
-        /// <returns></returns>
-        public async Task<ProductImage?> GetByIdAsync(Guid id)
-        {
-            string cacheKey = $"{_cacheKeyPrefix}:{id}";
-
-            var cachedValue = await _redisDatabase.StringGetAsync(cacheKey);
-            if (!cachedValue.IsNullOrEmpty)
-            {
-                return JsonSerializer.Deserialize<ProductImage>((string)cachedValue!);
-            }
-
-            var entity = await _innerSpecificRepository.GetByIdAsync(id);
-
-            if (entity != null)
-            {
-                string serialized = JsonSerializer.Serialize(entity);
-                await _redisDatabase.StringSetAsync(cacheKey, serialized, CacheExpiration);
-            }
-
-            return entity;
-        }
     }
 }
 //---------------------END OF FILE------------------------------------------------------------------//

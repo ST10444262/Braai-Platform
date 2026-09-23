@@ -13,7 +13,9 @@ namespace Inflame_Backend.Data.Repositories.CRM
     public class CachedClientRepository : CachedBaseRepository<Client>, IClientRepository
     {
         #region Configuration
+
         private readonly IClientRepository _innerSpecificRepository;
+
         //------------------------------------------------------------------------------------------//
         /// <summary>
         /// Initializes a new instance of the CachedClientRepository.
@@ -25,33 +27,9 @@ namespace Inflame_Backend.Data.Repositories.CRM
         {
             _innerSpecificRepository = innerRepository;
         }
+
         #endregion
-        //------------------------------------------------------------------------------------------//
-        /// <summary>
-        /// Retrieves a Client by its unique identifier, checking the cache first.
-        /// </summary>
-        /// <param name="id"></param>
-        /// <returns></returns>
-        public async Task<Client?> GetByIdAsync(Guid id)
-        {
-            string cacheKey = $"{_cacheKeyPrefix}:{id}";
 
-            var cachedValue = await _redisDatabase.StringGetAsync(cacheKey);
-            if (!cachedValue.IsNullOrEmpty)
-            {
-                return JsonSerializer.Deserialize<Client>((string)cachedValue!);
-            }
-
-            var entity = await _innerSpecificRepository.GetByIdAsync(id);
-
-            if (entity != null)
-            {
-                string serialized = JsonSerializer.Serialize(entity);
-                await _redisDatabase.StringSetAsync(cacheKey, serialized, CacheExpiration);
-            }
-
-            return entity;
-        }
     }
 }
 //---------------------END OF FILE------------------------------------------------------------------//

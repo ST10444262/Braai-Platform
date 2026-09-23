@@ -26,32 +26,6 @@ namespace Inflame_Backend.Data.Repositories.CRM
             _innerSpecificRepository = innerRepository;
         }
         #endregion
-        //------------------------------------------------------------------------------------------//
-        /// <summary>
-        /// Retrieves an Enquiry by its unique identifier, checking the cache first.
-        /// </summary>
-        /// <param name="id"></param>
-        /// <returns></returns>
-        public async Task<Enquiry?> GetByIdAsync(Guid id)
-        {
-            string cacheKey = $"{_cacheKeyPrefix}:{id}";
-
-            var cachedValue = await _redisDatabase.StringGetAsync(cacheKey);
-            if (!cachedValue.IsNullOrEmpty)
-            {
-                return JsonSerializer.Deserialize<Enquiry>((string)cachedValue!);
-            }
-
-            var entity = await _innerSpecificRepository.GetByIdAsync(id);
-
-            if (entity != null)
-            {
-                string serialized = JsonSerializer.Serialize(entity);
-                await _redisDatabase.StringSetAsync(cacheKey, serialized, CacheExpiration);
-            }
-
-            return entity;
-        }
     }
 }
 //---------------------END OF FILE------------------------------------------------------------------//
