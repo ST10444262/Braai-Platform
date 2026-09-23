@@ -10,7 +10,6 @@ namespace Inflame_Backend.Data.Repositories.CRM
     /// </summary>
     public interface IInternalNoteRepository : IBaseRepository<InternalNote>
     {
-        Task<InternalNote?> GetByIdAsync(Guid id);
     }
 }
 //---------------------END OF FILE------------------------------------------------------------------//

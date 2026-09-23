@@ -21,17 +21,6 @@ namespace Inflame_Backend.Data.Repositories.CustomBuild
         {
         }
         #endregion
-        //------------------------------------------------------------------------------------------//
-        /// <summary>
-        /// Fetch a CustomOption by its unique identifier.
-        /// </summary>
-        /// <param name="id"></param>
-        /// <returns></returns>
-        public async Task<CustomOption?> GetByIdAsync(Guid id)
-        {
-            var response = await _supabaseInstance.Client.From<CustomOption>().Where(x => x.CustomOptionId == id).Single();
-            return response;
-        }
     }
 }
 //---------------------END OF FILE------------------------------------------------------------------//

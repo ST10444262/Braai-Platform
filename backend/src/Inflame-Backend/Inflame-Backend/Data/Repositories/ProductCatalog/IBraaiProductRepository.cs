@@ -10,7 +10,6 @@ namespace Inflame_Backend.Data.Repositories.ProductCatalog
     /// </summary>
     public interface IBraaiProductRepository : IBaseRepository<BraaiProduct>
     {
-        Task<BraaiProduct?> GetByIdAsync(Guid id);
     }
 }
 //---------------------END OF FILE------------------------------------------------------------------//

@@ -21,17 +21,6 @@ namespace Inflame_Backend.Data.Repositories.CustomBuild
         {
         }
         #endregion
-        //------------------------------------------------------------------------------------------//
-        /// <summary>
-        /// Fetch a CustomFireplacePart by its unique identifier.
-        /// </summary>
-        /// <param name="id"></param>
-        /// <returns></returns>
-        public async Task<CustomFireplacePart?> GetByIdAsync(Guid id)
-        {
-            var response = await _supabaseInstance.Client.From<CustomFireplacePart>().Where(x => x.PartId == id).Single();
-            return response;
-        }
     }
 }
 //---------------------END OF FILE------------------------------------------------------------------//

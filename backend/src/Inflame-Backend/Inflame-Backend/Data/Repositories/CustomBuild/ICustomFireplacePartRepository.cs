@@ -10,7 +10,6 @@ namespace Inflame_Backend.Data.Repositories.CustomBuild
     /// </summary>
     public interface ICustomFireplacePartRepository : IBaseRepository<CustomFireplacePart>
     {
-        Task<CustomFireplacePart?> GetByIdAsync(Guid id);
     }
 }
 //---------------------END OF FILE------------------------------------------------------------------//

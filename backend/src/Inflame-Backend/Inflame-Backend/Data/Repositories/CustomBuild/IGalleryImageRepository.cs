@@ -10,7 +10,6 @@ namespace Inflame_Backend.Data.Repositories.CustomBuild
     /// </summary>
     public interface IGalleryImageRepository : IBaseRepository<GalleryImage>
     {
-        Task<GalleryImage?> GetByIdAsync(Guid id);
     }
 }
 //---------------------END OF FILE------------------------------------------------------------------//
