@@ -64,6 +64,15 @@ namespace Inflame_Backend.States
             _currentEnquiryState.DeadLead(this);
         }
 
+        //------------------------------------------------------------------------------------------//
+        /// <summary>
+        /// Gets the current status of the enquiry.
+        /// </summary>
+        public string GetStatus()
+        {
+            return _currentEnquiryState.Status;
+        }
+
         #endregion
 
     }
