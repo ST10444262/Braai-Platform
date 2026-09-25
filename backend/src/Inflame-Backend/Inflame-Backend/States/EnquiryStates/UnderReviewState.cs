@@ -2,41 +2,41 @@ using System;
 
 namespace Inflame_Backend.States.EnquiryStates
 {
-    public class NewState : IEnquiryState
+    public class UnderReviewState : IEnquiryState
     {
         //------------------------------------------------------------------------------------------//
-        public string Status => "New";
+        public string Status => "Under Review";
 
         //------------------------------------------------------------------------------------------//
         /// <summary>
-        /// Transitions the lead to UnderReviewState.
+        /// Invalid transition. The lead is already under review.
         /// </summary>
         public void UnderReviewLead(QuoteLeadManager context)
         {
-            context.SetState(new UnderReviewState());
+            throw new InvalidOperationException("The lead is already under review.");
         }
 
         //------------------------------------------------------------------------------------------//
         /// <summary>
-        /// Invalid transition. A new lead must be reviewed before it can be contacted.
+        /// Transitions the lead to ContactedState once the review is complete and the client is contacted.
         /// </summary>
         public void ContactedLead(QuoteLeadManager context)
         {
-            throw new InvalidOperationException("Cannot contact a new lead. It must be under review first.");
+            context.SetState(new ContactedState());
         }
 
         //------------------------------------------------------------------------------------------//
         /// <summary>
-        /// Invalid transition. A new lead cannot be converted directly.
+        /// Invalid transition. A lead must be contacted before it can be converted.
         /// </summary>
         public void ConvertedLead(QuoteLeadManager context)
         {
-            throw new InvalidOperationException("Cannot convert a new lead directly.");
+            throw new InvalidOperationException("Cannot convert a lead that is only under review. Must contact the client first.");
         }
 
         //------------------------------------------------------------------------------------------//
         /// <summary>
-        /// Transitions the lead to DeadState if it is no longer valid or canceled early.
+        /// Transitions the lead to DeadState if it is rejected during review.
         /// </summary>
         public void DeadLead(QuoteLeadManager context)
         {
