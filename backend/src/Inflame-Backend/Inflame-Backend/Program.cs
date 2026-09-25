@@ -56,6 +56,9 @@ builder.Services.AddScoped<IInvoiceRecordRepository>(sp => new CachedInvoiceReco
 builder.Services.AddScoped<PostgresStaffAccountRepository>();
 builder.Services.AddScoped<IStaffAccountRepository>(sp => new CachedStaffAccountRepository(sp.GetRequiredService<PostgresStaffAccountRepository>(), sp.GetRequiredService<RedisInstance>()));
 
+builder.Services.AddScoped<PostgresAnalyticsLogRepository>();
+builder.Services.AddScoped<IAnalyticsLogRepository>(sp => new CachedAnalyticsLogRepository(sp.GetRequiredService<PostgresAnalyticsLogRepository>(), sp.GetRequiredService<RedisInstance>()));
+
 // Custom Build Repositories
 builder.Services.AddScoped<PostgresCustomOptionRepository>();
 builder.Services.AddScoped<ICustomOptionRepository>(sp => new CachedCustomOptionRepository(sp.GetRequiredService<PostgresCustomOptionRepository>(), sp.GetRequiredService<RedisInstance>()));
