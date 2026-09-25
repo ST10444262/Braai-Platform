@@ -12,11 +12,13 @@ namespace Inflame_Backend.Features.Enquiries.Commands
     public class CreateQuoteCommandHandler : IRequestHandler<CreateQuoteCommand, string>
     {
         private readonly IEnquiryRepository _enquiryRepository;
+        private readonly IAnalyticsLogRepository _analyticsRepository;
 
         //------------------------------------------------------------------------------------------//
-        public CreateQuoteCommandHandler(IEnquiryRepository enquiryRepository)
+        public CreateQuoteCommandHandler(IEnquiryRepository enquiryRepository, IAnalyticsLogRepository analyticsRepository)
         {
             _enquiryRepository = enquiryRepository;
+            _analyticsRepository = analyticsRepository;
         }
 
         //------------------------------------------------------------------------------------------//
@@ -33,7 +35,7 @@ namespace Inflame_Backend.Features.Enquiries.Commands
             // Setup Observer Pattern
             var notifier = new QuoteRequestNotifier();
             notifier.Attach(new EmailNotificationObserver());
-            notifier.Attach(new DatabaseLoggingObserver());
+            notifier.Attach(new DatabaseLoggingObserver(_analyticsRepository));
 
             // Trigger notifications
             string quoteDetails = $"Client: {request.FirstName} {request.LastName} ({request.Email}) | Initial Status: {initialState}";
