@@ -44,6 +44,53 @@ namespace Inflame_Backend.Services
             await client.SendAsync(emailMessage);
             await client.DisconnectAsync(true);
         }
+
+        //------------------------------------------------------------------------------------------//
+        /// <summary>
+        /// Sends an email to multiple recipients using BCC asynchronously.
+        /// Useful for high-volume notifications to prevent SMTP spam/rate limits.
+        /// </summary>
+        /// <param name="bccEmails">The list of recipient email addresses.</param>
+        /// <param name="subject">The subject of the email.</param>
+        /// <param name="body">The body of the email.</param>
+        /// <returns>A task representing the asynchronous operation.</returns>
+        public async Task SendEmailAsync(System.Collections.Generic.IEnumerable<string> bccEmails, string subject, string body)
+        {
+            var emailMessage = new MimeMessage();
+            var fromEmail = _configuration["EmailSettings:FromEmail"] ?? string.Empty;
+            var fromName = _configuration["EmailSettings:FromName"] ?? string.Empty;
+            
+            emailMessage.From.Add(new MailboxAddress(fromName, fromEmail));
+            
+            // Add all recipients to BCC to protect privacy and send as a single batch
+            foreach (var email in bccEmails)
+            {
+                if (!string.IsNullOrWhiteSpace(email))
+                {
+                    emailMessage.Bcc.Add(new MailboxAddress("", email));
+                }
+            }
+            
+            emailMessage.Subject = subject;
+
+            // Builds the body of the email
+            var bodyBuilder = new BodyBuilder { HtmlBody = body };
+            emailMessage.Body = bodyBuilder.ToMessageBody();
+
+            using var client = new SmtpClient();
+            
+            // Gets the SMTP settings from configuration
+            var smtpServer = _configuration["EmailSettings:SmtpServer"] ?? string.Empty;
+            var smtpPort = int.Parse(_configuration["EmailSettings:SmtpPort"] ?? "587");
+            var smtpUser = _configuration["EmailSettings:SmtpUsername"] ?? string.Empty;
+            var smtpPass = _configuration["EmailSettings:SmtpPassword"] ?? string.Empty;
+
+            // Sends the email  
+            await client.ConnectAsync(smtpServer, smtpPort, MailKit.Security.SecureSocketOptions.StartTls);
+            await client.AuthenticateAsync(smtpUser, smtpPass);
+            await client.SendAsync(emailMessage);
+            await client.DisconnectAsync(true);
+        }
     }
 }
 //---------------------END OF FILE------------------------------------------------------------------//

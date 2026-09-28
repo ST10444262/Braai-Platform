@@ -31,15 +31,18 @@ namespace Inflame_Backend.Observers
                 // Filters out staff that have not opted in to receive quote emails or are not active
                 var subscribedStaff = staffMembers.Where(s => s.ReceiveQuoteEmails && s.IsActive).ToList();
 
-                // Sends an email to each subscribed staff member
-                foreach (var staff in subscribedStaff)
+                var bccList = subscribedStaff
+                    .Where(s => !string.IsNullOrEmpty(s.Email))
+                    .Select(s => s.Email)
+                    .ToList();
+
+                if (bccList.Any())
                 {
-                    if (!string.IsNullOrEmpty(staff.Email))
-                    {
-                        var subject = "New Quote Request Received";
-                        var body = $"<p>A new quote has been requested.</p><p><strong>Details:</strong></p><p>{quoteDetails}</p>";
-                        await _emailService.SendEmailAsync(staff.Email, subject, body);
-                    }
+                    var subject = "New Quote Request Received";
+                    var body = $"<p>A new quote has been requested.</p><p><strong>Details:</strong></p><p>{quoteDetails}</p>";
+                    
+                    // Send a single batch email to all subscribed staff via BCC
+                    await _emailService.SendEmailAsync(bccList, subject, body);
                 }
             }
             catch (Exception ex)
