@@ -2,7 +2,7 @@
 {
     /// <summary>
     /// Data Transfer Object (DTO) representing the request payload for creating a new staff account,
-    /// carrying account registration details including email, password, full name, and system role.
+    /// carrying account registration details including email, password, full name.
     /// </summary>
     public class CreateStaffAccountRequestDto
     {
@@ -12,6 +12,5 @@
 
         public string FullName { get; set; } = string.Empty;
 
-        public string Role { get; set; } = "Employee";
     }
 }

@@ -8,15 +8,14 @@ using Microsoft.AspNetCore.Identity;
 namespace Inflame_Backend.Features.Authentication.Commands
 {
     /// <summary>
-    /// MediatR command and handler for provisioning new staff accounts.
-    /// Validates requested system roles, checks email uniqueness, creates the ASP.NET Core Identity user,
+    /// MediatR command and handler for provisioning new staff accounts with a default "Employee" role.
+    /// Validates the Employee role exists, checks email uniqueness, creates the ASP.NET Core Identity user,
     /// assigns the role, and inserts a corresponding record into the CRM staff repository with rollback on failure.
     /// </summary>
     public record CreateStaffAccountCommand(
         string Email,
         string Password,
-        string FullName,
-        string Role
+        string FullName
     ) : IRequest<CreateStaffAccountResponseDto>;
 
 
@@ -43,13 +42,15 @@ namespace Inflame_Backend.Features.Authentication.Commands
             CreateStaffAccountCommand request,
             CancellationToken cancellationToken)
         {
-            // Validate the requested role.
-            if (!await _roleManager.RoleExistsAsync(request.Role))
+            var role = "Employee";
+
+            // Validate the default Employee role.
+            if (!await _roleManager.RoleExistsAsync(role))
             {
                 return new CreateStaffAccountResponseDto
                 {
                     Success = false,
-                    Message = "The specified role does not exist."
+                    Message = "Employee role does not exist."
                 };
             }
 
@@ -99,7 +100,7 @@ namespace Inflame_Backend.Features.Authentication.Commands
             var roleResult =
                 await _userManager.AddToRoleAsync(
                     user,
-                    request.Role);
+                    role);
 
             if (!roleResult.Succeeded)
             {
@@ -125,7 +126,7 @@ namespace Inflame_Backend.Features.Authentication.Commands
                 IdentityUserId = user.Id,
                 Email = request.Email,
                 FullName = request.FullName,
-                Role = request.Role,
+                Role = role,
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow
             };
