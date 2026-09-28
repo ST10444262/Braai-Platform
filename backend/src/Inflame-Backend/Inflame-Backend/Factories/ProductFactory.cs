@@ -30,8 +30,7 @@ namespace Inflame_Backend.Factories
                 BraaiType = braaiType,
                 BaseProduct = baseProduct
             };
-        }
-
+        } 
         //------------------------------------------------------------------------------------------//
         /// <summary>
         /// Creates a specific Fireplace product by mapping its base product details.
