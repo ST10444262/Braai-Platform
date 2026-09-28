@@ -112,6 +112,9 @@ builder.Services.AddScoped<ICustomFireplacePartRepository>(sp => new CachedCusto
 builder.Services.AddScoped<PostgresGalleryImageRepository>();
 builder.Services.AddScoped<IGalleryImageRepository>(sp => new CachedGalleryImageRepository(sp.GetRequiredService<PostgresGalleryImageRepository>(), sp.GetRequiredService<RedisInstance>()));
 
+// Services
+builder.Services.AddScoped<Inflame_Backend.Services.IEmailService, Inflame_Backend.Services.SmtpEmailService>();
+
 #endregion
 //------------------------------------------------------------------------------------------//
 #region Forwarded Headers (For Render Deployment)
