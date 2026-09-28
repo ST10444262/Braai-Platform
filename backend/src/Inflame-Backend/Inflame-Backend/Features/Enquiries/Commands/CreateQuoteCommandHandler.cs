@@ -7,18 +7,28 @@ using Inflame_Backend.States;
 using Inflame_Backend.Data.Repositories.CRM;
 using Inflame_Backend.Models.CRM;
 
+using Inflame_Backend.Services;
+
 namespace Inflame_Backend.Features.Enquiries.Commands
 {
     public class CreateQuoteCommandHandler : IRequestHandler<CreateQuoteCommand, string>
     {
         private readonly IEnquiryRepository _enquiryRepository;
         private readonly IAnalyticsLogRepository _analyticsRepository;
+        private readonly IEmailService _emailService;
+        private readonly IStaffAccountRepository _staffAccountRepository;
 
         //------------------------------------------------------------------------------------------//
-        public CreateQuoteCommandHandler(IEnquiryRepository enquiryRepository, IAnalyticsLogRepository analyticsRepository)
+        public CreateQuoteCommandHandler(
+            IEnquiryRepository enquiryRepository, 
+            IAnalyticsLogRepository analyticsRepository,
+            IEmailService emailService,
+            IStaffAccountRepository staffAccountRepository)
         {
             _enquiryRepository = enquiryRepository;
             _analyticsRepository = analyticsRepository;
+            _emailService = emailService;
+            _staffAccountRepository = staffAccountRepository;
         }
 
         //------------------------------------------------------------------------------------------//
@@ -34,7 +44,7 @@ namespace Inflame_Backend.Features.Enquiries.Commands
 
             // Setup Observer Pattern
             var notifier = new QuoteRequestNotifier();
-            notifier.Attach(new EmailNotificationObserver());
+            notifier.Attach(new EmailNotificationObserver(_emailService, _staffAccountRepository));
             notifier.Attach(new DatabaseLoggingObserver(_analyticsRepository));
 
             // Trigger notifications

@@ -30,6 +30,9 @@ namespace Inflame_Backend.Models.CRM
         [Column("is_active")]
         public bool IsActive { get; set; }
 
+        [Column("receive_quote_emails")]
+        public bool ReceiveQuoteEmails { get; set; }
+
         [Column("created_at")]
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
