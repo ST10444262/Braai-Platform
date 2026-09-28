@@ -5,6 +5,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Inflame_Backend.Data.Context
 {
+    /// <summary>
+    /// Entity Framework Core database context managing ASP.NET Core Identity tables and custom ApplicationUser mappings.
+    /// Uses Guid primary keys for users and roles, and configures default database constraints for profile fields.
+    /// </summary>
     public class IdentityDbContext
         : IdentityDbContext<ApplicationUser, IdentityRole<Guid>, Guid>
     {
