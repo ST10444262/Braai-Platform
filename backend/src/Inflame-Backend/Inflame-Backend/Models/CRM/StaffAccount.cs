@@ -18,8 +18,8 @@ namespace Inflame_Backend.Models.CRM
         [Column("email")]
         public string Email { get; set; } = string.Empty;
 
-        [Column("password_hash")]
-        public string PasswordHash { get; set; } = string.Empty;
+        [Column("identity_user_id")]
+        public Guid IdentityUserId { get; set; }
 
         [Column("full_name")]
         public string FullName { get; set; } = string.Empty;

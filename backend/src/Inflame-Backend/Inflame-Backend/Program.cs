@@ -1,19 +1,30 @@
-
+using System.Text;
 using Inflame_Backend.Data.Instances;
 using Inflame_Backend.Data.Repositories;
 using Inflame_Backend.Data.Repositories.ProductCatalog;
 using Inflame_Backend.Data.Repositories.CRM;
 using Inflame_Backend.Data.Repositories.CustomBuild;
 using Inflame_Backend.Data.Adapters;
-
+using Inflame_Backend.Data.Context;
+using Inflame_Backend.Identity;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-
 builder.Services.AddControllers();
+
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+
+// Register MediatR
+builder.Services.AddMediatR(config =>
+{
+    config.RegisterServicesFromAssembly(typeof(Program).Assembly);
+});
 
 //------------------------------------------------------------------------------------------//
 #region Adds Services
@@ -28,6 +39,7 @@ builder.Services.AddSingleton(sp => new SupabaseInstance(supabaseUrl, supabaseKe
 
 builder.Services.AddScoped<IStorageAdapter, SupabaseStorageAdapter>();
 
+// Product Catalog Repositories
 builder.Services.AddScoped<PostgresProductRepository>();
 builder.Services.AddScoped<IProductRepository>(sp => new CachedProductRepository(sp.GetRequiredService<PostgresProductRepository>(), sp.GetRequiredService<RedisInstance>()));
 
@@ -72,7 +84,106 @@ builder.Services.AddScoped<IGalleryImageRepository>(sp => new CachedGalleryImage
 #endregion
 //------------------------------------------------------------------------------------------//
 
+//------------------------------------------------------------------------------------------//
+#region Identity
+
+// Identity Database
+var identityConnectionString =
+    builder.Configuration.GetConnectionString("IdentityDatabase");
+
+builder.Services.AddDbContext<IdentityDbContext>(options =>
+{
+    options.UseNpgsql(identityConnectionString);
+});
+
+// ASP.NET Core Data Protection
+// Required by Identity's default token providers
+builder.Services.AddDataProtection();
+
+// ASP.NET Core Identity (RBAC-ready: SuperAdmin, Admin, Employee)
+// .AddDefaultTokenProviders() supports Microsoft Authenticator 2FA
+builder.Services
+    .AddIdentityCore<ApplicationUser>(options =>
+    {
+        options.Password.RequireDigit = true;
+        options.Password.RequireLowercase = true;
+        options.Password.RequireUppercase = true;
+        options.Password.RequireNonAlphanumeric = true;
+        options.Password.RequiredLength = 12;
+
+        options.User.RequireUniqueEmail = true;
+
+        options.Lockout.MaxFailedAccessAttempts = 5;
+        options.Lockout.DefaultLockoutTimeSpan =
+            TimeSpan.FromMinutes(15);
+
+        options.SignIn.RequireConfirmedEmail = false;
+    })
+    .AddRoles<IdentityRole<Guid>>()
+    .AddEntityFrameworkStores<IdentityDbContext>()
+    .AddDefaultTokenProviders();
+
+builder.Services.AddScoped<JwtTokenService>();
+
+builder.Services
+    .AddAuthentication(options =>
+    {
+        options.DefaultAuthenticateScheme =
+            JwtBearerDefaults.AuthenticationScheme;
+
+        options.DefaultChallengeScheme =
+            JwtBearerDefaults.AuthenticationScheme;
+    })
+    .AddJwtBearer(options =>
+    {
+        var jwtKey =
+            builder.Configuration["Jwt:Key"];
+
+        if (string.IsNullOrWhiteSpace(jwtKey))
+        {
+            throw new InvalidOperationException(
+                "JWT key is not configured.");
+        }
+
+        options.TokenValidationParameters =
+            new TokenValidationParameters
+            {
+                ValidateIssuerSigningKey = true,
+
+                IssuerSigningKey =
+                    new SymmetricSecurityKey(
+                        Encoding.UTF8.GetBytes(jwtKey)),
+
+                ValidateIssuer = true,
+                ValidIssuer =
+                    builder.Configuration["Jwt:Issuer"],
+
+                ValidateAudience = true,
+                ValidAudience =
+                    builder.Configuration["Jwt:Audience"],
+
+                ValidateLifetime = true,
+
+                ClockSkew = TimeSpan.Zero
+            };
+    });
+
+builder.Services.AddAuthorization();
+
+#endregion
+//------------------------------------------------------------------------------------------//
+
 var app = builder.Build();
+
+// Seed identity roles at application startup
+using (var scope = app.Services.CreateScope())
+{
+    var roleManager =
+        scope.ServiceProvider
+            .GetRequiredService<RoleManager<IdentityRole<Guid>>>();
+
+    await IdentitySeeder.SeedRolesAsync(roleManager);
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -82,6 +193,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
