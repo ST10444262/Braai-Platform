@@ -224,14 +224,23 @@ var app = builder.Build();
 
 app.UseForwardedHeaders();
 
-// Seed identity roles at application startup
+// Seed identity roles and initial SuperAdmin at application startup
 using (var scope = app.Services.CreateScope())
 {
     var roleManager =
         scope.ServiceProvider
             .GetRequiredService<RoleManager<IdentityRole<Guid>>>();
 
+    var userManager =
+        scope.ServiceProvider
+            .GetRequiredService<UserManager<ApplicationUser>>();
+
     await IdentitySeeder.SeedRolesAsync(roleManager);
+
+    await IdentitySeeder.SeedSuperAdminAsync(
+        userManager,
+        roleManager,
+        app.Configuration);
 }
 
 // Configure the HTTP request pipeline.
