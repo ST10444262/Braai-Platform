@@ -6,6 +6,7 @@ using Inflame_Backend.Data.Instances;
 using Inflame_Backend.Data.Repositories.CRM;
 using Inflame_Backend.Data.Repositories.CustomBuild;
 using Inflame_Backend.Data.Repositories.ProductCatalog;
+using Inflame_Backend.Facades;
 using Inflame_Backend.Identity;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.HttpOverrides;
@@ -114,6 +115,9 @@ builder.Services.AddScoped<IGalleryImageRepository>(sp => new CachedGalleryImage
 
 // Services
 builder.Services.AddScoped<Inflame_Backend.Services.IEmailService, Inflame_Backend.Services.SmtpEmailService>();
+
+// Facades
+builder.Services.AddScoped<IProductCatalogueFacade, ProductCatalogueFacade>();
 
 #endregion
 //------------------------------------------------------------------------------------------//
