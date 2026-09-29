@@ -20,8 +20,9 @@ namespace Inflame_Backend.Facades
         /// <param name="maxPrice">Optional maximum price filter.</param>
         /// <param name="pageNumber">The current page number (default is 1).</param>
         /// <param name="pageSize">The number of items per page (default is 20).</param>
+        /// <param name="includeHidden">If true, returns all products regardless of visibility (for Admin use).</param>
         /// <returns>A collection of products matching the criteria for the specified page.</returns>
-        Task<IEnumerable<Product>> GetFilteredCatalogAsync(string? category, string? brand, decimal? minPrice, decimal? maxPrice, int pageNumber = 1, int pageSize = 20);
+        Task<IEnumerable<Product>> GetFilteredCatalogAsync(string? category, string? brand, decimal? minPrice, decimal? maxPrice, int pageNumber = 1, int pageSize = 20, bool includeHidden = false);
 
         //------------------------------------------------------------------------------------------//
         /// <summary>

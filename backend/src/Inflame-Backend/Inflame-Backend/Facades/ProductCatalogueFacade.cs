@@ -35,7 +35,7 @@ namespace Inflame_Backend.Facades
         /// <summary>
         /// Retrieves a paginated and filtered catalog of products.
         /// </summary>
-        public async Task<IEnumerable<Product>> GetFilteredCatalogAsync(string? category, string? brand, decimal? minPrice, decimal? maxPrice, int pageNumber = 1, int pageSize = 20)
+        public async Task<IEnumerable<Product>> GetFilteredCatalogAsync(string? category, string? brand, decimal? minPrice, decimal? maxPrice, int pageNumber = 1, int pageSize = 20, bool includeHidden = false)
         {
             // Fetches from the Product Catalog Repository
             var allProducts = await _productRepository.GetAllAsync();
@@ -44,13 +44,18 @@ namespace Inflame_Backend.Facades
             var queryBuilder = new ProductQueryBuilder(allProducts.AsQueryable());
 
             // Apply Filters using the Builder
-            var filteredQuery = queryBuilder
+            queryBuilder
                 .FilterByCategory(category)
                 .FilterByBrand(brand)
-                .FilterByPriceRange(minPrice, maxPrice)
-                //Ensures only visible products are returned
-                .FilterByVisibility(true) 
-                .Build();
+                .FilterByPriceRange(minPrice, maxPrice);
+
+            // Conditionally filter by visibility for public users
+            if (!includeHidden)
+            {
+                queryBuilder.FilterByVisibility(true);
+            }
+
+            var filteredQuery = queryBuilder.Build();
 
             // Applies the pagination feature to handle massive scale efficiently
             var paginatedProducts = filteredQuery
