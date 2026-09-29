@@ -8,7 +8,7 @@ namespace Inflame_Backend.Features.Enquiries.Queries
     /// <summary>
     /// Unified query for Admins to fetch either a specific Enquiry by ID or a paginated list of Enquiries.
     /// </summary>
-    public class GetEnquiryQuery : IRequest<IEnumerable<Enquiry>>
+    public class GetAdminEnquiryQuery : IRequest<IEnumerable<Enquiry>>
     {
         #region Single Enquiry Lookup
         

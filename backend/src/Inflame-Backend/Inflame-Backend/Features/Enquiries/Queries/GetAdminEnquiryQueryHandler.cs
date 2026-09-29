@@ -11,7 +11,7 @@ namespace Inflame_Backend.Features.Enquiries.Queries
     /// <summary>
     /// Handles the admin query for Enquiries (Leads), supporting filtering by status and pagination.
     /// </summary>
-    public class GetEnquiryQueryHandler : IRequestHandler<GetEnquiryQuery, IEnumerable<Enquiry>>
+    public class GetAdminEnquiryQueryHandler : IRequestHandler<GetEnquiryQuery, IEnumerable<Enquiry>>
     {
         private readonly IEnquiryRepository _enquiryRepository;
 
