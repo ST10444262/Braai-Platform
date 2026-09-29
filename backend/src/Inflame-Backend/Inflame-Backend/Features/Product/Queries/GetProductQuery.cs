@@ -1,7 +1,47 @@
-﻿namespace Inflame_Backend.Features.Product.Queries
+using MediatR;
+using Inflame_Backend.Models.ProductCatalog;
+using System;
+using System.Collections.Generic;
+
+namespace Inflame_Backend.Features.Product.Queries
 {
-    public class GetProductQuery
+    /// <summary>
+    /// Unified query to fetch either a single product by ID, or a paginated/filtered list of products.
+    /// Returns an IEnumerable so the response type remains consistent.
+    /// </summary>
+    public class GetProductQuery : IRequest<IEnumerable<Models.ProductCatalog.Product>>
     {
+        #region Single Product Query
+        
+        //------------------------------------------------------------------------------------------//
+        /// <summary>
+        /// If provided, the query will return only the specific product matching this ID.
+        /// </summary>
+        public Guid? ProductId { get; set; }
+
+        #endregion
+
+        #region Catalog Filter Queries
+
+        //------------------------------------------------------------------------------------------//
+        public string? Category { get; set; }
+
+        //------------------------------------------------------------------------------------------//
+        public string? Brand { get; set; }
+
+        //------------------------------------------------------------------------------------------//
+        public decimal? MinPrice { get; set; }
+
+        //------------------------------------------------------------------------------------------//
+        public decimal? MaxPrice { get; set; }
+
+        //------------------------------------------------------------------------------------------//
+        public int PageNumber { get; set; } = 1;
+
+        //------------------------------------------------------------------------------------------//
+        public int PageSize { get; set; } = 20;
+
+        #endregion
     }
 }
 //---------------------END OF FILE------------------------------------------------------------------//
