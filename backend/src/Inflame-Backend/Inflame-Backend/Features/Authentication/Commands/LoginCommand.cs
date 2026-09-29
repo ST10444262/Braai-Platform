@@ -15,7 +15,6 @@ namespace Inflame_Backend.Features.Authentication.Commands
         string Password
     ) : IRequest<LoginResponseDto>;
 
-
     public class LoginCommandHandler
         : IRequestHandler<LoginCommand, LoginResponseDto>
     {
@@ -78,6 +77,7 @@ namespace Inflame_Backend.Features.Authentication.Commands
                 {
                     Success = true,
                     RequiresTwoFactor = true,
+                    UserId = user.Id,
                     Message = "Two-factor authentication is required."
                 };
             }

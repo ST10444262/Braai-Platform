@@ -5,6 +5,7 @@ using Inflame_Backend.Models.CRM;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace Inflame_Backend.Controllers.Admin
 {
@@ -36,6 +37,28 @@ namespace Inflame_Backend.Controllers.Admin
 
             var result =
                 await _mediator.Send(command);
+
+            if (!result.Success)
+            {
+                return Unauthorized(result);
+            }
+
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Verifies the 2FA code during the secondary login step and issues the final JWT.
+        /// </summary>
+        [HttpPost("login/2fa")]
+        [AllowAnonymous]
+        public async Task<ActionResult<VerifyLoginTwoFactorResponseDto>> VerifyLoginTwoFactor(
+            [FromBody] VerifyLoginTwoFactorRequestDto request)
+        {
+            var command = new VerifyLoginTwoFactorCommand(
+                request.UserId,
+                request.Code);
+
+            var result = await _mediator.Send(command);
 
             if (!result.Success)
             {
@@ -79,6 +102,69 @@ namespace Inflame_Backend.Controllers.Admin
             [FromQuery] GetAdminStaffQuery query)
         {
             var result = await _mediator.Send(query);
+
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Generates two-factor authentication setup details (shared key and formatted QR URI) for Microsoft Authenticator.
+        /// </summary>
+        [HttpPost("2fa/setup")]
+        [Authorize]
+        public async Task<ActionResult<SetupTwoFactorResponseDto>> SetupTwoFactor()
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+
+            if (userIdClaim == null ||
+                !Guid.TryParse(userIdClaim.Value, out var userId))
+            {
+                return Unauthorized(new
+                {
+                    message = "Unable to identify the authenticated user."
+                });
+            }
+
+            var command = new SetupTwoFactorCommand(userId);
+
+            var result = await _mediator.Send(command);
+
+            if (!result.Success)
+            {
+                return BadRequest(result);
+            }
+
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Verifies the provided 6-digit authenticator code and enables two-factor authentication for the user.
+        /// </summary>
+        [HttpPost("2fa/verify")]
+        [Authorize]
+        public async Task<ActionResult<VerifyTwoFactorResponseDto>> VerifyTwoFactor(
+            [FromBody] VerifyTwoFactorRequestDto request)
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+
+            if (userIdClaim == null ||
+                !Guid.TryParse(userIdClaim.Value, out var userId))
+            {
+                return Unauthorized(new
+                {
+                    message = "Unable to identify the authenticated user."
+                });
+            }
+
+            var command = new VerifyTwoFactorCommand(
+                userId,
+                request.Code);
+
+            var result = await _mediator.Send(command);
+
+            if (!result.Success)
+            {
+                return BadRequest(result);
+            }
 
             return Ok(result);
         }
