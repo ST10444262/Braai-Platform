@@ -13,7 +13,7 @@ export default function HomePage() {
       <section className="relative w-full min-h-[600px] flex items-center px-6 sm:px-16 py-24 overflow-hidden">
         <Image
           src="/homebackground.jpg"
-          alt="Architectural Fireplace"
+          alt="Inflame Showroom Background"
           fill
           priority
           quality={90}
