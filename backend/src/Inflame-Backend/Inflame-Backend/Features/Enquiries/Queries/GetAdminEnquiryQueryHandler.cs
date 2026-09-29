@@ -11,7 +11,7 @@ namespace Inflame_Backend.Features.Enquiries.Queries
     /// <summary>
     /// Handles the admin query for Enquiries (Leads), supporting filtering by status and pagination.
     /// </summary>
-    public class GetAdminEnquiryQueryHandler : IRequestHandler<GetEnquiryQuery, IEnumerable<Enquiry>>
+    public class GetAdminEnquiryQueryHandler : IRequestHandler<GetAdminEnquiryQuery, IEnumerable<Enquiry>>
     {
         private readonly IEnquiryRepository _enquiryRepository;
 
@@ -19,10 +19,10 @@ namespace Inflame_Backend.Features.Enquiries.Queries
 
         //------------------------------------------------------------------------------------------//
         /// <summary>
-        /// Initializes the GetEnquiryQueryHandler with the required repository dependency.
+        /// Initializes the GetAdminEnquiryQueryHandler with the required repository dependency.
         /// </summary>
         /// <param name="enquiryRepository">The repository for accessing enquiry data.</param>
-        public GetEnquiryQueryHandler(IEnquiryRepository enquiryRepository)
+        public GetAdminEnquiryQueryHandler(IEnquiryRepository enquiryRepository)
         {
             _enquiryRepository = enquiryRepository;
         }
@@ -35,7 +35,7 @@ namespace Inflame_Backend.Features.Enquiries.Queries
         /// <summary>
         /// Processes the query to fetch either a single enquiry or a paginated, filtered list.
         /// </summary>
-        public async Task<IEnumerable<Enquiry>> Handle(GetEnquiryQuery request, CancellationToken cancellationToken)
+        public async Task<IEnumerable<Enquiry>> Handle(GetAdminEnquiryQuery request, CancellationToken cancellationToken)
         {
             // Fetches a single enquiry by ID for detailed inspection
             if (request.EnquiryId.HasValue)
