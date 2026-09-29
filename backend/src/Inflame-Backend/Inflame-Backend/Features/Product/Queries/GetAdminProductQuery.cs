@@ -6,16 +6,16 @@ using System.Collections.Generic;
 namespace Inflame_Backend.Features.Product.Queries
 {
     /// <summary>
-    /// Unified query to fetch either a single product by ID, or a paginated/filtered list of products.
-    /// Returns an IEnumerable so the response type remains consistent.
+    /// Admin query to fetch products. Supports fetching a single product by ID or a full catalog,
+    /// bypassing public visibility restrictions so admins can see hidden products.
     /// </summary>
-    public class GetProductQuery : IRequest<IEnumerable<Models.ProductCatalog.Product>>
+    public class GetAdminProductQuery : IRequest<IEnumerable<Models.ProductCatalog.Product>>
     {
         #region Single Product Query
         
         //------------------------------------------------------------------------------------------//
         /// <summary>
-        /// If provided, the query will return only the specific product matching this ID.
+        /// If provided, returns only the specific product matching this ID.
         /// </summary>
         public Guid? ProductId { get; set; }
 
