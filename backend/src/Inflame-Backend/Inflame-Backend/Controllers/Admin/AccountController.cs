@@ -1,5 +1,7 @@
 ﻿using Inflame_Backend.Features.Authentication.Commands;
 using Inflame_Backend.Features.Authentication.DTOs;
+using Inflame_Backend.Features.Staff.Queries;
+using Inflame_Backend.Models.CRM;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -63,6 +65,20 @@ namespace Inflame_Backend.Controllers.Admin
             {
                 return BadRequest(result);
             }
+
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Retrieves staff accounts using query parameters.
+        /// Restricted to SuperAdmin and Admin authorization.
+        /// </summary>
+        [HttpGet("staff")]
+        [Authorize(Roles = "SuperAdmin,Admin")]
+        public async Task<ActionResult<IEnumerable<StaffAccount>>> GetStaff(
+            [FromQuery] GetAdminStaffQuery query)
+        {
+            var result = await _mediator.Send(query);
 
             return Ok(result);
         }
