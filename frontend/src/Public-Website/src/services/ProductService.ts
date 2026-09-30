@@ -1,4 +1,5 @@
 import { BraaiProduct, BraaiProductDetail } from "@/types/product";
+import { OnSpecialProduct } from "@/types/product";
 
 export async function getBraaiProducts(): Promise<BraaiProduct[]>{
 
@@ -12,6 +13,22 @@ export async function getBraaiProductById(id: string): Promise<BraaiProductDetai
     //FILL WITH REAL API CALL ONCE HAVE IT
     return mockBraaiProducts.find((p) => p.id === id) ?? null;
 }
+
+export async function getOnSpecialProducts(): Promise<OnSpecialProduct[]>{
+    //FILL WITH ACTUAL API CALL
+    return MOCK_SPECIAL_PRODUCTS;
+}
+
+const MOCK_SPECIAL_PRODUCTS: OnSpecialProduct[] = [
+  { id: 's1', name: 'Kratki Nadia 14G', brand: 'Kratki', category: 'fireplace', price: 103000, onSpecial: 94500, image: '/categories/insert.webp' },
+  { id: 's2', name: 'Kratki K6', brand: 'Kratki', category: 'fireplace', price: 28200, onSpecial: 23500, image: '/categories/insert.webp' },
+  { id: 's3', name: 'SAfire Heeta 600 Arc', brand: 'Heeta', category: 'fireplace', price: 23890, onSpecial: 21995, image: '/categories/insert.webp' },
+  { id: 's4', name: 'Kratki K12', brand: 'Kratki', category: 'fireplace', price: 21900, onSpecial: 16900, image: '/categories/insert.webp' },
+  { id: 's5', name: 'Kratki AB-S', brand: 'Kratki', category: 'fireplace', price: 42600, onSpecial: 34080, image: '/categories/insert.webp' },
+  { id: 's6', name: 'Kratki Rollo 2', brand: 'Heeta', category: 'fireplace', price: 42000, onSpecial: 33500, image: '/categories/insert.webp' },
+  { id: 's7', name: 'Chad-O-Chef Entertainer', brand: 'Chad-O-Chef', category: 'braai', price: 49900, onSpecial: 44900, image: '/categories/insert.webp' },
+];
+
 
 const mockBraaiProducts: BraaiProductDetail[] = [
  // { id: '1', name: 'Chad-O-Chef 4 Burner Hybrid Gas Grill', brand: 'Chad-O-Chef', price: 52700, image: '/categories/insert.webp', braaiType: 'Freestanding', fuelType: 'Gas & Wood Hybrid' },
