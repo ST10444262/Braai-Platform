@@ -20,6 +20,9 @@ namespace Inflame_Backend.Models.ProductCatalog
         [Column("category")]
         public string Category { get; set; } = string.Empty;
 
+        [Column("product_type")]
+        public string ProductType { get; set; } = string.Empty;
+
         [Column("brand")]
         public string Brand { get; set; } = string.Empty;
 
