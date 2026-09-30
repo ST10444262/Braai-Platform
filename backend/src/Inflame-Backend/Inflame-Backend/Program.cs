@@ -1,20 +1,32 @@
-
+using System.Text;
+using System.Threading.RateLimiting;
+using Inflame_Backend.Data.Adapters;
+using Inflame_Backend.Data.Context;
 using Inflame_Backend.Data.Instances;
-
-using Inflame_Backend.Data.Repositories.ProductCatalog;
 using Inflame_Backend.Data.Repositories.CRM;
 using Inflame_Backend.Data.Repositories.CustomBuild;
-using Inflame_Backend.Data.Adapters;
-using System.Threading.RateLimiting;
+using Inflame_Backend.Data.Repositories.ProductCatalog;
+using Inflame_Backend.Facades;
+using Inflame_Backend.Identity;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-
 builder.Services.AddControllers();
+
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+
+// Register MediatR
+builder.Services.AddMediatR(config =>
+{
+    config.RegisterServicesFromAssembly(typeof(Program).Assembly);
+});
 
 //------------------------------------------------------------------------------------------//
 #region Rate Limiting
@@ -27,12 +39,12 @@ builder.Services.AddRateLimiter(options =>
             factory: partition => new FixedWindowRateLimiterOptions
             {
                 AutoReplenishment = true,
-                //Allows 100 requests per minute per IP
-                PermitLimit = 100, 
+                // Allows 100 requests per minute per IP
+                PermitLimit = 100,
                 QueueLimit = 5,
                 Window = TimeSpan.FromMinutes(1)
             }));
-    
+
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
     options.OnRejected = async (context, token) =>
     {
@@ -56,6 +68,7 @@ builder.Services.AddSingleton(sp => new SupabaseInstance(supabaseUrl, supabaseKe
 
 builder.Services.AddScoped<IStorageAdapter, SupabaseStorageAdapter>();
 
+// Product Catalog Repositories
 builder.Services.AddScoped<PostgresProductRepository>();
 builder.Services.AddScoped<IProductRepository>(sp => new CachedProductRepository(sp.GetRequiredService<PostgresProductRepository>(), sp.GetRequiredService<RedisInstance>()));
 
@@ -103,6 +116,9 @@ builder.Services.AddScoped<IGalleryImageRepository>(sp => new CachedGalleryImage
 // Services
 builder.Services.AddScoped<Inflame_Backend.Services.IEmailService, Inflame_Backend.Services.SmtpEmailService>();
 
+// Facades
+builder.Services.AddScoped<IProductCatalogueFacade, ProductCatalogueFacade>();
+
 #endregion
 //------------------------------------------------------------------------------------------//
 #region Forwarded Headers (For Render Deployment)
@@ -119,9 +135,117 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
 #endregion
 //------------------------------------------------------------------------------------------//
 
+//------------------------------------------------------------------------------------------//
+#region Identity
+
+// Identity Database
+var identityConnectionString =
+    builder.Configuration.GetConnectionString("IdentityDatabase");
+
+builder.Services.AddDbContext<IdentityDbContext>(options =>
+{
+    options.UseNpgsql(identityConnectionString);
+});
+
+// ASP.NET Core Data Protection
+// Required by Identity's default token providers
+builder.Services.AddDataProtection();
+
+// ASP.NET Core Identity (RBAC-ready: SuperAdmin, Admin, Employee)
+// .AddDefaultTokenProviders() supports Microsoft Authenticator 2FA
+builder.Services
+    .AddIdentityCore<ApplicationUser>(options =>
+    {
+        options.Password.RequireDigit = true;
+        options.Password.RequireLowercase = true;
+        options.Password.RequireUppercase = true;
+        options.Password.RequireNonAlphanumeric = true;
+        options.Password.RequiredLength = 12;
+
+        options.User.RequireUniqueEmail = true;
+
+        options.Lockout.MaxFailedAccessAttempts = 5;
+        options.Lockout.DefaultLockoutTimeSpan =
+            TimeSpan.FromMinutes(15);
+
+        options.SignIn.RequireConfirmedEmail = false;
+    })
+    .AddRoles<IdentityRole<Guid>>()
+    .AddEntityFrameworkStores<IdentityDbContext>()
+    .AddDefaultTokenProviders();
+
+builder.Services.AddScoped<JwtTokenService>();
+
+builder.Services
+    .AddAuthentication(options =>
+    {
+        options.DefaultAuthenticateScheme =
+            JwtBearerDefaults.AuthenticationScheme;
+
+        options.DefaultChallengeScheme =
+            JwtBearerDefaults.AuthenticationScheme;
+    })
+    .AddJwtBearer(options =>
+    {
+        var jwtKey =
+            builder.Configuration["Jwt:Key"];
+
+        if (string.IsNullOrWhiteSpace(jwtKey))
+        {
+            throw new InvalidOperationException(
+                "JWT key is not configured.");
+        }
+
+        options.TokenValidationParameters =
+            new TokenValidationParameters
+            {
+                ValidateIssuerSigningKey = true,
+
+                IssuerSigningKey =
+                    new SymmetricSecurityKey(
+                        Encoding.UTF8.GetBytes(jwtKey)),
+
+                ValidateIssuer = true,
+                ValidIssuer =
+                    builder.Configuration["Jwt:Issuer"],
+
+                ValidateAudience = true,
+                ValidAudience =
+                    builder.Configuration["Jwt:Audience"],
+
+                ValidateLifetime = true,
+
+                ClockSkew = TimeSpan.Zero
+            };
+    });
+
+builder.Services.AddAuthorization();
+
+#endregion
+//------------------------------------------------------------------------------------------//
+
 var app = builder.Build();
 
 app.UseForwardedHeaders();
+
+// Seed identity roles and initial SuperAdmin at application startup
+using (var scope = app.Services.CreateScope())
+{
+    var roleManager =
+        scope.ServiceProvider
+            .GetRequiredService<RoleManager<IdentityRole<Guid>>>();
+
+    var userManager =
+        scope.ServiceProvider
+            .GetRequiredService<UserManager<ApplicationUser>>();
+
+    await IdentitySeeder.SeedRolesAsync(roleManager);
+
+    await IdentitySeeder.SeedSuperAdminAsync(
+        userManager,
+        roleManager,
+        app.Configuration);
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -131,8 +255,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.UseRateLimiter(); // Applies the rate limiting middleware
-
+app.UseRateLimiter();
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

@@ -59,7 +59,7 @@ namespace Inflame_Backend.Features.Staff.Queries
 
             // Apply Pagination
             var paginatedStaff = query
-                .OrderBy(s => s.LastName) 
+                .OrderBy(s => s.FullName) 
                 .Skip((request.PageNumber - 1) * request.PageSize)
                 .Take(request.PageSize)
                 .ToList();
