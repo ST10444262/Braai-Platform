@@ -1,12 +1,40 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Inflame_Backend.Features.Enquiries.Queries;
+using Inflame_Backend.Models.CRM;
+using MediatR;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Inflame_Backend.Controllers.Admin
 {
-    public class EnquiriesController : Controller
+    /// <summary>
+    /// API Controller for managing Enquiries from the Admin portal.
+    /// </summary>
+    [ApiController]
+    [Route("api/admin/enquiries")]
+    [Authorize(Roles = "SuperAdmin,Admin,Employee")]
+    public class EnquiriesController : ControllerBase
     {
-        public IActionResult Index()
+        private readonly IMediator _mediator;
+
+        //------------------------------------------------------------------------------------------//
+        /// <summary>
+        /// Initializes the EnquiriesController with MediatR.
+        /// </summary>
+        public EnquiriesController(IMediator mediator)
         {
-            return View();
+            _mediator = mediator;
+        }
+
+        //------------------------------------------------------------------------------------------//
+        /// <summary>
+        /// Retrieves a paginated list of enquiries, optionally filtered by status, or a specific enquiry by ID.
+        /// </summary>
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<Enquiry>>> GetEnquiries([FromQuery] GetAdminEnquiryQuery query)
+        {
+            var result = await _mediator.Send(query);
+
+            return Ok(result);
         }
     }
 }
