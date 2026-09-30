@@ -1,3 +1,5 @@
+using Inflame_Backend.Features.Enquiries.Commands;
+using Inflame_Backend.Features.Enquiries.DTOs;
 using Inflame_Backend.Features.Enquiries.Queries;
 using Inflame_Backend.Models.CRM;
 using MediatR;
@@ -33,6 +35,26 @@ namespace Inflame_Backend.Controllers.Admin
         public async Task<ActionResult<IEnumerable<Enquiry>>> GetEnquiries([FromQuery] GetAdminEnquiryQuery query)
         {
             var result = await _mediator.Send(query);
+
+            return Ok(result);
+        }
+
+        //------------------------------------------------------------------------------------------//
+        /// <summary>
+        /// Updates the status of a specific enquiry.
+        /// </summary>
+        [HttpPut("{enquiryId}/status")]
+        public async Task<ActionResult<UpdateEnquiryStatusResponseDto>> UpdateStatus(
+            [FromRoute] Guid enquiryId, 
+            [FromBody] UpdateEnquiryStatusRequestDto request)
+        {
+            var command = new UpdateEnquiryStatusCommand(enquiryId, request.Status);
+            var result = await _mediator.Send(command);
+
+            if (!result.Success)
+            {
+                return BadRequest(result);
+            }
 
             return Ok(result);
         }
