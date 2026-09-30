@@ -64,6 +64,7 @@ namespace Inflame_Backend.Features.Product.Commands
                     ProductId = Guid.NewGuid(),
                     Name = dto.Name,
                     Category = dto.Category,
+                    ProductType = dto.ProductType ?? string.Empty,
                     Brand = dto.Brand,
                     IsImported = dto.IsImported,
                     IsCustomisable = dto.IsCustomisable,
