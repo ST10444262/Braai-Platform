@@ -9,3 +9,7 @@ export interface BraaiProduct{
     braaiType: string; //example would be freestanding or built in
     fuelType: string; //example would be gas, wood or charcoal
 }
+
+export interface BraaiProductDetail extends BraaiProduct{
+    description: string;
+}

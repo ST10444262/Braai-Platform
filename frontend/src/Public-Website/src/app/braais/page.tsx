@@ -172,7 +172,7 @@ export default function BraaisPage() {
                 {products.map((product) => (
                   <Link
                     key={product.id}
-                    href={`/braais/${product.id}/quote`}
+                    href={`/braais/${product.id}`}
                     className="group bg-white border border-stone-200/80 rounded-sm p-4 flex flex-col justify-between hover:shadow-md transition-shadow duration-200"
                   >
                     <div className="space-y-3">
