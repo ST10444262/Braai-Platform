@@ -15,7 +15,7 @@ namespace Inflame_Backend.Controllers.Admin
     /// </summary>
     [ApiController]
     [Route("api/admin/products")]
-    [Authorize(Roles = "SuperAdmin,Admin")]
+    [Authorize(Roles = "SuperAdmin,Admin,Employee")]
     public class ProductController : ControllerBase
     {
         private readonly IMediator _mediator;
@@ -46,9 +46,50 @@ namespace Inflame_Backend.Controllers.Admin
         /// Utilizes the ProductFactory for Braai and Fireplace subtypes.
         /// </summary>
         [HttpPost]
+        [Authorize(Roles = "SuperAdmin,Admin")]
         public async Task<ActionResult<CreateProductResponseDto>> CreateProduct([FromForm] CreateProductRequestDto request)
         {
             var command = new CreateProductCommand(request);
+            var result = await _mediator.Send(command);
+
+            if (!result.Success)
+            {
+                return BadRequest(result);
+            }
+
+            return Ok(result);
+        }
+
+        //------------------------------------------------------------------------------------------//
+        /// <summary>
+        /// Updates an existing product and its subtypes.
+        /// </summary>
+        [HttpPut("{productId}")]
+        public async Task<ActionResult<UpdateProductResponseDto>> UpdateProduct(
+            [FromRoute] Guid productId, 
+            [FromBody] UpdateProductRequestDto request)
+        {
+            bool hasPriceControl = User.IsInRole("SuperAdmin") || User.IsInRole("Admin");
+            var command = new UpdateProductCommand(productId, request, hasPriceControl);
+            var result = await _mediator.Send(command);
+
+            if (!result.Success)
+            {
+                return BadRequest(result);
+            }
+
+            return Ok(result);
+        }
+
+        //------------------------------------------------------------------------------------------//
+        /// <summary>
+        /// Deletes a product and its associated subtypes.
+        /// </summary>
+        [HttpDelete("{productId}")]
+        [Authorize(Roles = "SuperAdmin,Admin")]
+        public async Task<ActionResult<DeleteProductResponseDto>> DeleteProduct([FromRoute] Guid productId)
+        {
+            var command = new DeleteProductCommand(productId);
             var result = await _mediator.Send(command);
 
             if (!result.Success)
