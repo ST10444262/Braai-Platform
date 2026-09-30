@@ -6,6 +6,7 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using Inflame_Backend.Features.Staff.Commands;
 
 namespace Inflame_Backend.Controllers.Admin
 {
