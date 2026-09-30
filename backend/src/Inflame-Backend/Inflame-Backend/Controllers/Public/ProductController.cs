@@ -1,11 +1,17 @@
-﻿using Inflame_Backend.Features.Product.Queries;
+using Inflame_Backend.Features.Product.Queries;
+using Inflame_Backend.Features.Product.DTOs;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Inflame_Backend.Controllers.Public
 {
     [ApiController]
-    [Route("api/products")]
+    [Route("api/public/products")]
     public class ProductController : ControllerBase
     {
         private readonly IMediator _mediator;
@@ -19,27 +25,13 @@ namespace Inflame_Backend.Controllers.Public
         
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ProductResponseDto>>> GetProducts(
-            [FromQuery] string? category,
-            [FromQuery] string? brand,
-            [FromQuery] decimal? minPrice,
-            [FromQuery] decimal? maxPrice,
-            [FromQuery] int page = 1,
-            [FromQuery] int pageSize = 20,
+            [FromQuery] GetProductQuery query,
             CancellationToken ct = default)
         {
-            var query = new GetProductQuery
-            {
-                Category = category,
-                Brand = brand,
-                MinPrice = minPrice,
-                MaxPrice = maxPrice,
-                PageNumber = Math.Max(page, 1),
-                PageSize = Math.Clamp(pageSize, 1, 100)
-            };
-
+            // The query handles all filters and pagination natively.
             var products = await _mediator.Send(query, ct);
 
-            return Ok(products.Where(p => p.IsVisible).Select(p => new ProductResponseDto(p)));
+            return Ok(products.Select(p => new ProductResponseDto(p)));
         }
 
         //------------------------------------------------------------------------------------------//
@@ -52,45 +44,6 @@ namespace Inflame_Backend.Controllers.Public
 
             return product == null ? NotFound() : Ok(new ProductResponseDto(product));
         }
-    }
-
-    //------------------------------------------------------------------------------------------//
-    public class ProductResponseDto
-    {
-        public Guid Id { get; set; }
-        public string Name { get; set; } = string.Empty;
-        public string Category { get; set; } = string.Empty;
-        public string Brand { get; set; } = string.Empty;
-        public bool IsImported { get; set; }
-        public bool IsCustomisable { get; set; }
-        public decimal Price { get; set; }
-        public decimal? OnSpecial { get; set; }
-        public string Description { get; set; } = string.Empty;
-        public List<ProductImageResponseDto> Images { get; set; } = new();
-
-        public ProductResponseDto() { }
-
-        public ProductResponseDto(Inflame_Backend.Models.ProductCatalog.Product p)
-        {
-            Id = p.ProductId;
-            Name = p.Name;
-            Category = p.Category;
-            Brand = p.Brand;
-            IsImported = p.IsImported;
-            IsCustomisable = p.IsCustomisable;
-            Price = p.Price;
-            OnSpecial = p.OnSpecial;
-            Description = p.Description;
-            Images = (p.Images ?? new())
-                .Select(i => new ProductImageResponseDto { Url = i.Url, IsPrimary = i.IsPrimary })
-                .ToList();
-        }
-    }
-
-    public class ProductImageResponseDto
-    {
-        public string Url { get; set; } = string.Empty;
-        public bool IsPrimary { get; set; }
     }
 }
 //---------------------END OF FILE------------------------------------------------------------------//
