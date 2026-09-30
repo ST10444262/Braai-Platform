@@ -15,3 +15,4 @@ namespace Inflame_Backend.Identity
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 }
+//---------------------END OF FILE------------------------------------------------------------------//

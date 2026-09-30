@@ -1,4 +1,4 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using Inflame_Backend.Features.Authentication.DTOs;
 using Inflame_Backend.Identity;
 using MediatR;
@@ -6,21 +6,31 @@ using Microsoft.AspNetCore.Identity;
 
 namespace Inflame_Backend.Features.Authentication.Commands
 {
+    //------------------------------------------------------------------------------------------//
+    /// <summary>
+    /// MediatR command and handler for setting up two factor authentication.
+    /// </summary>
     public record SetupTwoFactorCommand(
         Guid UserId
     ) : IRequest<SetupTwoFactorResponseDto>;
 
+    //------------------------------------------------------------------------------------------//
     public class SetupTwoFactorCommandHandler
         : IRequestHandler<SetupTwoFactorCommand, SetupTwoFactorResponseDto>
     {
         private readonly UserManager<ApplicationUser> _userManager;
 
+        //------------------------------------------------------------------------------------------//
         public SetupTwoFactorCommandHandler(
             UserManager<ApplicationUser> userManager)
         {
             _userManager = userManager;
         }
 
+        //------------------------------------------------------------------------------------------//
+        /// <summary>
+        /// Handles the setup two factor request.
+        /// </summary>
         public async Task<SetupTwoFactorResponseDto> Handle(
             SetupTwoFactorCommand request,
             CancellationToken cancellationToken)
@@ -86,3 +96,4 @@ namespace Inflame_Backend.Features.Authentication.Commands
         }
     }
 }
+//---------------------END OF FILE------------------------------------------------------------------//

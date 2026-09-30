@@ -15,7 +15,12 @@ namespace Inflame_Backend.Identity
     {
         private readonly IConfiguration _configuration;
         private readonly UserManager<ApplicationUser> _userManager;
-
+        //------------------------------------------------------------------------------------------//
+        /// <summary>
+        /// Initializes a new instance of the JwtTokenService class with the specified configuration and user manager.
+        /// </summary>
+        /// <param name="configuration"></param>
+        /// <param name="userManager"></param>
         public JwtTokenService(
             IConfiguration configuration,
             UserManager<ApplicationUser> userManager)
@@ -23,7 +28,13 @@ namespace Inflame_Backend.Identity
             _configuration = configuration;
             _userManager = userManager;
         }
-
+        //------------------------------------------------------------------------------------------//
+        /// <summary>
+        /// Generates a signed JWT for the specified ApplicationUser, including claims for user identity, email, and roles.
+        /// </summary>
+        /// <param name="user"></param>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException"></exception>
         public async Task<string> GenerateTokenAsync(
             ApplicationUser user)
         {
@@ -88,3 +99,4 @@ namespace Inflame_Backend.Identity
         }
     }
 }
+//---------------------END OF FILE------------------------------------------------------------------//

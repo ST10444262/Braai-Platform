@@ -1,4 +1,4 @@
-﻿using Inflame_Backend.Features.Authentication.Commands;
+using Inflame_Backend.Features.Authentication.Commands;
 using Inflame_Backend.Features.Authentication.DTOs;
 using Inflame_Backend.Features.Staff.Queries;
 using Inflame_Backend.Models.CRM;
@@ -18,11 +18,12 @@ namespace Inflame_Backend.Controllers.Admin
     {
         private readonly IMediator _mediator;
 
+        //------------------------------------------------------------------------------------------//
         public AccountController(IMediator mediator)
         {
             _mediator = mediator;
         }
-
+        //------------------------------------------------------------------------------------------//
         /// <summary>
         /// Authenticates a staff member and returns a JWT.
         /// </summary>
@@ -45,7 +46,7 @@ namespace Inflame_Backend.Controllers.Admin
 
             return Ok(result);
         }
-
+        //------------------------------------------------------------------------------------------//
         /// <summary>
         /// Verifies the 2FA code during the secondary login step and issues the final JWT.
         /// </summary>
@@ -67,20 +68,32 @@ namespace Inflame_Backend.Controllers.Admin
 
             return Ok(result);
         }
-
+        //------------------------------------------------------------------------------------------//
         /// <summary>
-        /// Provisions a new staff account with an Employee role.
-        /// Restricted to SuperAdmin authorization.
+        /// Provisions a new staff account. SuperAdmins can create Admins or Employees. Admins can only create Employees.
         /// </summary>
         [HttpPost("staff")]
-        [Authorize(Roles = "SuperAdmin")]
+        [Authorize(Roles = "SuperAdmin,Admin")]
         public async Task<ActionResult<CreateStaffAccountResponseDto>> CreateStaff(
             [FromBody] CreateStaffAccountRequestDto request)
         {
+            var requestedRole = string.IsNullOrWhiteSpace(request.Role) ? "Employee" : request.Role;
+
+            if (requestedRole == "SuperAdmin")
+            {
+                return Forbid();
+            }
+
+            if (requestedRole == "Admin" && !User.IsInRole("SuperAdmin"))
+            {
+                return Forbid();
+            }
+
             var command = new CreateStaffAccountCommand(
                 request.Email,
                 request.Password,
-                request.FullName);
+                request.FullName,
+                requestedRole);
 
             var result = await _mediator.Send(command);
 
@@ -91,7 +104,7 @@ namespace Inflame_Backend.Controllers.Admin
 
             return Ok(result);
         }
-
+        //------------------------------------------------------------------------------------------//
         /// <summary>
         /// Retrieves staff accounts using query parameters.
         /// Restricted to SuperAdmin and Admin authorization.
@@ -105,7 +118,7 @@ namespace Inflame_Backend.Controllers.Admin
 
             return Ok(result);
         }
-
+        //------------------------------------------------------------------------------------------//
         /// <summary>
         /// Generates two-factor authentication setup details (shared key and formatted QR URI) for Microsoft Authenticator.
         /// </summary>
@@ -135,7 +148,7 @@ namespace Inflame_Backend.Controllers.Admin
 
             return Ok(result);
         }
-
+        //------------------------------------------------------------------------------------------//
         /// <summary>
         /// Verifies the provided 6-digit authenticator code and enables two-factor authentication for the user.
         /// </summary>

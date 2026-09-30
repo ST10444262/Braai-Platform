@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity;
 
 namespace Inflame_Backend.Identity
 {
@@ -8,6 +8,10 @@ namespace Inflame_Backend.Identity
     /// </summary>
     public static class IdentitySeeder
     {
+        //------------------------------------------------------------------------------------------//
+        /// <summary>
+        /// Seeds the default roles (SuperAdmin, Admin, Employee) if they do not already exist.
+        /// </summary>
         public static async Task SeedRolesAsync(
             RoleManager<IdentityRole<Guid>> roleManager)
         {
@@ -35,7 +39,15 @@ namespace Inflame_Backend.Identity
                 }
             }
         }
-
+        //------------------------------------------------------------------------------------------//
+        /// <summary>
+        /// Seeds an initial SuperAdmin user into the Identity database using credentials specified in the configuration.
+        /// </summary>
+        /// <param name="userManager"></param>
+        /// <param name="roleManager"></param>
+        /// <param name="configuration"></param>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException"></exception>
         public static async Task SeedSuperAdminAsync(
             UserManager<ApplicationUser> userManager,
             RoleManager<IdentityRole<Guid>> roleManager,
@@ -107,3 +119,4 @@ namespace Inflame_Backend.Identity
         }
     }
 }
+//---------------------END OF FILE------------------------------------------------------------------//

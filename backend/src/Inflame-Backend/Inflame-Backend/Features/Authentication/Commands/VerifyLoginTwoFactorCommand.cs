@@ -1,15 +1,20 @@
-﻿using Inflame_Backend.Features.Authentication.DTOs;
+using Inflame_Backend.Features.Authentication.DTOs;
 using Inflame_Backend.Identity;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 
 namespace Inflame_Backend.Features.Authentication.Commands
 {
+    //------------------------------------------------------------------------------------------//
+    /// <summary>
+    /// MediatR command and handler for verifying a login two factor code.
+    /// </summary>
     public record VerifyLoginTwoFactorCommand(
         Guid UserId,
         string Code
     ) : IRequest<VerifyLoginTwoFactorResponseDto>;
 
+    //------------------------------------------------------------------------------------------//
     public class VerifyLoginTwoFactorCommandHandler
         : IRequestHandler<
             VerifyLoginTwoFactorCommand,
@@ -18,6 +23,7 @@ namespace Inflame_Backend.Features.Authentication.Commands
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly JwtTokenService _jwtTokenService;
 
+        //------------------------------------------------------------------------------------------//
         public VerifyLoginTwoFactorCommandHandler(
             UserManager<ApplicationUser> userManager,
             JwtTokenService jwtTokenService)
@@ -26,6 +32,10 @@ namespace Inflame_Backend.Features.Authentication.Commands
             _jwtTokenService = jwtTokenService;
         }
 
+        //------------------------------------------------------------------------------------------//
+        /// <summary>
+        /// Handles the request to verify the two factor login code.
+        /// </summary>
         public async Task<VerifyLoginTwoFactorResponseDto> Handle(
             VerifyLoginTwoFactorCommand request,
             CancellationToken cancellationToken)
@@ -108,3 +118,4 @@ namespace Inflame_Backend.Features.Authentication.Commands
         }
     }
 }
+//---------------------END OF FILE------------------------------------------------------------------//

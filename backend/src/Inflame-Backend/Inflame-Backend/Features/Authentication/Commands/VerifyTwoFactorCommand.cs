@@ -1,15 +1,20 @@
-﻿using Inflame_Backend.Features.Authentication.DTOs;
+using Inflame_Backend.Features.Authentication.DTOs;
 using Inflame_Backend.Identity;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 
 namespace Inflame_Backend.Features.Authentication.Commands
 {
+    //------------------------------------------------------------------------------------------//
+    /// <summary>
+    /// MediatR command and handler for verifying a two factor code.
+    /// </summary>
     public record VerifyTwoFactorCommand(
         Guid UserId,
         string Code
     ) : IRequest<VerifyTwoFactorResponseDto>;
 
+    //------------------------------------------------------------------------------------------//
     public class VerifyTwoFactorCommandHandler
         : IRequestHandler<
             VerifyTwoFactorCommand,
@@ -17,12 +22,17 @@ namespace Inflame_Backend.Features.Authentication.Commands
     {
         private readonly UserManager<ApplicationUser> _userManager;
 
+        //------------------------------------------------------------------------------------------//
         public VerifyTwoFactorCommandHandler(
             UserManager<ApplicationUser> userManager)
         {
             _userManager = userManager;
         }
 
+        //------------------------------------------------------------------------------------------//
+        /// <summary>
+        /// Handles the request to verify the two factor token.
+        /// </summary>
         public async Task<VerifyTwoFactorResponseDto> Handle(
             VerifyTwoFactorCommand request,
             CancellationToken cancellationToken)
@@ -95,3 +105,4 @@ namespace Inflame_Backend.Features.Authentication.Commands
         }
     }
 }
+//---------------------END OF FILE------------------------------------------------------------------//

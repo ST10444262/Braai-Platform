@@ -1,4 +1,4 @@
-﻿using Inflame_Backend.Features.Authentication.DTOs;
+using Inflame_Backend.Features.Authentication.DTOs;
 using Inflame_Backend.Identity;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
@@ -15,12 +15,14 @@ namespace Inflame_Backend.Features.Authentication.Commands
         string Password
     ) : IRequest<LoginResponseDto>;
 
+    //------------------------------------------------------------------------------------------//
     public class LoginCommandHandler
         : IRequestHandler<LoginCommand, LoginResponseDto>
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly JwtTokenService _jwtTokenService;
 
+        //------------------------------------------------------------------------------------------//
         public LoginCommandHandler(
             UserManager<ApplicationUser> userManager,
             JwtTokenService jwtTokenService)
@@ -29,6 +31,10 @@ namespace Inflame_Backend.Features.Authentication.Commands
             _jwtTokenService = jwtTokenService;
         }
 
+        //------------------------------------------------------------------------------------------//
+        /// <summary>
+        /// Handles the login request.
+        /// </summary>
         public async Task<LoginResponseDto> Handle(
             LoginCommand request,
             CancellationToken cancellationToken)
@@ -95,3 +101,4 @@ namespace Inflame_Backend.Features.Authentication.Commands
         }
     }
 }
+//---------------------END OF FILE------------------------------------------------------------------//
