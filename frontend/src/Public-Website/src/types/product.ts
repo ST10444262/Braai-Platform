@@ -25,3 +25,19 @@ export interface OnSpecialProduct{
     onSpecial: number;
     image: string;
 }
+
+
+export interface FireplaceProduct{
+    id: string;
+    name: string;
+    brand: string;
+    price: string;
+    onSpecial?: number|null;
+    image: string;
+    fireplaceType: string;
+    heatOutputKw: number;
+}
+
+export interface FireplaceProductDetail extends FireplaceProduct{
+    description: string;
+}
