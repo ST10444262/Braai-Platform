@@ -41,7 +41,7 @@ namespace Inflame_Backend.Builders
 
         //------------------------------------------------------------------------------------------//
         /// <summary>
-        /// Filters the products by a specific category (e.g., Braai, Fireplace).
+        /// Filters the products by a specific category (e.g., free standing, built in).
         /// </summary>
         /// <param name="category">The category to filter by.</param>
         /// <returns>The current ProductQueryBuilder instance.</returns>
@@ -50,6 +50,21 @@ namespace Inflame_Backend.Builders
             if (!string.IsNullOrWhiteSpace(category))
             {
                 _query = _query.Where(p => p.Category.Equals(category, System.StringComparison.OrdinalIgnoreCase));
+            }
+            return this;
+        }
+
+        //------------------------------------------------------------------------------------------//
+        /// <summary>
+        /// Filters the products by a specific product type (e.g., Braai, Fireplace).
+        /// </summary>
+        /// <param name="productType">The product type to filter by.</param>
+        /// <returns>The current ProductQueryBuilder instance.</returns>
+        public ProductQueryBuilder FilterByProductType(string? productType)
+        {
+            if (!string.IsNullOrWhiteSpace(productType))
+            {
+                _query = _query.Where(p => p.ProductType.Equals(productType, System.StringComparison.OrdinalIgnoreCase));
             }
             return this;
         }
@@ -84,6 +99,64 @@ namespace Inflame_Backend.Builders
         public ProductQueryBuilder FilterByVisibility(bool isVisible = true)
         {
             _query = _query.Where(p => p.IsVisible == isVisible);
+            return this;
+        }
+
+        //------------------------------------------------------------------------------------------//
+        /// <summary>
+        /// Filters the products to include only those matching a specific list of IDs.
+        /// </summary>
+        /// <param name="productIds">The list of allowed product IDs.</param>
+        /// <returns>The current ProductQueryBuilder instance.</returns>
+        public ProductQueryBuilder FilterByProductIds(IEnumerable<System.Guid>? productIds)
+        {
+            if (productIds != null && productIds.Any())
+            {
+                _query = _query.Where(p => productIds.Contains(p.ProductId));
+            }
+            return this;
+        }
+
+        //------------------------------------------------------------------------------------------//
+        /// <summary>
+        /// Applies sorting to the query based on the sort parameter.
+        /// </summary>
+        /// <param name="sortBy">The sorting criteria (e.g. price_asc, price_desc).</param>
+        /// <returns>The current ProductQueryBuilder instance.</returns>
+        public ProductQueryBuilder ApplySorting(string? sortBy)
+        {
+            if (string.IsNullOrWhiteSpace(sortBy))
+            {
+                // Default sorting could be added here if needed, for example by CreatedAt desc
+                return this;
+            }
+
+            if (sortBy.Equals("price_asc", System.StringComparison.OrdinalIgnoreCase))
+            {
+                _query = _query.OrderBy(p => p.Price);
+            }
+            else if (sortBy.Equals("price_desc", System.StringComparison.OrdinalIgnoreCase))
+            {
+                _query = _query.OrderByDescending(p => p.Price);
+            }
+
+            return this;
+        }
+
+        //------------------------------------------------------------------------------------------//
+        /// <summary>
+        /// Filters the products by a generic search term.
+        /// </summary>
+        /// <param name="searchTerm">The term to search for.</param>
+        /// <returns>The current ProductQueryBuilder instance.</returns>
+        public ProductQueryBuilder FilterBySearchTerm(string? searchTerm)
+        {
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                _query = _query.Where(p => 
+                    p.Name.Contains(searchTerm, System.StringComparison.OrdinalIgnoreCase) ||
+                    (p.Brand != null && p.Brand.Contains(searchTerm, System.StringComparison.OrdinalIgnoreCase)));
+            }
             return this;
         }
 

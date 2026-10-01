@@ -30,6 +30,12 @@ namespace Inflame_Backend.Features.Client.Queries
         public string? Email { get; set; }
 
         //------------------------------------------------------------------------------------------//
+        /// <summary>
+        /// Optional, generic search across name, email, or phone
+        /// </summary>
+        public string? SearchTerm { get; set; }
+
+        //------------------------------------------------------------------------------------------//
         public int PageNumber { get; set; } = 1;
 
         //------------------------------------------------------------------------------------------//

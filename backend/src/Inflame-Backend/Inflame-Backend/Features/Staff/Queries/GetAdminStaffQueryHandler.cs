@@ -57,9 +57,17 @@ namespace Inflame_Backend.Features.Staff.Queries
                 query = query.Where(s => s.Role.Equals(request.Role, System.StringComparison.OrdinalIgnoreCase));
             }
 
+            // Apply Generic Search Filter if provided
+            if (!string.IsNullOrWhiteSpace(request.SearchTerm))
+            {
+                query = query.Where(s => 
+                    s.FullName.Contains(request.SearchTerm, System.StringComparison.OrdinalIgnoreCase) ||
+                    s.Email.Contains(request.SearchTerm, System.StringComparison.OrdinalIgnoreCase));
+            }
+
             // Apply Pagination
             var paginatedStaff = query
-                .OrderBy(s => s.LastName) 
+                .OrderBy(s => s.FullName) 
                 .Skip((request.PageNumber - 1) * request.PageSize)
                 .Take(request.PageSize)
                 .ToList();

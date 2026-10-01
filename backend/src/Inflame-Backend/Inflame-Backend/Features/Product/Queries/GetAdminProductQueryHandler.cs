@@ -51,9 +51,15 @@ namespace Inflame_Backend.Features.Product.Queries
             // Else it fetches the filtered and paginated admin catalog with the hidden flag set to true
             return await _facade.GetFilteredCatalogAsync(
                 request.Category,
+                request.ProductType,
                 request.Brand,
                 request.MinPrice,
                 request.MaxPrice,
+                request.FuelType,
+                request.MinHeatOutputKw,
+                request.MaxHeatOutputKw,
+                request.SortBy,
+                request.SearchTerm,
                 request.PageNumber,
                 request.PageSize,
                 includeHidden: true

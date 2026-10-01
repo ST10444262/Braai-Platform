@@ -1,11 +1,11 @@
 using Inflame_Backend.Data.Instances;
+using Supabase.Postgrest.Attributes;
 using Supabase.Postgrest.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using Supabase.Postgrest.Attributes;
 
 namespace Inflame_Backend.Data.DataLayer
 {
@@ -47,14 +47,18 @@ namespace Inflame_Backend.Data.DataLayer
         {
             var property = typeof(T).GetProperties()
                 .FirstOrDefault(p => p.GetCustomAttribute<PrimaryKeyAttribute>() != null);
-                
+
             if (property == null)
             {
                 throw new InvalidOperationException($"No PrimaryKey attribute found on type {typeof(T).Name}");
             }
 
             var columnName = property.GetCustomAttribute<PrimaryKeyAttribute>()?.ColumnName ?? property.Name;
-            var response = await _supabaseInstance.Client.From<T>().Filter(columnName, Supabase.Postgrest.Constants.Operator.Equals, id).Single();
+            var response = await _supabaseInstance.Client
+                .From<T>()
+                .Filter(columnName, Supabase.Postgrest.Constants.Operator.Equals, id.ToString())
+                .Single();
+
             return response;
         }
         //------------------------------------------------------------------------------------------//

@@ -14,6 +14,8 @@ namespace Inflame_Backend.Facades
     public class ProductCatalogueFacade : IProductCatalogueFacade
     {
         private readonly IProductRepository _productRepository;
+        private readonly IBraaiProductRepository _braaiProductRepository;
+        private readonly IFireplaceProductRepository _fireplaceProductRepository;
 
         #region Constructors
 
@@ -22,9 +24,16 @@ namespace Inflame_Backend.Facades
         /// Initializes the ProductCatalogueFacade with the required dependencies.
         /// </summary>
         /// <param name="productRepository">The repository for accessing product data.</param>
-        public ProductCatalogueFacade(IProductRepository productRepository)
+        /// <param name="braaiProductRepository">The repository for accessing braai product data.</param>
+        /// <param name="fireplaceProductRepository">The repository for accessing fireplace product data.</param>
+        public ProductCatalogueFacade(
+            IProductRepository productRepository, 
+            IBraaiProductRepository braaiProductRepository,
+            IFireplaceProductRepository fireplaceProductRepository)
         {
             _productRepository = productRepository ?? throw new ArgumentNullException(nameof(productRepository));
+            _braaiProductRepository = braaiProductRepository ?? throw new ArgumentNullException(nameof(braaiProductRepository));
+            _fireplaceProductRepository = fireplaceProductRepository ?? throw new ArgumentNullException(nameof(fireplaceProductRepository));
         }
 
         #endregion
@@ -35,10 +44,43 @@ namespace Inflame_Backend.Facades
         /// <summary>
         /// Retrieves a paginated and filtered catalog of products.
         /// </summary>
-        public async Task<IEnumerable<Product>> GetFilteredCatalogAsync(string? category, string? brand, decimal? minPrice, decimal? maxPrice, int pageNumber = 1, int pageSize = 20, bool includeHidden = false)
+        public async Task<IEnumerable<Product>> GetFilteredCatalogAsync(string? category, string? productType, string? brand, decimal? minPrice, decimal? maxPrice, string? fuelType, decimal? minHeatOutputKw, decimal? maxHeatOutputKw, string? sortBy, string? searchTerm = null, int pageNumber = 1, int pageSize = 20, bool includeHidden = false)
         {
             // Fetches from the Product Catalog Repository
             var allProducts = await _productRepository.GetAllAsync();
+
+            IEnumerable<Guid>? allowedIds = null;
+
+            // Handle FuelType filtering (requires BraaiProduct)
+            if (!string.IsNullOrWhiteSpace(fuelType))
+            {
+                var braais = await _braaiProductRepository.GetAllAsync();
+                allowedIds = braais.Where(b => b.FuelType.Equals(fuelType, StringComparison.OrdinalIgnoreCase))
+                                   .Select(b => b.ProductId)
+                                   .ToList();
+            }
+
+            // Handle HeatOutputKw filtering (requires FireplaceProduct)
+            if (minHeatOutputKw.HasValue || maxHeatOutputKw.HasValue)
+            {
+                var fireplaces = await _fireplaceProductRepository.GetAllAsync();
+                var fpQuery = fireplaces.AsEnumerable();
+
+                if (minHeatOutputKw.HasValue)
+                {
+                    fpQuery = fpQuery.Where(f => f.HeatOutputKw >= minHeatOutputKw.Value);
+                }
+
+                if (maxHeatOutputKw.HasValue)
+                {
+                    fpQuery = fpQuery.Where(f => f.HeatOutputKw <= maxHeatOutputKw.Value);
+                }
+
+                var fpIds = fpQuery.Select(f => f.ProductId).ToList();
+
+                // Intersect with allowedIds if FuelType was also specified (unlikely to have both, but safe)
+                allowedIds = allowedIds == null ? fpIds : allowedIds.Intersect(fpIds).ToList();
+            }
 
             // Initialize builder and convert to IQueryable for optimization
             var queryBuilder = new ProductQueryBuilder(allProducts.AsQueryable());
@@ -46,8 +88,12 @@ namespace Inflame_Backend.Facades
             // Apply Filters using the Builder
             queryBuilder
                 .FilterByCategory(category)
+                .FilterByProductType(productType)
                 .FilterByBrand(brand)
-                .FilterByPriceRange(minPrice, maxPrice);
+                .FilterByPriceRange(minPrice, maxPrice)
+                .FilterByProductIds(allowedIds)
+                .FilterBySearchTerm(searchTerm)
+                .ApplySorting(sortBy);
 
             // Conditionally filter by visibility for public users
             if (!includeHidden)
