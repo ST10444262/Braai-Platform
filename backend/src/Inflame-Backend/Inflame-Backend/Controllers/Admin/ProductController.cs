@@ -99,6 +99,52 @@ namespace Inflame_Backend.Controllers.Admin
 
             return Ok(result);
         }
+
+        #region Product Images
+
+        //------------------------------------------------------------------------------------------//
+        /// <summary>
+        /// Uploads additional images to an existing product.
+        /// </summary>
+        [HttpPost("{productId}/images")]
+        [Authorize(Roles = "SuperAdmin,Admin")]
+        public async Task<ActionResult> UploadProductImages([FromRoute] Guid productId, [FromForm] List<Microsoft.AspNetCore.Http.IFormFile> images)
+        {
+            var command = new UploadProductImagesCommand(productId, images);
+            var success = await _mediator.Send(command);
+
+            return success ? Ok() : BadRequest("Failed to upload images.");
+        }
+
+        //------------------------------------------------------------------------------------------//
+        /// <summary>
+        /// Sets a specific image as the primary display image for the product.
+        /// </summary>
+        [HttpPut("{productId}/images/{imageId}/primary")]
+        [Authorize(Roles = "SuperAdmin,Admin")]
+        public async Task<ActionResult> SetPrimaryImage([FromRoute] Guid productId, [FromRoute] Guid imageId)
+        {
+            var command = new SetPrimaryImageCommand(productId, imageId);
+            var success = await _mediator.Send(command);
+
+            return success ? Ok() : BadRequest("Failed to set primary image.");
+        }
+
+        //------------------------------------------------------------------------------------------//
+        /// <summary>
+        /// Deletes an image from the product and storage.
+        /// </summary>
+        [HttpDelete("{productId}/images/{imageId}")]
+        [Authorize(Roles = "SuperAdmin,Admin")]
+        public async Task<ActionResult> DeleteProductImage([FromRoute] Guid productId, [FromRoute] Guid imageId)
+        {
+            var command = new DeleteProductImageCommand(imageId);
+            var success = await _mediator.Send(command);
+
+            return success ? Ok() : BadRequest("Failed to delete image.");
+        }
+
+        #endregion
     }
 }
 //---------------------END OF FILE------------------------------------------------------------------//
