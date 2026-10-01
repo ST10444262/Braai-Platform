@@ -67,6 +67,16 @@ namespace Inflame_Backend.Features.Client.Queries
                 query = query.Where(c => c.Email.Contains(request.Email, System.StringComparison.OrdinalIgnoreCase));
             }
 
+            // Apply Generic Search Filter if provided
+            if (!string.IsNullOrWhiteSpace(request.SearchTerm))
+            {
+                query = query.Where(c => 
+                    c.FirstName.Contains(request.SearchTerm, System.StringComparison.OrdinalIgnoreCase) ||
+                    c.LastName.Contains(request.SearchTerm, System.StringComparison.OrdinalIgnoreCase) ||
+                    c.Email.Contains(request.SearchTerm, System.StringComparison.OrdinalIgnoreCase) ||
+                    (c.Phone != null && c.Phone.Contains(request.SearchTerm, System.StringComparison.OrdinalIgnoreCase)));
+            }
+
             // Apply Pagination
             var paginatedClients = query
                 .OrderBy(c => c.LastName) 
