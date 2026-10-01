@@ -13,6 +13,7 @@ namespace Inflame_Backend.Features.Client.Queries
     public class GetAdminClientQueryHandler : IRequestHandler<GetAdminClientQuery, IEnumerable<Models.CRM.Client>>
     {
         private readonly IClientRepository _clientRepository;
+        private readonly IInvoiceRecordRepository _invoiceRecordRepository;
 
         #region Constructors
 
@@ -20,10 +21,10 @@ namespace Inflame_Backend.Features.Client.Queries
         /// <summary>
         /// Initializes the GetAdminClientQueryHandler with the required repository dependency.
         /// </summary>
-        /// <param name="clientRepository">The repository for accessing client data.</param>
-        public GetAdminClientQueryHandler(IClientRepository clientRepository)
+        public GetAdminClientQueryHandler(IClientRepository clientRepository, IInvoiceRecordRepository invoiceRecordRepository)
         {
             _clientRepository = clientRepository;
+            _invoiceRecordRepository = invoiceRecordRepository;
         }
 
         #endregion
@@ -41,9 +42,13 @@ namespace Inflame_Backend.Features.Client.Queries
             {
                 var singleClient = await _clientRepository.GetByIdAsync(request.ClientId.Value);
                 
-                return singleClient == null 
-                    ? Enumerable.Empty<Models.CRM.Client>() 
-                    : new List<Models.CRM.Client> { singleClient };
+                if (singleClient != null)
+                {
+                    singleClient.InvoiceRecords = await _invoiceRecordRepository.GetByClientIdAsync(singleClient.ClientId);
+                    return new List<Models.CRM.Client> { singleClient };
+                }
+                
+                return Enumerable.Empty<Models.CRM.Client>();
             }
 
             // Else it fetches the filtered and paginated list of clients
