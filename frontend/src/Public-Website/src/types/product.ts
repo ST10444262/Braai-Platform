@@ -31,7 +31,7 @@ export interface FireplaceProduct{
     id: string;
     name: string;
     brand: string;
-    price: string;
+    price: number;
     onSpecial?: number|null;
     image: string;
     fireplaceType: string;
