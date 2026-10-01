@@ -14,6 +14,7 @@ namespace Inflame_Backend.Features.Client.Queries
     {
         private readonly IClientRepository _clientRepository;
         private readonly IInvoiceRecordRepository _invoiceRecordRepository;
+        private readonly IInternalNoteRepository _internalNoteRepository;
 
         #region Constructors
 
@@ -21,10 +22,14 @@ namespace Inflame_Backend.Features.Client.Queries
         /// <summary>
         /// Initializes the GetAdminClientQueryHandler with the required repository dependency.
         /// </summary>
-        public GetAdminClientQueryHandler(IClientRepository clientRepository, IInvoiceRecordRepository invoiceRecordRepository)
+        public GetAdminClientQueryHandler(
+            IClientRepository clientRepository, 
+            IInvoiceRecordRepository invoiceRecordRepository,
+            IInternalNoteRepository internalNoteRepository)
         {
             _clientRepository = clientRepository;
             _invoiceRecordRepository = invoiceRecordRepository;
+            _internalNoteRepository = internalNoteRepository;
         }
 
         #endregion
@@ -45,6 +50,7 @@ namespace Inflame_Backend.Features.Client.Queries
                 if (singleClient != null)
                 {
                     singleClient.InvoiceRecords = await _invoiceRecordRepository.GetByClientIdAsync(singleClient.ClientId);
+                    singleClient.InternalNotes = await _internalNoteRepository.GetByClientIdAsync(singleClient.ClientId);
                     return new List<Models.CRM.Client> { singleClient };
                 }
                 

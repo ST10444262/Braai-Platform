@@ -121,6 +121,60 @@ namespace Inflame_Backend.Controllers.Admin
             return Ok(result);
         }
 
+        //------------------------------------------------------------------------------------------//
+        /// <summary>
+        /// Adds an internal note to a client.
+        /// </summary>
+        [HttpPost("clients/{id}/notes")]
+        public async Task<ActionResult<AddClientNoteResponseDto>> AddNote(Guid id, [FromBody] AddClientNoteRequestDto requestDto)
+        {
+            var command = new AddClientNoteCommand(id, requestDto);
+            var result = await _mediator.Send(command);
+
+            if (!result.Success)
+            {
+                return BadRequest(result);
+            }
+
+            return Ok(result);
+        }
+
+        //------------------------------------------------------------------------------------------//
+        /// <summary>
+        /// Deletes an internal note from a client.
+        /// </summary>
+        [HttpDelete("clients/{id}/notes/{noteId}")]
+        public async Task<ActionResult<DeleteClientNoteResponseDto>> DeleteNote(Guid id, Guid noteId)
+        {
+            var command = new DeleteClientNoteCommand(noteId);
+            var result = await _mediator.Send(command);
+
+            if (!result.Success)
+            {
+                return BadRequest(result);
+            }
+
+            return Ok(result);
+        }
+
+        //------------------------------------------------------------------------------------------//
+        /// <summary>
+        /// Deletes an invoice from a client and removes it from storage.
+        /// </summary>
+        [HttpDelete("clients/{id}/invoices/{invoiceId}")]
+        public async Task<ActionResult<DeleteClientInvoiceResponseDto>> DeleteInvoice(Guid id, Guid invoiceId)
+        {
+            var command = new DeleteClientInvoiceCommand(invoiceId);
+            var result = await _mediator.Send(command);
+
+            if (!result.Success)
+            {
+                return BadRequest(result);
+            }
+
+            return Ok(result);
+        }
+
         #endregion
     }
 }
