@@ -29,6 +29,12 @@ namespace Inflame_Backend.Features.Enquiries.Queries
         public string? Status { get; set; }
 
         //------------------------------------------------------------------------------------------//
+        /// <summary>
+        /// Optional, generic search
+        /// </summary>
+        public string? SearchTerm { get; set; }
+
+        //------------------------------------------------------------------------------------------//
         public int PageNumber { get; set; } = 1;
 
         //------------------------------------------------------------------------------------------//

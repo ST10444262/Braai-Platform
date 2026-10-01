@@ -21,6 +21,17 @@ namespace Inflame_Backend.Data.Repositories.CRM
         {
         }
         #endregion
+
+        //------------------------------------------------------------------------------------------//
+        public async Task<System.Collections.Generic.List<InvoiceRecord>> GetByClientIdAsync(Guid clientId)
+        {
+            var response = await _supabaseInstance.Client
+                .From<InvoiceRecord>()
+                .Filter("client_id", Supabase.Postgrest.Constants.Operator.Equals, clientId.ToString())
+                .Get();
+
+            return response.Models;
+        }
     }
 }
 //---------------------END OF FILE------------------------------------------------------------------//

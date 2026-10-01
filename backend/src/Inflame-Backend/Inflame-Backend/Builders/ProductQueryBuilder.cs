@@ -143,6 +143,23 @@ namespace Inflame_Backend.Builders
             return this;
         }
 
+        //------------------------------------------------------------------------------------------//
+        /// <summary>
+        /// Filters the products by a generic search term.
+        /// </summary>
+        /// <param name="searchTerm">The term to search for.</param>
+        /// <returns>The current ProductQueryBuilder instance.</returns>
+        public ProductQueryBuilder FilterBySearchTerm(string? searchTerm)
+        {
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                _query = _query.Where(p => 
+                    p.Name.Contains(searchTerm, System.StringComparison.OrdinalIgnoreCase) ||
+                    (p.Brand != null && p.Brand.Contains(searchTerm, System.StringComparison.OrdinalIgnoreCase)));
+            }
+            return this;
+        }
+
         #endregion
 
         #region Execution Methods
