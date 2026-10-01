@@ -8,6 +8,7 @@ using Inflame_Backend.Data.Repositories.CustomBuild;
 using Inflame_Backend.Data.Repositories.ProductCatalog;
 using Inflame_Backend.Facades;
 using Inflame_Backend.Identity;
+using Inflame_Backend.Services.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
@@ -57,6 +58,8 @@ builder.Services.AddRateLimiter(options =>
 #endregion
 //------------------------------------------------------------------------------------------//
 #region Adds Services
+
+builder.Services.AddHttpContextAccessor();
 
 // Register Data Instances as Singletons
 var redisConnectionString = builder.Configuration.GetConnectionString("Redis") ?? "localhost";
@@ -115,6 +118,8 @@ builder.Services.AddScoped<IGalleryImageRepository>(sp => new CachedGalleryImage
 
 // Services
 builder.Services.AddScoped<Inflame_Backend.Services.IEmailService, Inflame_Backend.Services.SmtpEmailService>();
+builder.Services.AddScoped<TwoFactorChallengeService>();
+builder.Services.AddScoped<TrustedDeviceService>();
 
 // Facades
 builder.Services.AddScoped<IProductCatalogueFacade, ProductCatalogueFacade>();

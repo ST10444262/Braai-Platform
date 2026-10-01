@@ -7,5 +7,9 @@
         public string Message { get; set; } = string.Empty;
 
         public bool TwoFactorEnabled { get; set; }
+
+        public string? Token { get; set; }
+
+        public DateTime? ExpiresAt { get; set; }
     }
 }
