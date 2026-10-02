@@ -1,15 +1,23 @@
+﻿using Inflame_Backend.Data.Repositories.CRM;
 using Inflame_Backend.Features.Authentication.Commands;
 using Inflame_Backend.Features.Authentication.DTOs;
+using Inflame_Backend.Features.Staff.Commands;
 using Inflame_Backend.Features.Staff.Queries;
+using Inflame_Backend.Identity;
 using Inflame_Backend.Models.CRM;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
-using Inflame_Backend.Features.Staff.Commands;
 
 namespace Inflame_Backend.Controllers.Admin
 {
+    /// <summary>
+    /// Request body for changing the signed-in user's password.
+    /// </summary>
+    public record ChangePasswordRequestDto(string CurrentPassword, string NewPassword);
+
     /// <summary>
     /// Handles authentication and staff account management.
     /// </summary>
@@ -18,11 +26,18 @@ namespace Inflame_Backend.Controllers.Admin
     public class AccountController : ControllerBase
     {
         private readonly IMediator _mediator;
+        private readonly IStaffAccountRepository _staffRepository;
+        private readonly UserManager<ApplicationUser> _userManager;
 
         //------------------------------------------------------------------------------------------//
-        public AccountController(IMediator mediator)
+        public AccountController(
+            IMediator mediator,
+            IStaffAccountRepository staffRepository,
+            UserManager<ApplicationUser> userManager)
         {
             _mediator = mediator;
+            _staffRepository = staffRepository;
+            _userManager = userManager;
         }
         //------------------------------------------------------------------------------------------//
         /// <summary>
@@ -68,6 +83,79 @@ namespace Inflame_Backend.Controllers.Admin
             }
 
             return Ok(result);
+        }
+        //------------------------------------------------------------------------------------------//
+        /// <summary>
+        /// Returns the signed-in user's staff profile (including the StaffId needed for notes and invoice uploads).
+        /// </summary>
+        [HttpGet("me")]
+        [Authorize]
+        public async Task<IActionResult> Me()
+        {
+            var idClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+
+            if (idClaim == null || !Guid.TryParse(idClaim.Value, out var userId))
+            {
+                return Unauthorized();
+            }
+
+            var staff = (await _staffRepository.GetAllAsync())
+                .FirstOrDefault(s => s.IdentityUserId == userId);
+
+            var user = await _userManager.FindByIdAsync(userId.ToString());
+
+            if (staff == null || user == null)
+            {
+                return NotFound(new { message = "Staff profile not found." });
+            }
+
+            return Ok(new
+            {
+                staffId = staff.StaffId,
+                email = staff.Email,
+                fullName = staff.FullName,
+                role = staff.Role,
+                twoFactorEnabled = await _userManager.GetTwoFactorEnabledAsync(user)
+            });
+        }
+        //------------------------------------------------------------------------------------------//
+        /// <summary>
+        /// Changes the signed-in user's password.
+        /// </summary>
+        [HttpPost("change-password")]
+        [Authorize]
+        public async Task<IActionResult> ChangePassword(
+            [FromBody] ChangePasswordRequestDto request)
+        {
+            var idClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+
+            if (idClaim == null)
+            {
+                return Unauthorized();
+            }
+
+            var user = await _userManager.FindByIdAsync(idClaim.Value);
+
+            if (user == null)
+            {
+                return Unauthorized();
+            }
+
+            var result = await _userManager.ChangePasswordAsync(
+                user,
+                request.CurrentPassword,
+                request.NewPassword);
+
+            if (!result.Succeeded)
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = string.Join("; ", result.Errors.Select(e => e.Description))
+                });
+            }
+
+            return Ok(new { success = true, message = "Password updated." });
         }
         //------------------------------------------------------------------------------------------//
         /// <summary>
