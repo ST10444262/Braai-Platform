@@ -24,6 +24,9 @@ namespace Inflame_Backend.Models.CRM
         [Column("full_name")]
         public string FullName { get; set; } = string.Empty;
 
+        [Column("profile_image_url")]
+        public string? ProfileImageUrl { get; set; }
+
         [Column("role")]
         public string Role { get; set; } = string.Empty;
 

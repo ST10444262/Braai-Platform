@@ -143,11 +143,12 @@ namespace Inflame_Backend.Controllers.Admin
         //------------------------------------------------------------------------------------------//
         /// <summary>
         /// Provisions a new staff account. SuperAdmins can create Admins or Employees. Admins can only create Employees.
+        /// Accepts multipart/form-data for uploading optional profile images.
         /// </summary>
         [HttpPost("staff")]
         [Authorize(Roles = "SuperAdmin,Admin")]
         public async Task<ActionResult<CreateStaffAccountResponseDto>> CreateStaff(
-            [FromBody] CreateStaffAccountRequestDto request)
+            [FromForm] CreateStaffAccountRequestDto request)
         {
             var requestedRole = string.IsNullOrWhiteSpace(request.Role) ? "Employee" : request.Role;
 
@@ -165,7 +166,8 @@ namespace Inflame_Backend.Controllers.Admin
                 request.Email,
                 request.Password,
                 request.FullName,
-                requestedRole);
+                requestedRole,
+                request.ProfileImage);
 
             var result = await _mediator.Send(command);
 
