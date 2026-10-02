@@ -300,6 +300,39 @@ app.Use(async (context, next) =>
 
 #endregion
 //------------------------------------------------------------------------------------------//
+#region Cloudflare Network Segregation
+
+app.Use(async (context, next) =>
+{
+    // Skip this check in development to allow local testing
+    if (app.Environment.IsDevelopment())
+    {
+        await next();
+        return;
+    }
+
+    var expectedSecret = builder.Configuration["Cloudflare:Secret"];
+    
+    // If no secret is configured, bypass the check (fail-safe)
+    if (string.IsNullOrEmpty(expectedSecret))
+    {
+        await next();
+        return;
+    }
+
+    if (!context.Request.Headers.TryGetValue("X-Cloudflare-Secret", out var providedSecret) || 
+        providedSecret != expectedSecret)
+    {
+        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+        await context.Response.WriteAsync("Direct access to this service is prohibited.");
+        return;
+    }
+
+    await next();
+});
+
+#endregion
+//------------------------------------------------------------------------------------------//
 
 app.UseRateLimiter();
 app.UseAuthentication();
