@@ -5,7 +5,7 @@ import { useContactUsForm } from '@/hooks/useContactForm'; //importing the custo
 
 export default function ContactPage() {
     //calling the methods from the contact form hook
-  const { formData, errors, submitting, submitted, submitError, handleChange, handleSubmit } = useContactUsForm();
+  const { firstName, setFirstName, lastName, setLastName, email, setEmail, phoneNumber, setPhoneNumber, message, setMessage, errors, submitting, submitted, submitError, handleSubmit, } = useContactUsForm();
 
   return (
     <div className="w-full flex flex-col bg-[#FAF6EE]">
@@ -62,13 +62,29 @@ export default function ContactPage() {
                     id="firstName"
                     name="firstName"
                     type="text"
-                    value={formData.name} //displaying the value from the hook state
-                    onChange={(e) => handleChange('name', e.target.value)} //updating the state when its typed into
-                    placeholder="Your Name"
+                    value={firstName} //displaying the value from the hook state
+                    onChange={(e) => setFirstName(e.target.value)} //updating the state when its typed into
+                    placeholder="Your First Name"
                     className="w-full bg-white border border-stone-200 rounded px-4 py-3 text-stone-800 text-sm focus:outline-none focus:border-[#9E2016] transition-colors"
                   />
                   {/*displaying an error message if the validation for name input failed */}
-                  {errors.name && <p className="text-red-600 text-xs mt-1">{errors.name}</p>}
+                  {errors.firstName && <p className="text-red-600 text-xs mt-1">{errors.firstName}</p>}
+                </div>
+                <div>
+                  <label htmlFor="lastName" className="block text-[11px] uppercase tracking-wider font-bold text-stone-600 mb-1">
+                    Last Name
+                  </label>
+                  <input
+                    id="lastName"
+                    name="lastName"
+                    type="text"
+                    value={lastName} //displaying the value from the hook state
+                    onChange={(e) => setLastName(e.target.value)} //updating the state when its typed into
+                    placeholder="Your Last Name"
+                    className="w-full bg-white border border-stone-200 rounded px-4 py-3 text-stone-800 text-sm focus:outline-none focus:border-[#9E2016] transition-colors"
+                  />
+                  {/*displaying an error message if the validation for name input failed */}
+                  {errors.lastName && <p className="text-red-600 text-xs mt-1">{errors.lastName}</p>}
                 </div>
 
                 {/* Input for users email address */}
@@ -80,8 +96,8 @@ export default function ContactPage() {
                     id="email"
                     name="email"
                     type="email"
-                    value={formData.email} //displaying the value from the hook state
-                    onChange={(e) => handleChange('email', e.target.value)} //updating the state when the user types into it
+                    value={email} //displaying the value from the hook state
+                    onChange={(e) => setEmail(e.target.value)} //updating the state when the user types into it
                     placeholder="your@email.com"
                     className="w-full bg-white border border-stone-200 rounded px-4 py-3 text-stone-800 text-sm focus:outline-none focus:border-[#9E2016] transition-colors"
                   />
@@ -98,8 +114,8 @@ export default function ContactPage() {
                     id="phone"
                     name="phone"
                     type="tel"
-                    value={formData.phoneNumber}
-                    onChange={(e) => handleChange('phoneNumber', e.target.value)}
+                    value={phoneNumber}
+                    onChange={(e) => setPhoneNumber(e.target.value)}
                     placeholder="(00) 000-0000"
                     className="w-full bg-white border border-stone-200 rounded px-4 py-3 text-stone-800 text-sm focus:outline-none focus:border-[#9E2016] transition-colors"
                   />
@@ -115,8 +131,8 @@ export default function ContactPage() {
                     id="message"
                     name="message"
                     rows={5}
-                    value={formData.message}
-                    onChange={(e) => handleChange('message', e.target.value)}
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
                     placeholder="How can we help you?"
                     className="w-full bg-white border border-stone-200 rounded px-4 py-3 text-stone-800 text-sm focus:outline-none focus:border-[#9E2016] transition-colors resize-none"
                   />

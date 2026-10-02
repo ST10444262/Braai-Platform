@@ -2,29 +2,29 @@
 
 
 import { useState, FormEvent } from "react"; //useState is used for storing data that changes
-import { submitEnquiry } from "@/services/ContactUsService";
-import { ContactUsForm } from "@/types/contactUs";
+import { submitContactUsEnquiry } from "@/services/EnquiryService";
+//import { QuoteRequest } from "@/types/enquiry";
+
 
 //creates the structure for the error messages
 //? is used as all fields are null until they receive an error message
 type FormErrors ={
-    name?:string;
+    firstName?:string;
+    lastName?:string;
     email?:string;
     phoneNumber?:string;
     message?:string;
 };
 
-//used as a reusable object where all the input fields on the form start as an empty string
-const initialStateOfForm: ContactUsForm = {
-    name:"", 
-    email:"",
-    phoneNumber:"",
-    message:"",
-};
 
 export function useContactUsForm(){
-  //holds the current text values typed into the form. Setformdata is the function used to update the formdata
-  const [formData, setFormData] = useState<ContactUsForm>(initialStateOfForm);
+
+  //states for the input form to store the text typed into each field
+  const[firstName, setFirstName] = useState('');
+  const[lastName, setLastName] = useState('');
+  const[email, setEmail] = useState('');
+  const[phoneNumber, setPhoneNumber] = useState('');
+  const[message, setMessage] = useState('');
   //holds validation messages for all the fields that fail the validation
   const [errors, setErrors] = useState<FormErrors>({});
 
@@ -35,10 +35,6 @@ export function useContactUsForm(){
   //holds a server error if the sending fails or returns null if there are no errors
   const [submitError, setSubmitError] = useState<string | null>(null);
 
-  // Used whenever a user types into the input fields in the form
-  function handleChange(field: keyof ContactUsForm, value: string) {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-  }
 
   // checking if the email address is in a valid format using regex
   function isValidEmail(email: string): boolean {
@@ -49,22 +45,29 @@ export function useContactUsForm(){
   function validate(): boolean {
     const newErrors: FormErrors = {};
 
-    if (!formData.name.trim()) {
-      newErrors.name = 'Please enter your name.';
+    // Checking if the full name is empty
+    if (!firstName.trim()) {
+        newErrors.firstName = 'Please enter your first name.';
+    }
+    if (!lastName.trim()) {
+        newErrors.lastName = 'Please enter your last name.';
     }
 
-    if (!formData.email.trim()) {
-      newErrors.email = 'Please enter your email address.';
-    } else if (!isValidEmail(formData.email)) {
-      newErrors.email = 'Please enter a valid email address.';
+    // Check if email is empty or in the incorrect format
+    if (!email.trim()) {
+        newErrors.email = 'Please enter your email.';
+    } else if (!isValidEmail(email)) {
+        newErrors.email = 'Please enter a valid email address.';
     }
 
-    if (!formData.phoneNumber.trim()) {
-      newErrors.phoneNumber = 'Please enter your phone number.';
+    // Check if phone number is empty
+    if (!phoneNumber.trim()) {
+        newErrors.phoneNumber = 'Please enter your phone number.';
     }
 
-    if (!formData.message.trim()) {
-      newErrors.message = 'Please enter a message.';
+    //checking if message is empty
+    if (!message.trim()) {
+        newErrors.message = 'Please enter a message.';
     }
 
     //saves the collected error messages into react state so the ui can display them
@@ -84,9 +87,8 @@ export function useContactUsForm(){
 
     //tries to send data to api and catches any errors
     try {
-      await submitEnquiry(formData);
+      await submitContactUsEnquiry({firstName, lastName, email, phoneNumber, message});
       setSubmitted(true);
-      setFormData(initialStateOfForm); // Reset form when user sends message
     } catch (err) {
       console.error('Contact us form submission failed:', err);
       setSubmitError("We could not send your message. Please try again, or call us directly.");
@@ -95,5 +97,5 @@ export function useContactUsForm(){
     }
   }
 
-  return {formData, errors, submitting, submitted, submitError, handleChange, handleSubmit}
+  return {firstName, setFirstName, lastName, setLastName, email, setEmail, phoneNumber, setPhoneNumber, message, setMessage, errors, submitting, submitted, submitError, handleSubmit,};
 }

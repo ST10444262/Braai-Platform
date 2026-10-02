@@ -1,60 +1,111 @@
-import { BraaiProduct, BraaiProductDetail, FireplaceProduct, FireplaceProductDetail } from "@/types/product";
+import { ApiProduct, BraaiProduct, BraaiProductDetail, FireplaceProduct, FireplaceProductDetail } from "@/types/product";
 import { OnSpecialProduct } from "@/types/product";
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? '';
+const PRODUCTS_ENDPOINT = `${API_BASE_URL}/api/public/products`;
+
+//fetching all products from api
+async function getProducts(category?: 'braai' | 'fireplace'):Promise<ApiProduct[]>{
+    const params = new URLSearchParams({pageSize: '100'});
+    if(category) params.set('category', category);
+    const res = await fetch(`${PRODUCTS_ENDPOINT}?${params.toString()}`);
+    if (!res.ok) throw new Error(`Failed to fetch products (status ${res.status})`);
+    return res.json();
+}
+
+//fetching a product by its id
+async function getProductById(id:string): Promise<ApiProduct|null>{
+    const res = await fetch(`${PRODUCTS_ENDPOINT}/${id}`);
+    if (res.status === 404) return null;
+    if (!res.ok) throw new Error(`Failed to fetch the product ${id} with (status ${res.status})`);
+    return res.json();
+}
+
+//getting the products image from database
+function getProductImageUrl(product: ApiProduct):string{
+    const pImage = product.images.find((img)=>img.isPrimary);
+    return pImage?.url ?? product.images[0]?.url??'/categories/insert.webp';
+}
+//getting the products category
+function isCategory(product:ApiProduct, category:'braai'|'fireplace'):boolean{
+    return product.category.toLowerCase() === category;
+}
+
+
+//mapping api product to different interfaces in the types folder
+function toBraaiProduct(p: ApiProduct): BraaiProductDetail {
+  return{
+    id:p.id,
+    name:p.name,
+    brand:p.brand,
+    price:p.price,
+    onSpecial:p.onSpecial,
+    image:getProductImageUrl(p),
+    braaiType:p.productType,
+    fuelType:p.fuelType ?? '', 
+    description:p.description,
+  };
+}
+
+function toFireplaceProduct(p: ApiProduct): FireplaceProductDetail {
+  return{
+    id:p.id,
+    name:p.name,
+    brand:p.brand,
+    price:p.price,
+    onSpecial:p.onSpecial,
+    image:getProductImageUrl(p),
+    fireplaceType:p.productType,
+    heatOutputKw:p.heatOutputKw ?? undefined, 
+    description:p.description,
+  };
+}
+function toOnSpecialProduct(p:ApiProduct):OnSpecialProduct{
+    return{
+        id: p.id,
+        name:p.name,
+        brand:p.brand,
+        category:isCategory(p, 'braai') ? 'braai' : 'fireplace',
+        price:p.price,
+        onSpecial:p.onSpecial as number,
+        image:getProductImageUrl(p),
+    };
+}
+
 
 export async function getBraaiProducts(): Promise<BraaiProduct[]>{
 
-    //FILL WITH REAL PRODUCTS API CALL ONCE I HAVE THEM
-
-    //DELETE MOCK CALL BELOW
-    return MOCK_PRODUCTS.filter((p) => p.category === 'braai') as BraaiProduct[];
+    //category is filtered on the client side in case the backends category filter fails
+    const braaiProducts = await getProducts('braai');
+    return braaiProducts.filter((p)=>isCategory(p, 'braai')).map(toBraaiProduct);
 }
 
 export async function getBraaiProductById(id: string): Promise<BraaiProductDetail | null> {
-    //FILL WITH REAL API CALL ONCE HAVE IT
-    const product = MOCK_PRODUCTS.find((p) => p.id === id && p.category === 'braai');
-    return (product as BraaiProductDetail) ?? null;
+    //fetching the product by its id
+    const braaiProduct = await getProductById(id)
+    if(!braaiProduct || !isCategory(braaiProduct, 'braai'))return null;
+    return toBraaiProduct(braaiProduct);
 }
 
 export async function getOnSpecialProducts(): Promise<OnSpecialProduct[]>{
-    //FILL WITH ACTUAL API CALL
-    return MOCK_PRODUCTS.filter((p) => p.onSpecial != null) as OnSpecialProduct[];
+    //not filtering here as specials are for both braais and fireplaces
+    const specialCatalogue = await getProducts();
+    return specialCatalogue.filter((p)=>p.onSpecial!=null).map(toOnSpecialProduct);
 }
 
 export async function getFireplaceProducts(): Promise<FireplaceProduct[]>{
-    //FILL WITH ACTUAL API CALL
-    return MOCK_PRODUCTS.filter((p) => p.category === 'fireplace') as FireplaceProduct[];
+    //category is filtered on the client side in case the backends category filter fails
+    const fireplaceProducts = await getProducts('fireplace');
+    return fireplaceProducts.filter((p)=>isCategory(p, 'fireplace')).map(toFireplaceProduct);
 }
 
 export async function getFireplaceProductById(id: string): Promise<FireplaceProductDetail | null>{
-    //FILL WITH ACTUAL API CALL
-    const product = MOCK_PRODUCTS.find((p) => p.id === id && p.category === 'fireplace');
-    return (product as FireplaceProductDetail) ?? null;
+    //fetching the product by its id
+    const fireplaceProduct = await getProductById(id)
+    if(!fireplaceProduct || !isCategory(fireplaceProduct, 'fireplace'))return null;
+    return toFireplaceProduct(fireplaceProduct);
 }
 
-interface MockProduct {
-  id: string;
-  name: string;
-  brand: string;
-  category: 'braai' | 'fireplace';
-  price: number;
-  onSpecial?: number;
-  image: string;
-  description: string;
-  braaiType?: string;
-  fuelType?: string;
-  fireplaceType?:string;
-  heatOutputKw?:number;
-}
-
-
-const MOCK_PRODUCTS: MockProduct[] = [
-  { id: '1', name: 'Chad-O-Chef 4 Burner Hybrid Gas Grill', brand: 'Chad-O-Chef', category: 'braai', price: 52700, image: '/categories/insert.webp', braaiType: 'Freestanding', fuelType: 'Gas & Wood Hybrid', description: 'A versatile hybrid braai combining gas convenience with authentic wood-fired flavour.' },
-  { id: '2', name: 'Chad-O-Chef Entertainer', brand: 'Chad-O-Chef', category: 'braai', price: 49900, onSpecial: 44900, image: '/categories/insert.webp', braaiType: 'Built-In', fuelType: 'Gas', description: 'A built-in gas braai designed for effortless outdoor entertaining.' },
-  { id: '3', name: 'Joe Jr. with Cast Iron Stand', brand: 'Kamado Joe', category: 'braai', price: 11879, image: '/categories/insert.webp', braaiType: 'Freestanding', fuelType: 'Charcoal', description: 'A compact ceramic kamado grill, perfect for smaller outdoor spaces.' },
-  { id: '4', name: 'Kratki Nadia 14G', brand: 'Kratki', category: 'fireplace', price: 103000, onSpecial: 94500, image: '/categories/insert.webp', description: 'A striking freestanding wood-burning fireplace with panoramic glass.', fireplaceType: 'Freestanding', heatOutputKw: 9 },
-  { id: '5', name: 'Kratki K6', brand: 'Kratki', category: 'fireplace', price: 28200, onSpecial: 23500, image: '/categories/insert.webp', description: 'A compact insert fireplace ideal for smaller living spaces.', fireplaceType: 'Insert', heatOutputKw: 6 },
-  { id: '6', name: 'SAfire Heeta 600 Arc', brand: 'Heeta', category: 'fireplace', price: 23890, onSpecial: 21995, image: '/categories/insert.webp', description: 'A modern linear gas fireplace with a striking arc-shaped flame.', fireplaceType: 'Built-In', heatOutputKw: 7 },
-];
 
 
 

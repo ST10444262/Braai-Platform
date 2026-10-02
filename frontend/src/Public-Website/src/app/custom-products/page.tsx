@@ -8,7 +8,7 @@ export default function CustomProductsPage() {
     <div className="w-full flex flex-col">
       <section className="relative w-full min-h-[500px] flex items-center justify-center text-center px-6 overflow-hidden">
         <Image
-          src="/custom-products-hero.jpg"
+          src="/custombackground.jpg"
           alt="Masterfully Crafted Custom Products"
           fill
           priority
@@ -33,14 +33,14 @@ export default function CustomProductsPage() {
         </p>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
           <CapabilityCard
-            image="/custom-fireplace.jpg"
+            image="/categories/gas.jpg"
             title="Custom Fireplaces"
             description="Architectural heating solutions tailored to your space. Whether you require a massive room divider or a minimalist suspended focal point, we engineer warmth to your exact aesthetic."
             linkHref="/custom-products/fireplace"
             linkLabel="Enquire Now"
           />
           <CapabilityCard
-            image="/custom-braai.jpg"
+            image="/braaihomepage.jpg"
             title="Custom Braais"
             description="Premium outdoor cooking experiences built to your specifications. From massive spit braais to integrated multi-fuel stations, designed for the serious entertainer."
             linkHref="/custom-products/braai"

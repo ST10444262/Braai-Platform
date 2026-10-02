@@ -10,7 +10,7 @@ import InfoBox from '@/components/InfoBox';
 export default function QuoteRequestPage() {
   const params = useParams<{id:string}>();
   const { product, loading } = useFireplaceProductDetail(params.id);
-  const {fullName, setFullName, email, setEmail, phoneNumber, setPhoneNumber, notes, setNotes, errors, submitting, submitted, submitError, handleSubmit,} = useQuoteForm(params.id);
+  const {firstName, setFirstName, lastName, setLastName, email, setEmail, phoneNumber, setPhoneNumber, message, setMessage, errors, submitting, submitted, submitError, handleSubmit,} = useQuoteForm(params.id);
 
   if (loading) {
     return (
@@ -160,24 +160,45 @@ export default function QuoteRequestPage() {
               <form onSubmit={handleSubmit} noValidate className="space-y-4">
                 
                 {/* Asking for the users full name*/}
-                <div>
+                  <div>
                   <label htmlFor="fullName" className="block text-[10px] font-bold uppercase tracking-wider text-stone-500 mb-1">
-                    Full Name
+                    First Name
                   </label>
                   <input
                     id="fullName"
                     type="text"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
                     placeholder="Enter your full name"
                     className={`w-full bg-white border rounded-sm px-3.5 py-2.5 text-xs sm:text-sm text-stone-800 placeholder-stone-300 focus:outline-none transition-colors ${
-                      errors.fullName
+                      errors.firstName
                         ? 'border-red-500 focus:border-red-600'
                         : 'border-stone-300 focus:border-[#9E2016]'
                     }`}
                   />
-                  {errors.fullName && (
-                    <p className="text-red-600 text-xs mt-1 font-medium">{errors.fullName}</p>
+                  {errors.firstName && (
+                    <p className="text-red-600 text-xs mt-1 font-medium">{errors.firstName}</p>
+                  )}
+                </div>
+
+                <div>
+                  <label htmlFor="fullName" className="block text-[10px] font-bold uppercase tracking-wider text-stone-500 mb-1">
+                    Last Name
+                  </label>
+                  <input
+                    id="lastName"
+                    type="text"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    placeholder="Enter your full name"
+                    className={`w-full bg-white border rounded-sm px-3.5 py-2.5 text-xs sm:text-sm text-stone-800 placeholder-stone-300 focus:outline-none transition-colors ${
+                      errors.lastName
+                        ? 'border-red-500 focus:border-red-600'
+                        : 'border-stone-300 focus:border-[#9E2016]'
+                    }`}
+                  />
+                  {errors.lastName && (
+                    <p className="text-red-600 text-xs mt-1 font-medium">{errors.lastName}</p>
                   )}
                 </div>
 
@@ -233,8 +254,8 @@ export default function QuoteRequestPage() {
                   <textarea
                     id="notes"
                     rows={4}
-                    value={notes}
-                    onChange={(e) => setNotes(e.target.value)}
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
                     placeholder="Any specific requirements or installation details?"
                     className="w-full bg-white border border-stone-300 rounded-sm px-3.5 py-2.5 text-xs sm:text-sm text-stone-800 placeholder-stone-300 focus:outline-none focus:border-[#9E2016] transition-colors resize-none"
                   />

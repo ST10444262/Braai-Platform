@@ -6,10 +6,10 @@ import { useCustomBuildForm } from '@/hooks/useCustomBuildForm';
 import CustomBuildTypeSelector from '@/components/CustomBuildTypeSelector';
 
 const FIREPLACE_TYPES = [
-  { label: 'Free Standing Fireplaces', value: 'Free Standing', image: '/custom-fireplace-freestanding.jpg' },
-  { label: 'Insert Fireplaces', value: 'Insert', image: '/custom-fireplace-insert.jpg' },
-  { label: 'Gas Fireplaces', value: 'Gas', image: '/custom-fireplace-gas.jpg' },
-  { label: 'Other', value: 'Other', image: '/custom-fireplace-other.jpg' },
+  { label: 'Free Standing Fireplaces', value: 'Free Standing', image: '/categories/freestanding.webp' },
+  { label: 'Insert Fireplaces', value: 'Insert', image: '/categories/insert.webp' },
+  { label: 'Gas Fireplaces', value: 'Gas', image: '/categories/gas.jpg' },
+  { label: 'Other', value: 'Other', image: '/custom-other.jpg' },
 ];
 
 export default function CustomFireplacePage() {
@@ -18,7 +18,7 @@ export default function CustomFireplacePage() {
   return (
     <div className="w-full flex flex-col">
       <section className="relative w-full min-h-[300px] flex items-center justify-center text-center px-6 overflow-hidden">
-        <Image src="/custom-fireplace-hero.jpg" alt="Elite Fireplace Engineering" fill priority className="object-cover object-center -z-10" />
+        <Image src="/custombackground.jpg" alt="Elite Fireplace Engineering" fill priority className="object-cover object-center -z-10" />
         <div className="absolute inset-0 bg-black/50 -z-10" />
         <div className="relative text-white space-y-3 max-w-2xl">
           <h1 className="text-3xl sm:text-4xl font-serif font-semibold">Elite Fireplace Engineering</h1>

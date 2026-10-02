@@ -178,6 +178,11 @@ export default function BraaisPage() {
                     <div className="space-y-3">
                       {/* Container to store the products image */}
                       <div className="relative w-full h-48 sm:h-52 bg-stone-50 rounded-sm overflow-hidden flex items-center justify-center">
+                        {product.onSpecial != null && (
+                            <span className="absolute top-2 left-2 bg-[#9E2016] text-white text-[10px] font-bold uppercase px-2 py-1 rounded-sm z-10">
+                            Special
+                            </span>
+                            )}
                         <Image
                           src={product.image}
                           alt={product.name}
@@ -199,9 +204,14 @@ export default function BraaisPage() {
 
                     {/* price of the braai */}
                     <div className="pt-3 mt-2 border-t border-stone-100">
-                      <p className="text-base sm:text-lg font-bold text-[#9E2016]">
+                        <p className="text-base sm:text-lg font-bold text-[#9E2016]">
                         R {(product.onSpecial ?? product.price).toLocaleString()}
-                      </p>
+                        {product.onSpecial != null && (
+                        <span className="text-stone-400 text-xs font-normal line-through ml-2">
+                            R {product.price.toLocaleString()}
+                        </span>
+                         )}
+                        </p>
                     </div>
                   </Link>
                 ))}

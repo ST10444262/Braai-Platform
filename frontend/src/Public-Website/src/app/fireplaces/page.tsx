@@ -190,28 +190,39 @@ export default function FireplacesPage() {
                     className="group bg-white border border-stone-200/80 rounded-sm overflow-hidden flex flex-col justify-between shadow-xs hover:shadow-md transition-all duration-200"
                   >
                     <div>
-                      {/* images for each product*/}
-                      <div className="relative w-full h-52 sm:h-56 bg-stone-100 overflow-hidden">
-                        <Image
-                          src={product.image}
-                          alt={product.name}
-                          fill
-                          className="object-cover object-center group-hover:scale-105 transition-transform duration-300"
-                        />
-                      </div>
+                {/* images for each product. Also checks if an image is on special and displays that its on special if it is*/}
+                <div className="relative w-full h-52 sm:h-56 bg-stone-100 overflow-hidden">
+                    {product.onSpecial != null && (
+                    <span className="absolute top-2 left-2 bg-[#9E2016] text-white text-[10px] font-bold uppercase px-2 py-1 rounded-sm z-10">
+                        Special
+                    </span>
+                    )}
+                    <Image
+                    src={product.image}
+                    alt={product.name}
+                    fill
+                    className="object-cover object-center group-hover:scale-105 transition-transform duration-300"
+                    />
+                </div>
 
-                      {/* the details of each product */}
-                      <div className="p-4 space-y-1">
-                        <p className="text-[10px] font-bold tracking-wider text-stone-400 uppercase">
-                          {product.brand}
-                        </p>
-                        <h3 className="text-sm font-serif font-bold text-stone-900 group-hover:text-[#9E2016] transition-colors line-clamp-1">
-                          {product.name}
-                        </h3>
-                        <p className="text-base font-bold text-[#9E2016] pt-1">
-                          R {(product.onSpecial ?? product.price).toLocaleString()}
-                        </p>
-                      </div>
+                <div className="p-4 space-y-1">
+                    <p className="text-[10px] font-bold tracking-wider text-stone-400 uppercase">
+                    {product.brand}
+                    </p>
+                    <h3 className="text-sm font-serif font-bold text-stone-900 line-clamp-1">
+                    {product.name}
+                    </h3>
+
+                    {/* displaying the price */}
+                    <p className="text-base font-bold text-[#9E2016] pt-1">
+                    R {(product.onSpecial ?? product.price).toLocaleString()}
+                    {product.onSpecial != null && (
+                        <span className="text-stone-400 text-xs font-normal line-through ml-2">
+                        R {product.price.toLocaleString()}
+                        </span>
+                    )}
+                    </p>
+                </div>
                     </div>
 
                     <div className="px-4 pb-4">

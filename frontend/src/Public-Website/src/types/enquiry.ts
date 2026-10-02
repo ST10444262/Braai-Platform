@@ -1,12 +1,9 @@
 export interface QuoteRequest{
-    productId: string;
-    fullName: string;
+    productId?: string|null;//null in case contact form submission
+    firstName: string;
+    lastName:string;
     email: string;
     phoneNumber: string;
-    notes?:string;
+    message?:string;
 }
-
-export interface EnquiryResponse{
-    isSuccess: boolean;
-    enquiryId?:string;
-}
+export type EnquiryResponse = string;

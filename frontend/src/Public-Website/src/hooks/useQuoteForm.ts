@@ -3,15 +3,16 @@ import { useState, type FormEvent } from 'react';
 import { submitQuoteRequest } from '@/services/EnquiryService';
 
 //these are the optional error fields
-type FormErrors = {fullName?:string; email?:string; phoneNumber?:string};
+type FormErrors = {firstName?:string; lastName?:string; email?:string; phoneNumber?:string};
 
 
 export function useQuoteForm(productId: string){
     //states for the input form to store the text typed into each field
-    const[fullName, setFullName] = useState('');
+    const[firstName, setFirstName] = useState('');
+    const[lastName, setLastName] = useState('');
     const[email, setEmail] = useState('');
     const[phoneNumber, setPhoneNumber] = useState('');
-    const[notes, setNotes] = useState('');
+    const[message, setMessage] = useState('');
 
     //tracking errors and loading states once the form has been submitted
     const[errors, setErrors] = useState<FormErrors>({}); // this is for the validation errors for inputs
@@ -29,8 +30,11 @@ export function useQuoteForm(productId: string){
         const newErrors: FormErrors = {};
 
         // Checking if the full name is empty
-        if (!fullName.trim()) {
-            newErrors.fullName = 'Please enter your name.';
+        if (!firstName.trim()) {
+            newErrors.firstName = 'Please enter your first name.';
+        }
+        if (!lastName.trim()) {
+            newErrors.lastName = 'Please enter your last name.';
         }
 
         // Check if email is empty or in the incorrect format
@@ -68,7 +72,7 @@ export function useQuoteForm(productId: string){
 
         try{
             //sending quote request to api
-            await submitQuoteRequest({productId, fullName, email, phoneNumber, notes:notes||undefined,}); //sending notes as undefined incase its an empty string
+            await submitQuoteRequest({firstName, lastName, email, phoneNumber, productId, message:message||undefined,}); //sending notes as undefined incase its an empty string
 
             //marking the form as successfully submitted
             setSubmitted(true);
@@ -79,7 +83,7 @@ export function useQuoteForm(productId: string){
         
     }
     return {
-    fullName, setFullName, email, setEmail, phoneNumber, setPhoneNumber, notes, setNotes, errors, submitting, submitted, submitError, handleSubmit,
+    firstName, setFirstName, lastName, setLastName, email, setEmail, phoneNumber, setPhoneNumber, message, setMessage, errors, submitting, submitted, submitError, handleSubmit,
   };
 
 

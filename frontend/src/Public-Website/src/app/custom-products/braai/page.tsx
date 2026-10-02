@@ -6,9 +6,9 @@ import { useCustomBuildForm } from '@/hooks/useCustomBuildForm';
 import CustomBuildTypeSelector from '@/components/CustomBuildTypeSelector';
 
 const BRAAI_TYPES = [
-  { label: 'Free Standing Braai', value: 'Free Standing', image: '/custom-braai-freestanding.jpg' },
-  { label: 'Built In Braai', value: 'Built In', image: '/custom-braai-builtin.jpg' },
-  { label: 'Other', value: 'Other', image: '/custom-braai-other.jpg' },
+  { label: 'Free Standing Braai', value: 'Free Standing', image: '/freestanding.webp' },
+  { label: 'Built In Braai', value: 'Built In', image: '/braaihomepage.jpg' },
+  { label: 'Other', value: 'Other', image: '/custom-other.jpg' },
 ];
 
 export default function CustomBraaiPage() {
@@ -17,7 +17,7 @@ export default function CustomBraaiPage() {
   return (
     <div className="w-full flex flex-col">
       <section className="relative w-full min-h-[300px] flex items-center justify-center text-center px-6 overflow-hidden">
-        <Image src="/custom-braai-hero.jpg" alt="Elite Braai Engineering" fill priority className="object-cover object-center -z-10" />
+        <Image src="/custombackground.jpg" alt="Elite Braai Engineering" fill priority className="object-cover object-center -z-10" />
         <div className="absolute inset-0 bg-black/50 -z-10" />
         <div className="relative text-white space-y-3 max-w-2xl">
           <h1 className="text-3xl sm:text-4xl font-serif font-semibold">Elite Braai Engineering</h1>
