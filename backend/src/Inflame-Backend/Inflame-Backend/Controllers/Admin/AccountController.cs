@@ -1,3 +1,4 @@
+using Inflame_Backend.Data.Repositories.CRM;
 using Inflame_Backend.Features.Authentication.Commands;
 using Inflame_Backend.Features.Authentication.DTOs;
 using Inflame_Backend.Features.Staff.Commands;
@@ -17,11 +18,15 @@ namespace Inflame_Backend.Controllers.Admin
     public class AccountController : ControllerBase
     {
         private readonly IMediator _mediator;
+        private readonly IStaffAccountRepository _staffAccountRepository;
 
         //------------------------------------------------------------------------------------------//
-        public AccountController(IMediator mediator)
+        public AccountController(
+            IMediator mediator,
+            IStaffAccountRepository staffAccountRepository)
         {
             _mediator = mediator;
+            _staffAccountRepository = staffAccountRepository;
         }
 
         //------------------------------------------------------------------------------------------//
@@ -167,6 +172,72 @@ namespace Inflame_Backend.Controllers.Admin
                 request.Password,
                 request.FullName,
                 requestedRole,
+                request.ProfileImage);
+
+            var result = await _mediator.Send(command);
+
+            if (!result.Success)
+            {
+                return BadRequest(result);
+            }
+
+            return Ok(result);
+        }
+
+        //------------------------------------------------------------------------------------------//
+        /// <summary>
+        /// Updates an existing staff account. Admins can only update Employees, while SuperAdmins can update Admins and Employees.
+        /// Accepts multipart/form-data for optional profile image replacement.
+        /// </summary>
+        [HttpPut("staff/{staffId:guid}")]
+        [Authorize(Roles = "SuperAdmin,Admin")]
+        public async Task<ActionResult<UpdateStaffAccountResponseDto>> UpdateStaff(
+            Guid staffId,
+            [FromForm] UpdateStaffAccountRequestDto request)
+        {
+            var requestedRole =
+                string.IsNullOrWhiteSpace(request.Role)
+                    ? "Employee"
+                    : request.Role;
+
+            // An Admin may only edit Employee accounts.
+            if (User.IsInRole("Admin"))
+            {
+                var staffAccount =
+                    await _staffAccountRepository.GetByIdAsync(staffId);
+
+                if (staffAccount == null)
+                {
+                    return NotFound(new
+                    {
+                        message = "Staff account not found."
+                    });
+                }
+
+                if (staffAccount.Role != "Employee")
+                {
+                    return Forbid();
+                }
+
+                if (requestedRole != "Employee")
+                {
+                    return Forbid();
+                }
+            }
+
+            // SuperAdmin and Admin cannot assign SuperAdmin.
+            if (requestedRole == "SuperAdmin")
+            {
+                return Forbid();
+            }
+
+            var command = new UpdateStaffAccountCommand(
+                staffId,
+                request.Email,
+                request.FullName,
+                requestedRole,
+                request.IsActive,
+                request.NewPassword,
                 request.ProfileImage);
 
             var result = await _mediator.Send(command);
