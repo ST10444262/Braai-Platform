@@ -13,7 +13,7 @@ export async function submitQuoteRequest(payload: QuoteRequest):Promise<EnquiryR
     if(!res.ok){
         throw new Error(`Quote request has failed with the status: ${res.status}`);
     }
-    return res.json();
+    return res.text();
 }
 
 //contact us call. Product id is omitted as theres no product id on contact us form
@@ -33,7 +33,7 @@ export async function submitContactUsEnquiry(payload: Omit<QuoteRequest,'product
     if(!res.ok){
         throw new Error(`Quote request has failed with the status: ${res.status}`);
     }
-    return res.json();
+    return res.text();
         }catch(err){
             lastError = err;
             if(attempt<maxAttempts){
