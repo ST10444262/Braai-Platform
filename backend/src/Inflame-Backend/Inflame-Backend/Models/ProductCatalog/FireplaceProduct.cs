@@ -19,7 +19,7 @@ namespace Inflame_Backend.Models.ProductCatalog
         [Column("fireplace_type")]
         public string FireplaceType { get; set; } = string.Empty;
 
-        [Reference(typeof(Product))]
+        [Reference(typeof(Product), includeInQuery: false)]
         public Product? BaseProduct { get; set; }
     }
 }

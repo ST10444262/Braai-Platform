@@ -22,7 +22,7 @@ namespace Inflame_Backend.Models.ProductCatalog
         [Column("is_primary")]
         public bool IsPrimary { get; set; }
 
-        [Reference(typeof(Product))]
+        [Reference(typeof(Product), includeInQuery: false)]
         public Product? Product { get; set; }
     }
 }
