@@ -11,7 +11,7 @@ namespace Inflame_Backend.Models.ProductCatalog
     [Table("product")]
     public class Product : BaseModel
     {
-        [PrimaryKey("product_id", false)]
+        [PrimaryKey("product_id", true)]
         public Guid ProductId { get; set; } = Guid.NewGuid();
 
         [Column("name")]

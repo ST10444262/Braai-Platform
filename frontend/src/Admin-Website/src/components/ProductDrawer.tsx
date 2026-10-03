@@ -98,7 +98,7 @@ export default function ProductDrawer({
       if (mode === "create") {
         const fd = new FormData();
         fd.append("Name", f.name.trim());
-        fd.append("Category", f.category.trim());
+        fd.append("Category", isBraai ? f.braaiType : f.fireplaceType);
         fd.append("ProductType", f.productType);
         fd.append("Brand", f.brand.trim());
         fd.append("IsImported", String(f.isImported));
@@ -120,7 +120,7 @@ export default function ProductDrawer({
       } else if (product) {
         await api.put(`/admin/products/${product.productId}`, {
           name: f.name.trim(),
-          category: f.category.trim(),
+          category: isBraai ? f.braaiType : f.fireplaceType,
           brand: f.brand.trim(),
           isImported: f.isImported,
           isCustomisable: f.isCustomisable,
@@ -261,25 +261,9 @@ export default function ProductDrawer({
           </Field>
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
-          <Field label="Brand">
-            <TextInput disabled={readOnly} value={f.brand} onChange={(e) => set("brand", e.target.value)} />
-          </Field>
-          <Field label="Sub-category">
-            <TextInput
-              disabled={readOnly}
-              list="subcategories"
-              placeholder="e.g. Free Standing"
-              value={f.category}
-              onChange={(e) => set("category", e.target.value)}
-            />
-            <datalist id="subcategories">
-              {["Free Standing", "Built-in", "Insert"].map((o) => (
-                <option key={o} value={o} />
-              ))}
-            </datalist>
-          </Field>
-        </div>
+        <Field label="Brand">
+          <TextInput disabled={readOnly} value={f.brand} onChange={(e) => set("brand", e.target.value)} />
+        </Field>
 
         {isBraai ? (
           <>

@@ -10,7 +10,7 @@ namespace Inflame_Backend.Models.ProductCatalog
     [Table("product_image")]
     public class ProductImage : BaseModel
     {
-        [PrimaryKey("image_id", false)]
+        [PrimaryKey("image_id", true)]
         public Guid ImageId { get; set; } = Guid.NewGuid();
 
         [Column("product_id")]
