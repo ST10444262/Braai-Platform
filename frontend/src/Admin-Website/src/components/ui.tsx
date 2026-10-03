@@ -83,7 +83,7 @@ export function Button({ variant = "primary", size = "md", loading, className, c
 /* ---------- Badges ---------- */
 const STATUS: Record<string, { label: string; cls: string; dot: string }> = {
   New: { label: "New", cls: "bg-orange-50 text-orange-600", dot: "bg-orange-500" },
-  UnderReview: { label: "Under Review", cls: "bg-amber-50 text-amber-700", dot: "bg-amber-500" },
+  "Under Review": { label: "Under Review", cls: "bg-amber-50 text-amber-700", dot: "bg-amber-500" },
   Contacted: { label: "Contacted", cls: "bg-stone-200/70 text-stone-800", dot: "bg-stone-800" },
   Converted: { label: "Converted", cls: "bg-violet-100 text-violet-700", dot: "bg-violet-500" },
   Dead: { label: "Dead", cls: "bg-stone-100 text-stone-500", dot: "bg-stone-400" },

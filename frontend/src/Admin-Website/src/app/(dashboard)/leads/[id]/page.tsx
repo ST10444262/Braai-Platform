@@ -10,7 +10,7 @@ import type { Enquiry } from "@/lib/types";
 import { Button, ErrorNote, Spinner, StatusBadge, cn } from "@/components/ui";
 import { useToast } from "@/components/ui";
 
-const STATUSES = ["New", "UnderReview", "Contacted", "Converted", "Dead"];
+const STATUSES = ["New", "Under Review", "Contacted", "Converted", "Dead"];
 
 export default function LeadDetailsPage() {
   const { id } = useParams<{ id: string }>();
@@ -123,7 +123,7 @@ export default function LeadDetailsPage() {
                       <div className={cn("grid h-4 w-4 place-items-center rounded-full border", active ? "border-ink" : "border-line")}>
                         {active && <div className="h-2 w-2 rounded-full bg-ink" />}
                       </div>
-                      <span className="text-sm font-semibold">{s === "UnderReview" ? "Under Review" : s}</span>
+                      <span className="text-sm font-semibold">{s === "Under Review" ? "Under Review" : s}</span>
                     </div>
                     <StatusBadge status={s} />
                   </label>
