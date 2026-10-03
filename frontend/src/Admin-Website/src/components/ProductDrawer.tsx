@@ -48,6 +48,7 @@ export default function ProductDrawer({
   const [f, setF] = useState(empty);
   const [files, setFiles] = useState<File[]>([]);
   const [keptImages, setKeptImages] = useState<ProductImage[]>([]);
+  const [primaryImageId, setPrimaryImageId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
@@ -58,6 +59,7 @@ export default function ProductDrawer({
       setMode("create");
       setF({ ...empty, productType: defaultType, fuelType: defaultType === "Braai" ? "Gas" : "" });
       setKeptImages([]);
+      setPrimaryImageId(null);
       return;
     }
     setMode("view");
@@ -78,6 +80,7 @@ export default function ProductDrawer({
       fireplaceType: product.fireplaceType ?? "",
     });
     setKeptImages(product.images ?? []);
+    setPrimaryImageId(product.images?.find((img) => img.isPrimary)?.imageId ?? null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, product?.productId, defaultType, product?.images]);
 
@@ -144,6 +147,10 @@ export default function ProductDrawer({
         keptImages.forEach((img) => {
           fd.append("ExistingImageIds", img.imageId);
         });
+
+        if (primaryImageId) {
+          fd.append("PrimaryImageId", primaryImageId);
+        }
 
         // Append new images
         if (files.length && isAdmin) {
@@ -243,7 +250,7 @@ export default function ProductDrawer({
         {images.length > 0 && (
           <div className="grid h-44 place-items-center overflow-hidden rounded-xl bg-card">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={(images.find((i) => i.isPrimary) ?? images[0]).url} alt={f.name} className="h-full w-full object-cover" />
+            <img src={(images.find((i) => i.imageId === primaryImageId) ?? images.find((i) => i.isPrimary) ?? images[0]).url} alt={f.name} className="h-full w-full object-cover" />
           </div>
         )}
 
@@ -334,17 +341,30 @@ export default function ProductDrawer({
                 <div key={img.imageId} className="group relative aspect-square overflow-hidden rounded-lg bg-card">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={img.url} alt="" className="h-full w-full object-cover" />
-                  {img.isPrimary && (
+                  {img.imageId === primaryImageId && (
                     <span className="absolute left-1 top-1">
                       <Pill tone="dark">Primary</Pill>
                     </span>
                   )}
                   {mode === "edit" && isAdmin && (
                     <div className="absolute inset-x-0 bottom-0 flex justify-center gap-1 bg-black/50 p-1 opacity-0 transition group-hover:opacity-100">
+                      {img.imageId !== primaryImageId && (
+                        <button
+                          title="Set as primary"
+                          type="button"
+                          onClick={() => setPrimaryImageId(img.imageId)}
+                          className="rounded bg-white p-1 text-black"
+                        >
+                          <Star className="h-3 w-3" />
+                        </button>
+                      )}
                       <button
                         title="Remove image"
                         type="button"
-                        onClick={() => setKeptImages((c) => c.filter((x) => x.imageId !== img.imageId))}
+                        onClick={() => {
+                          setKeptImages((c) => c.filter((x) => x.imageId !== img.imageId));
+                          if (primaryImageId === img.imageId) setPrimaryImageId(null);
+                        }}
                         className="rounded bg-white p-1 text-red-600"
                       >
                         <Trash2 className="h-3 w-3" />
