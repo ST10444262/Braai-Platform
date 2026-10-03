@@ -62,7 +62,8 @@ export default function Footer() {
         </div>
 
         {/* Explore section to different pages of the website */}
-        <div className="md:text-center md:mx-auto">
+        <div className="flex flex-col sm:flex-row gap-10 sm:gap-16 items-start">
+          <div>
           <h3 className="text-xs font-bold uppercase tracking-widest text-white mb-4">
             Explore
           </h3>
@@ -108,7 +109,7 @@ export default function Footer() {
             </li>
           </ul>
         </div>
-
+        </div>
       </div>
 
       {/* copywrite bar */}
