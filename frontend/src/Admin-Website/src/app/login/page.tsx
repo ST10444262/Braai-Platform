@@ -7,12 +7,14 @@ import { Logo } from "@/components/Shell";
 import { Button, ErrorNote, Field, TextInput } from "@/components/ui";
 import { QRCodeSVG } from "qrcode.react";
 
+//------------------------------------------------------------------------------------------//
 export default function LoginPage() {
   const router = useRouter();
   const { login, verifyTwoFactor, setupTwoFactor, finishSetupTwoFactor, role, ready } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [code, setCode] = useState("");
+  const [rememberDevice, setRememberDevice] = useState(false);
 
   // States to track flow
   const [userId, setUserId] = useState<string | null>(null);
@@ -46,7 +48,7 @@ export default function LoginPage() {
         }
       } else if (userId && challenge) {
         // Standard 2FA verification step
-        await verifyTwoFactor(userId, code.trim(), challenge);
+        await verifyTwoFactor(userId, code.trim(), challenge, rememberDevice);
         router.replace("/overview");
       } else {
         // Initial login step
@@ -115,17 +117,31 @@ export default function LoginPage() {
         )}
 
         {!isSettingUp && userId && (
-          <Field label="Authenticator code">
-            <TextInput
-              value={code}
-              onChange={(e) => setCode(e.target.value)}
-              inputMode="numeric"
-              maxLength={6}
-              placeholder="123456"
-              autoFocus
-              required
-            />
-          </Field>
+          <div className="space-y-4">
+            <Field label="Authenticator code">
+              <TextInput
+                value={code}
+                onChange={(e) => setCode(e.target.value)}
+                inputMode="numeric"
+                maxLength={6}
+                placeholder="123456"
+                autoFocus
+                required
+              />
+            </Field>
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id="remember"
+                checked={rememberDevice}
+                onChange={(e) => setRememberDevice(e.target.checked)}
+                className="h-4 w-4 rounded border-gray-300 text-black focus:ring-black"
+              />
+              <label htmlFor="remember" className="text-sm text-gray-600 cursor-pointer">
+                Remember this device for 14 days
+              </label>
+            </div>
+          </div>
         )}
 
         {!isSettingUp && !userId && (
@@ -161,3 +177,4 @@ export default function LoginPage() {
     </div>
   );
 }
+//---------------------END OF FILE------------------------------------------------------------------//

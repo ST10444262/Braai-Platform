@@ -32,13 +32,25 @@ namespace Inflame_Backend.Controllers.Admin
     {
         private readonly IMediator _mediator;
 
+        #region Dependencies
+
+        //------------------------------------------------------------------------------------------//
+        private readonly Inflame_Backend.Services.Authentication.TrustedDeviceService _trustedDeviceService;
+        private readonly Inflame_Backend.Services.Authentication.TwoFactorChallengeService _twoFactorChallengeService;
+
         //------------------------------------------------------------------------------------------//
         public AccountController(
-            IMediator mediator)
+            IMediator mediator,
+            Inflame_Backend.Services.Authentication.TrustedDeviceService trustedDeviceService,
+            Inflame_Backend.Services.Authentication.TwoFactorChallengeService twoFactorChallengeService)
         {
             _mediator = mediator;
+            _trustedDeviceService = trustedDeviceService;
+            _twoFactorChallengeService = twoFactorChallengeService;
         }
+        #endregion
 
+        #region Authentication Endpoints
         //------------------------------------------------------------------------------------------//
         /// <summary>
         /// Authenticates a staff member and returns a JWT or a two-factor challenge.
@@ -154,7 +166,9 @@ namespace Inflame_Backend.Controllers.Admin
 
             return Ok(result);
         }
+        #endregion
 
+        #region Profile Endpoints
         //------------------------------------------------------------------------------------------//
         /// <summary>
         /// Returns the signed-in user's staff profile (including the StaffId needed for notes and invoice uploads).
@@ -250,6 +264,80 @@ namespace Inflame_Backend.Controllers.Admin
             return Ok(new { success = true, message = result.Message });
         }
         
+        //------------------------------------------------------------------------------------------//
+        /// <summary>
+        /// Retrieves active trusted devices for the signed-in user.
+        /// </summary>
+        [HttpGet("me/devices")]
+        [Authorize]
+        public async Task<IActionResult> GetTrustedDevices()
+        {
+            var idClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (idClaim == null || !Guid.TryParse(idClaim.Value, out var userId))
+                return Unauthorized();
+
+            var devices = await _trustedDeviceService.GetActiveDevicesAsync(userId);
+            return Ok(devices.Select(d => new
+            {
+                id = d.Id,
+                deviceName = d.DeviceName,
+                ipAddress = d.IpAddress,
+                createdAt = d.CreatedAt,
+                lastUsedAt = d.LastUsedAt,
+                expiresAt = d.ExpiresAt
+            }));
+        }
+
+        //------------------------------------------------------------------------------------------//
+        /// <summary>
+        /// Revokes a trusted device for the signed-in user.
+        /// </summary>
+        [HttpDelete("me/devices/{deviceId:guid}")]
+        [Authorize]
+        public async Task<IActionResult> RevokeTrustedDevice(Guid deviceId)
+        {
+            var idClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (idClaim == null || !Guid.TryParse(idClaim.Value, out var userId))
+                return Unauthorized();
+
+            var success = await _trustedDeviceService.RevokeDeviceAsync(userId, deviceId);
+            if (!success)
+                return NotFound(new { message = "Device not found or not owned by user." });
+
+            return Ok(new { success = true, message = "Device revoked successfully." });
+        }
+
+        //------------------------------------------------------------------------------------------//
+        /// <summary>
+        /// Initiates the 2FA setup process for an already logged-in user.
+        /// </summary>
+        [HttpPost("me/2fa/setup")]
+        [Authorize]
+        public async Task<IActionResult> SelfSetupTwoFactor()
+        {
+            var idClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (idClaim == null || !Guid.TryParse(idClaim.Value, out var userId))
+                return Unauthorized();
+
+            var challenge = _twoFactorChallengeService.CreateChallenge(userId, "setup");
+            var command = new SetupTwoFactorCommand(challenge);
+            var result = await _mediator.Send(command);
+
+            if (!result.Success)
+                return BadRequest(result);
+
+            // We also return the challenge token so they can submit it back to verify
+            return Ok(new { 
+                success = result.Success, 
+                message = result.Message, 
+                sharedKey = result.SharedKey, 
+                authenticatorUri = result.AuthenticatorUri,
+                challengeToken = challenge
+            });
+        }
+        #endregion
+
+        #region Staff Management Endpoints
         //------------------------------------------------------------------------------------------//
         /// <summary>
         /// Provisions a new staff account. SuperAdmins can create Admins or Employees. Admins can only create Employees.
@@ -388,6 +476,7 @@ namespace Inflame_Backend.Controllers.Admin
 
             return Ok(result);
         }
+        #endregion
     }
 }
 //---------------------END OF FILE------------------------------------------------------------------//

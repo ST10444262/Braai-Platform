@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { QRCodeSVG } from "qrcode.react";
-import { ShieldCheck } from "lucide-react";
+import { ShieldCheck, Monitor, Trash2, Smartphone, Laptop } from "lucide-react";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { roleLabel } from "@/lib/format";
@@ -11,8 +11,19 @@ import { Avatar, Button, ErrorNote, Field, Modal, Pill, Spinner, TextInput, useT
 interface Setup {
   sharedKey?: string;
   authenticatorUri?: string;
+  challengeToken?: string;
 }
 
+interface TrustedDevice {
+  id: string;
+  deviceName: string;
+  ipAddress: string;
+  createdAt: string;
+  lastUsedAt: string;
+  expiresAt: string;
+}
+
+//------------------------------------------------------------------------------------------//
 export default function ProfilePage() {
   const { me, role, ready, reloadMe } = useAuth();
   const toast = useToast();
@@ -23,6 +34,27 @@ export default function ProfilePage() {
   const [code, setCode] = useState("");
   const [busy, setBusy] = useState(false);
   const [prefBusy, setPrefBusy] = useState(false);
+  const [trustedDevices, setTrustedDevices] = useState<TrustedDevice[]>([]);
+  const [loadingDevices, setLoadingDevices] = useState(true);
+
+  // Fetch trusted devices
+  const fetchDevices = async () => {
+    try {
+      setLoadingDevices(true);
+      const res = await api.get<TrustedDevice[]>("/admin/account/me/devices");
+      setTrustedDevices(res);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoadingDevices(false);
+    }
+  };
+
+  useEffect(() => {
+    if (ready && me) {
+      fetchDevices();
+    }
+  }, [ready, me]);
 
   if (!ready) return <Spinner />;
   if (!me) return <ErrorNote message="Could not load your profile." />;
@@ -46,7 +78,7 @@ export default function ProfilePage() {
   async function startSetup() {
     setBusy(true);
     try {
-      setSetup(await api.post<Setup>("/admin/account/2fa/setup"));
+      setSetup(await api.post<Setup>("/admin/account/me/2fa/setup"));
     } catch (err) {
       toast((err as Error).message, "err");
     } finally {
@@ -57,7 +89,8 @@ export default function ProfilePage() {
   async function verify() {
     setBusy(true);
     try {
-      await api.post("/admin/account/2fa/verify", { code: code.trim() });
+      if (!setup?.challengeToken) throw new Error("Missing challenge token.");
+      await api.post("/admin/account/2fa/verify", { code: code.trim(), challenge: setup.challengeToken });
       toast("Two-factor authentication enabled.");
       setTwoFaOpen(false);
       setSetup(null);
@@ -86,6 +119,17 @@ export default function ProfilePage() {
       toast((err as Error).message, "err");
     } finally {
       setPrefBusy(false);
+    }
+  }
+
+  async function revokeDevice(id: string) {
+    if (!window.confirm("Are you sure you want to revoke this device? You will need to use 2FA next time you log in on it.")) return;
+    try {
+      await api.del(`/admin/account/me/devices/${id}`);
+      toast("Device revoked.");
+      fetchDevices();
+    } catch (err) {
+      toast((err as Error).message, "err");
     }
   }
 
@@ -137,20 +181,60 @@ export default function ProfilePage() {
             </Button>
           </form>
 
-          <div className="flex items-center justify-between gap-4 rounded-3xl border border-line bg-white p-6 shadow-sm">
-            <div>
-              <h3 className="text-sm font-semibold">Two-Factor Authentication</h3>
-              <p className="mt-1 max-w-xs text-xs text-muted">
-                Add an extra layer of security to your account by requiring more than just your password to sign in.
-              </p>
-              <p className="mt-2 flex items-center gap-1.5 text-[11px] text-muted">
-                <span className={me.twoFactorEnabled ? "h-1.5 w-1.5 rounded-full bg-emerald-500" : "h-1.5 w-1.5 rounded-full bg-stone-300"} />
-                {me.twoFactorEnabled ? "2FA Enabled" : "2FA not enabled"}
-              </p>
+          <div className="flex flex-col gap-4 rounded-3xl border border-line bg-white p-6 shadow-sm">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-sm font-semibold">Two-Factor Authentication & Trusted Devices</h3>
+                <p className="mt-1 max-w-xs text-xs text-muted">
+                  Manage your authenticator app and the devices that are allowed to skip 2FA.
+                </p>
+                <p className="mt-2 flex items-center gap-1.5 text-[11px] text-muted">
+                  <span className={me.twoFactorEnabled ? "h-1.5 w-1.5 rounded-full bg-emerald-500" : "h-1.5 w-1.5 rounded-full bg-stone-300"} />
+                  {me.twoFactorEnabled ? "2FA Enabled" : "2FA not enabled"}
+                </p>
+              </div>
+              <Button variant="secondary" onClick={() => setTwoFaOpen(true)}>
+                Manage Authenticator
+              </Button>
             </div>
-            <Button variant="secondary" onClick={() => setTwoFaOpen(true)}>
-              Manage 2FA Devices
-            </Button>
+
+            {trustedDevices.length > 0 && (
+              <div className="mt-4 border-t border-line pt-4">
+                <h4 className="text-xs font-semibold uppercase tracking-wider text-muted mb-3">Trusted Devices</h4>
+                <div className="space-y-3">
+                  {trustedDevices.map((device) => {
+                    const isMobile = device.deviceName.toLowerCase().includes("mobi") || device.deviceName.toLowerCase().includes("android") || device.deviceName.toLowerCase().includes("iphone");
+                    const Icon = isMobile ? Smartphone : Laptop;
+                    
+                    return (
+                      <div key={device.id} className="flex items-center justify-between rounded-xl bg-zinc-50 p-3 text-sm">
+                        <div className="flex items-center gap-3">
+                          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-zinc-500 shadow-sm">
+                            <Icon size={18} />
+                          </div>
+                          <div>
+                            <p className="font-medium text-xs truncate max-w-[200px]" title={device.deviceName}>
+                              {device.deviceName}
+                            </p>
+                            <p className="text-[11px] text-muted">
+                              Added: {new Date(device.createdAt).toLocaleDateString()} • Last used: {new Date(device.lastUsedAt).toLocaleDateString()}
+                            </p>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => revokeDevice(device.id)}
+                          className="rounded-lg p-2 text-red-500 hover:bg-red-50 transition-colors"
+                          title="Revoke device"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="flex items-center justify-between gap-4 rounded-3xl border border-line bg-white p-6 shadow-sm">
@@ -220,3 +304,4 @@ export default function ProfilePage() {
     </>
   );
 }
+//---------------------END OF FILE------------------------------------------------------------------//

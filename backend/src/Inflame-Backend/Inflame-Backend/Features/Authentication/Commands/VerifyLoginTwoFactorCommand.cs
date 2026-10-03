@@ -24,6 +24,7 @@ namespace Inflame_Backend.Features.Authentication.Commands
             VerifyLoginTwoFactorCommand,
             VerifyLoginTwoFactorResponseDto>
     {
+        #region Dependencies
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly TwoFactorChallengeService _twoFactorChallengeService;
         private readonly JwtTokenService _jwtTokenService;
@@ -47,7 +48,9 @@ namespace Inflame_Backend.Features.Authentication.Commands
             _trustedDeviceService = trustedDeviceService;
             _httpContextAccessor = httpContextAccessor;
         }
+        #endregion
 
+        #region Execution
         //------------------------------------------------------------------------------------------//
         /// <summary>
         /// Handles the request to verify the two factor login code.
@@ -169,7 +172,7 @@ namespace Inflame_Backend.Features.Authentication.Commands
                     _trustedDeviceService.GetExpiration();
 
                 var trustedDeviceToken =
-                    _trustedDeviceService.CreateToken(
+                    await _trustedDeviceService.CreateTokenAsync(
                         user.Id,
                         trustedDeviceExpiration);
 
@@ -194,6 +197,7 @@ namespace Inflame_Backend.Features.Authentication.Commands
                 ExpiresAt = DateTime.UtcNow.AddMinutes(expiryMinutes)
             };
         }
+        #endregion
     }
 }
 //---------------------END OF FILE------------------------------------------------------------------//
