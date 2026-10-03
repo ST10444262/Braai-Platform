@@ -64,7 +64,7 @@ namespace Inflame_Backend.Tests.ApplicationLayer
 
             // The facade must be used, not a direct repository call
             mockFacade.Verify(f => f.GetProductDetailsAsync(productId), Times.Once,
-                because: "the handler must delegate to the facade for single-product retrieval");
+                "The handler must delegate to the facade for single-product retrieval");
             mockFacade.Verify(
                 f => f.GetFilteredCatalogAsync(
                     It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<string?>(),
@@ -72,7 +72,7 @@ namespace Inflame_Backend.Tests.ApplicationLayer
                     It.IsAny<decimal?>(), It.IsAny<decimal?>(), It.IsAny<string?>(),
                     It.IsAny<string?>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<bool>()),
                 Times.Never,
-                because: "the catalog query must NOT be called when fetching a single product by ID");
+                "The catalog query must NOT be called when fetching a single product by ID");
         }
 
         //----------------------------------------------------------------------------------------------//
@@ -130,7 +130,7 @@ namespace Inflame_Backend.Tests.ApplicationLayer
                 f => f.GetFilteredCatalogAsync(
                     null, null, null, null, null, null, null, null, null, null, 1, 20, false),
                 Times.Once,
-                because: "the handler must delegate to GetFilteredCatalogAsync when no ProductId is specified");
+                "The handler must delegate to GetFilteredCatalogAsync when no ProductId is specified");
         }
 
         //----------------------------------------------------------------------------------------------//

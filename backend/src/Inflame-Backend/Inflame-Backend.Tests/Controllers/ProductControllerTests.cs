@@ -21,17 +21,14 @@ namespace Inflame_Backend.Tests.Controllers
     /// <summary>
     /// Unit tests for the Admin ProductController.
     /// Covers:
-    ///   1. RBAC – an Employee JWT cannot access Admin-only endpoints (should return 403).
-    ///   2. Facade Pattern – controller delegates correctly to MediatR which orchestrates the Facade.
+    ///   1. RBAC – Employee JWT cannot access Admin-only endpoints.
+    ///   2. Facade Pattern – controller delegates correctly to MediatR (which orchestrates the Facade).
     /// </summary>
     public class ProductControllerTests
     {
         //----------------------------------------------------------------------------------------------//
         #region Helpers
 
-        /// <summary>
-        /// Creates a ClaimsPrincipal with the specified role for use in controller RBAC checks.
-        /// </summary>
         private static ClaimsPrincipal BuildUser(string role)
         {
             var claims = new List<Claim>
@@ -40,23 +37,14 @@ namespace Inflame_Backend.Tests.Controllers
                 new Claim(ClaimTypes.Name, "testuser@inflame.co.za"),
                 new Claim(ClaimTypes.Role, role)
             };
-
-            var identity = new ClaimsIdentity(claims, "TestAuth");
-            return new ClaimsPrincipal(identity);
+            return new ClaimsPrincipal(new ClaimsIdentity(claims, "TestAuth"));
         }
 
-        /// <summary>
-        /// Attaches a user principal and HTTP context to a controller instance so
-        /// controller-level role checks (User.IsInRole) work correctly in unit tests.
-        /// </summary>
         private static void AttachUser(ControllerBase controller, string role)
         {
             controller.ControllerContext = new ControllerContext
             {
-                HttpContext = new DefaultHttpContext
-                {
-                    User = BuildUser(role)
-                }
+                HttpContext = new DefaultHttpContext { User = BuildUser(role) }
             };
         }
 
@@ -68,9 +56,7 @@ namespace Inflame_Backend.Tests.Controllers
         [Fact]
         public async Task UpdateProduct_WhenCalledByEmployee_ShouldReturnBadRequestForPriceChange()
         {
-            // Arrange – Employee does not have price control (hasPriceControl = false inside controller)
-            var existingPrice = 5000m;
-
+            // Arrange – the handler reports a permission-denied failure for an employee price change
             var mockMediator = new Mock<IMediator>();
             mockMediator
                 .Setup(m => m.Send(It.IsAny<UpdateProductCommand>(), It.IsAny<CancellationToken>()))
@@ -81,22 +67,21 @@ namespace Inflame_Backend.Tests.Controllers
                 });
 
             var controller = new ProductController(mockMediator.Object);
-            AttachUser(controller, "Employee"); // Employee role
+            AttachUser(controller, "Employee");
 
-            var productId = Guid.NewGuid();
             var dto = new UpdateProductRequestDto
             {
-                Name = "Updated",
-                Price = existingPrice + 1000m, // attempt to change price
-                Category = "Freestanding",
-                Brand = "Weber",
+                Name        = "Updated",
+                Price       = 6000m,
+                Category    = "Freestanding",
+                Brand       = "Weber",
                 Description = "Desc"
             };
 
             // Act
-            var actionResult = await controller.UpdateProduct(productId, dto);
+            var actionResult = await controller.UpdateProduct(Guid.NewGuid(), dto);
 
-            // Assert – employee cannot change price → BadRequest
+            // Assert
             actionResult.Result.Should().BeOfType<BadRequestObjectResult>(
                 because: "an Employee attempting to change a product price must receive a 400 Bad Request");
 
@@ -108,7 +93,7 @@ namespace Inflame_Backend.Tests.Controllers
         [Fact]
         public async Task UpdateProduct_WhenCalledByAdmin_ShouldSucceedWithPriceChange()
         {
-            // Arrange – Admin has price control
+            // Arrange
             var mockMediator = new Mock<IMediator>();
             mockMediator
                 .Setup(m => m.Send(It.IsAny<UpdateProductCommand>(), It.IsAny<CancellationToken>()))
@@ -119,14 +104,14 @@ namespace Inflame_Backend.Tests.Controllers
                 });
 
             var controller = new ProductController(mockMediator.Object);
-            AttachUser(controller, "Admin"); // Admin role
+            AttachUser(controller, "Admin");
 
             var dto = new UpdateProductRequestDto
             {
-                Name = "Updated",
-                Price = 6000m,
-                Category = "Freestanding",
-                Brand = "Weber",
+                Name        = "Updated",
+                Price       = 6000m,
+                Category    = "Freestanding",
+                Brand       = "Weber",
                 Description = "Desc"
             };
 
@@ -147,25 +132,23 @@ namespace Inflame_Backend.Tests.Controllers
                 .Setup(m => m.Send(It.IsAny<CreateProductCommand>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new CreateProductResponseDto
                 {
-                    Success = true,
-                    Message = "Product created successfully.",
+                    Success   = true,
+                    Message   = "Product created successfully.",
                     ProductId = Guid.NewGuid()
                 });
 
             var controller = new ProductController(mockMediator.Object);
             AttachUser(controller, "SuperAdmin");
 
-            var dto = new CreateProductRequestDto
-            {
-                Name = "Braai Beast",
-                Category = "Freestanding",
-                Brand = "Weber",
-                Price = 4500m,
-                ProductType = "Braai"
-            };
-
             // Act
-            var actionResult = await controller.CreateProduct(dto);
+            var actionResult = await controller.CreateProduct(new CreateProductRequestDto
+            {
+                Name        = "Braai Beast",
+                Category    = "Freestanding",
+                Brand       = "Weber",
+                Price       = 4500m,
+                ProductType = "Braai"
+            });
 
             // Assert
             actionResult.Result.Should().BeOfType<OkObjectResult>(
@@ -190,10 +173,8 @@ namespace Inflame_Backend.Tests.Controllers
             var controller = new ProductController(mockMediator.Object);
             AttachUser(controller, "Admin");
 
-            var query = new GetAdminProductQuery();
-
             // Act
-            var actionResult = await controller.GetProducts(query);
+            var actionResult = await controller.GetProducts(new GetAdminProductQuery());
 
             // Assert
             actionResult.Result.Should().BeOfType<OkObjectResult>(
@@ -212,7 +193,7 @@ namespace Inflame_Backend.Tests.Controllers
         [Fact]
         public async Task GetProducts_ShouldDelegateToMediatorExactlyOnce()
         {
-            // Arrange – verify the controller properly delegates to MediatR (which uses the Facade)
+            // Arrange
             var mockMediator = new Mock<IMediator>();
             mockMediator
                 .Setup(m => m.Send(It.IsAny<GetAdminProductQuery>(), It.IsAny<CancellationToken>()))
@@ -221,29 +202,27 @@ namespace Inflame_Backend.Tests.Controllers
             var controller = new ProductController(mockMediator.Object);
             AttachUser(controller, "Admin");
 
-            var query = new GetAdminProductQuery();
-
             // Act
-            await controller.GetProducts(query);
+            await controller.GetProducts(new GetAdminProductQuery());
 
-            // Assert – MediatR called exactly once with the correct query
+            // Assert
             mockMediator.Verify(
                 m => m.Send(It.IsAny<GetAdminProductQuery>(), It.IsAny<CancellationToken>()),
                 Times.Once,
-                because: "the controller must delegate to MediatR once per request without duplicating calls");
+                "The controller must delegate to MediatR once per request without duplicating calls");
         }
 
         [Fact]
         public async Task CreateProduct_WhenHandlerFails_ShouldReturnBadRequest()
         {
-            // Arrange – simulate a handler failure (e.g., repository error)
+            // Arrange
             var mockMediator = new Mock<IMediator>();
             mockMediator
                 .Setup(m => m.Send(It.IsAny<CreateProductCommand>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new CreateProductResponseDto
                 {
-                    Success = false,
-                    Message = "An error occurred during product creation: DB error.",
+                    Success   = false,
+                    Message   = "An error occurred during product creation: DB error.",
                     ProductId = null
                 });
 
@@ -253,10 +232,10 @@ namespace Inflame_Backend.Tests.Controllers
             // Act
             var actionResult = await controller.CreateProduct(new CreateProductRequestDto
             {
-                Name = "Test",
-                Price = 100m,
-                Category = "Test",
-                Brand = "Test",
+                Name        = "Test",
+                Price       = 100m,
+                Category    = "Test",
+                Brand       = "Test",
                 ProductType = "Braai"
             });
 

@@ -14,8 +14,8 @@ namespace Inflame_Backend.Tests.DesignPatterns
     //----------------------------------------------------------------------------------------------//
     /// <summary>
     /// Unit tests for the Observer Pattern (QuoteRequestNotifier + EmailNotificationObserver).
-    /// Verifies that when a new quote is published, the EmailNotificationObserver is triggered
-    /// and that the actual SMTP client is never called (the IEmailService is mocked).
+    /// Verifies that when a new quote is published the EmailNotificationObserver is triggered,
+    /// and that the actual SMTP client is never called (IEmailService is mocked).
     /// </summary>
     public class ObserverPatternTests
     {
@@ -37,7 +37,7 @@ namespace Inflame_Backend.Tests.DesignPatterns
             mockObserver.Verify(
                 o => o.Update("Quote for 1x Braai Master"),
                 Times.Once,
-                because: "a single attached observer must receive exactly one Update call when notified");
+                "A single attached observer must receive exactly one Update call when notified");
         }
 
         [Fact]
@@ -73,8 +73,10 @@ namespace Inflame_Backend.Tests.DesignPatterns
             notifier.NewQuoteRequested("Should not arrive");
 
             // Assert
-            mockObserver.Verify(o => o.Update(It.IsAny<string>()), Times.Never,
-                because: "a detached observer must never receive notifications");
+            mockObserver.Verify(
+                o => o.Update(It.IsAny<string>()),
+                Times.Never,
+                "A detached observer must never receive notifications");
         }
 
         [Fact]
@@ -91,14 +93,16 @@ namespace Inflame_Backend.Tests.DesignPatterns
             notifier.NewQuoteRequested("Test");
 
             // Assert
-            mockObserver.Verify(o => o.Update("Test"), Times.Once,
-                because: "the notifier must deduplicate observer registrations");
+            mockObserver.Verify(
+                o => o.Update("Test"),
+                Times.Once,
+                "The notifier must deduplicate observer registrations");
         }
 
         #endregion
 
         //----------------------------------------------------------------------------------------------//
-        #region EmailNotificationObserver Tests (Mock SMTP so no real emails are sent)
+        #region EmailNotificationObserver Tests (Mock SMTP — no real emails sent)
 
         [Fact]
         public async Task EmailObserver_WhenNewQuotePublished_ShouldCallSendEmailWithSubscribedStaff()
@@ -107,13 +111,13 @@ namespace Inflame_Backend.Tests.DesignPatterns
             var mockEmailService = new Mock<IEmailService>();
             var mockStaffRepo = new Mock<IStaffAccountRepository>();
 
-            // Two active staff members opted-in for quote emails
+            // Two active opted-in staff + one inactive + one opted-out
             var staff = new List<StaffAccount>
             {
-                new StaffAccount { StaffId = Guid.NewGuid(), Email = "alice@inflame.co.za", IsActive = true,  ReceiveQuoteEmails = true  },
-                new StaffAccount { StaffId = Guid.NewGuid(), Email = "bob@inflame.co.za",   IsActive = true,  ReceiveQuoteEmails = true  },
-                new StaffAccount { StaffId = Guid.NewGuid(), Email = "charlie@inflame.co.za",IsActive = false, ReceiveQuoteEmails = true  }, // inactive – excluded
-                new StaffAccount { StaffId = Guid.NewGuid(), Email = "dave@inflame.co.za",  IsActive = true,  ReceiveQuoteEmails = false }, // opted-out – excluded
+                new StaffAccount { StaffId = Guid.NewGuid(), Email = "alice@inflame.co.za",   IsActive = true,  ReceiveQuoteEmails = true  },
+                new StaffAccount { StaffId = Guid.NewGuid(), Email = "bob@inflame.co.za",     IsActive = true,  ReceiveQuoteEmails = true  },
+                new StaffAccount { StaffId = Guid.NewGuid(), Email = "charlie@inflame.co.za", IsActive = false, ReceiveQuoteEmails = true  }, // inactive
+                new StaffAccount { StaffId = Guid.NewGuid(), Email = "dave@inflame.co.za",    IsActive = true,  ReceiveQuoteEmails = false }, // opted-out
             };
 
             mockStaffRepo
@@ -128,8 +132,6 @@ namespace Inflame_Backend.Tests.DesignPatterns
                 .Returns(Task.CompletedTask);
 
             var observer = new EmailNotificationObserver(mockEmailService.Object, mockStaffRepo.Object);
-
-            // Attach observer to the notifier (integration of the full observer chain)
             var notifier = new QuoteRequestNotifier();
             notifier.Attach(observer);
 
@@ -139,7 +141,7 @@ namespace Inflame_Backend.Tests.DesignPatterns
             // Allow the async void Update to complete
             await Task.Delay(200);
 
-            // Assert – real SMTP never called; our mock was called once with only the two eligible staff
+            // Assert – mock called once with only the two eligible staff
             mockEmailService.Verify(
                 e => e.SendEmailAsync(
                     It.Is<IEnumerable<string>>(list =>
@@ -150,22 +152,20 @@ namespace Inflame_Backend.Tests.DesignPatterns
                     "New Quote Request Received",
                     It.IsAny<string>()),
                 Times.Once,
-                because: "only active, opted-in staff should receive the notification email via BCC");
+                "Only active opted-in staff should receive the notification email via BCC");
         }
 
         [Fact]
         public async Task EmailObserver_WhenNoSubscribedStaffExist_ShouldNotCallSendEmail()
         {
-            // Arrange – all staff are opted-out or inactive
+            // Arrange – all staff inactive or opted-out
             var mockEmailService = new Mock<IEmailService>();
             var mockStaffRepo = new Mock<IStaffAccountRepository>();
 
-            var staff = new List<StaffAccount>
+            mockStaffRepo.Setup(r => r.GetAllAsync()).ReturnsAsync(new List<StaffAccount>
             {
                 new StaffAccount { StaffId = Guid.NewGuid(), Email = "only@inflame.co.za", IsActive = false, ReceiveQuoteEmails = true },
-            };
-
-            mockStaffRepo.Setup(r => r.GetAllAsync()).ReturnsAsync(staff);
+            });
 
             var observer = new EmailNotificationObserver(mockEmailService.Object, mockStaffRepo.Object);
             var notifier = new QuoteRequestNotifier();
@@ -175,14 +175,14 @@ namespace Inflame_Backend.Tests.DesignPatterns
             notifier.NewQuoteRequested("Some quote details");
             await Task.Delay(200);
 
-            // Assert – no eligible recipients means no email should be sent
+            // Assert
             mockEmailService.Verify(
                 e => e.SendEmailAsync(
                     It.IsAny<IEnumerable<string>>(),
                     It.IsAny<string>(),
                     It.IsAny<string>()),
                 Times.Never,
-                because: "if no staff members are eligible, SendEmailAsync must never be called");
+                "If no staff members are eligible, SendEmailAsync must never be called");
         }
 
         #endregion

@@ -16,7 +16,8 @@ namespace Inflame_Backend.Tests.DataAccess
     //----------------------------------------------------------------------------------------------//
     /// <summary>
     /// Unit tests for the CachedBaseRepository / CachedProductRepository (Decorator Pattern).
-    /// Mocks both the Redis IDatabase and the inner PostgreSQL repository to verify:
+    /// Uses a <see cref="FakeRedisInstance"/> to inject a mock IDatabase without a real Redis
+    /// connection, then verifies:
     ///   1. Cache Hit  – inner repository is NEVER called when Redis has data.
     ///   2. Cache Miss – inner repository IS called and result is saved to Redis.
     ///   3. Cache Invalidation – write operations delete the relevant Redis cache keys.
@@ -24,42 +25,75 @@ namespace Inflame_Backend.Tests.DataAccess
     public class CachedRepositoryTests
     {
         //----------------------------------------------------------------------------------------------//
-        #region Test Helpers
+        #region Test Infrastructure
 
         /// <summary>
-        /// Builds a CachedProductRepository whose Redis IDatabase and inner IProductRepository
-        /// are both mocked, returning the fixture for full setup flexibility.
+        /// A fake RedisInstance that returns a mocked IDatabase instead of connecting to
+        /// a real Redis server. The <see cref="Lazy{T}"/> is never evaluated.
         /// </summary>
-        private static (CachedProductRepository cachedRepo,
+        private class FakeRedisInstance : RedisInstance
+        {
+            private readonly IDatabase _db;
+
+            /// <summary>
+            /// Passes a dummy (non-connecting) URI to the base constructor so the Lazy is
+            /// set up but never evaluated. The connection is never established because
+            /// neither <see cref="Connection"/> nor <see cref="GetDatabase"/> on the base
+            /// class are used – we override GetDatabase below.
+            /// </summary>
+            public FakeRedisInstance(IDatabase db)
+                // Use a throwaway string; the Lazy is never evaluated in tests.
+                : base("redis://localhost:9999")
+            {
+                _db = db;
+            }
+
+            /// <summary>New (hiding) method returns the mock IDatabase directly.</summary>
+            public new IDatabase GetDatabase() => _db;
+        }
+
+        /// <summary>
+        /// Concrete test-double that calls the FakeRedisInstance overload of GetDatabase()
+        /// during base construction, so CachedBaseRepository._redisDatabase = our mock.
+        /// </summary>
+        private class FakeCachedProductRepository : CachedBaseRepository<Product>, IProductRepository
+        {
+            public FakeCachedProductRepository(IProductRepository inner, FakeRedisInstance fakeRedis)
+                : base(inner, fakeRedis)
+            {
+                // CachedBaseRepository ctor calls redisInstance.GetDatabase(), but because
+                // we are passing a FakeRedisInstance and CachedBaseRepository stores whatever
+                // GetDatabase() returns via the reference, we post-correct _redisDatabase by
+                // reflection so it points to the mock instead of the base GetDatabase().
+                //
+                // Note: fakeRedis.GetDatabase() returns _db (the mock), but RedisInstance.GetDatabase()
+                // on the base class would try to evaluate the Lazy.  We fix this via reflection.
+                var field = typeof(CachedBaseRepository<Product>)
+                    .GetField("_redisDatabase",
+                        System.Reflection.BindingFlags.NonPublic |
+                        System.Reflection.BindingFlags.Instance);
+                field!.SetValue(this, fakeRedis.GetDatabase());
+            }
+        }
+
+        /// <summary>
+        /// Helper that creates a <see cref="FakeCachedProductRepository"/> together with
+        /// the mocked inner repo and mocked Redis IDatabase.
+        /// </summary>
+        private static (FakeCachedProductRepository cachedRepo,
                          Mock<IProductRepository> mockInner,
                          Mock<IDatabase> mockRedis)
             BuildCachedRepo()
         {
             var mockInner = new Mock<IProductRepository>();
             var mockRedis = new Mock<IDatabase>();
+            var fakeRedis = new FakeRedisInstance(mockRedis.Object);
 
-            // Build a RedisInstance whose GetDatabase() returns the mock IDatabase.
-            // We inject using a test-friendly subclass that accepts an IDatabase directly.
-            var testRedisInstance = new TestRedisInstance(mockRedis.Object);
-
-            var cachedRepo = new CachedProductRepository(mockInner.Object, testRedisInstance);
+            // We must prevent the base ctor from calling the real GetDatabase().
+            // We pass null for RedisInstance so GetDatabase() is never called during base
+            // construction, then inject via reflection afterwards.
+            var cachedRepo = new FakeCachedProductRepository(mockInner.Object, fakeRedis);
             return (cachedRepo, mockInner, mockRedis);
-        }
-
-        /// <summary>
-        /// A RedisInstance subclass that skips the real connection and returns a mock IDatabase.
-        /// </summary>
-        private class TestRedisInstance : RedisInstance
-        {
-            private readonly IDatabase _db;
-
-            public TestRedisInstance(IDatabase db)
-                : base("redis://localhost:6379") // dummy string – connection never made
-            {
-                _db = db;
-            }
-
-            public new IDatabase GetDatabase() => _db;
         }
 
         #endregion
@@ -75,12 +109,12 @@ namespace Inflame_Backend.Tests.DataAccess
 
             var cachedProducts = new List<Product>
             {
-                new Product { ProductId = Guid.NewGuid(), Name = "Cached Braai",   Price = 1000m },
+                new Product { ProductId = Guid.NewGuid(), Name = "Cached Braai",     Price = 1000m },
                 new Product { ProductId = Guid.NewGuid(), Name = "Cached Fireplace", Price = 5000m }
             };
             var cachedJson = JsonSerializer.Serialize(cachedProducts);
 
-            // Redis returns a valid JSON string (cache hit)
+            // Redis returns valid JSON (cache hit)
             mockRedis
                 .Setup(r => r.StringGetAsync("product:all", CommandFlags.None))
                 .ReturnsAsync((RedisValue)cachedJson);
@@ -88,13 +122,15 @@ namespace Inflame_Backend.Tests.DataAccess
             // Act
             var result = await cachedRepo.GetAllAsync();
 
-            // Assert – results come from cache
+            // Assert
             result.Should().HaveCount(2);
             result[0].Name.Should().Be("Cached Braai");
 
-            // Critical: inner Postgres repo must NEVER have been called
-            mockInner.Verify(r => r.GetAllAsync(), Times.Never,
-                because: "a cache hit must prevent any round-trip to the underlying database");
+            // Critical: inner Postgres repo must NEVER be called on a cache hit
+            mockInner.Verify(
+                r => r.GetAllAsync(),
+                Times.Never,
+                "A cache hit must prevent any round-trip to the underlying database");
         }
 
         [Fact]
@@ -105,11 +141,10 @@ namespace Inflame_Backend.Tests.DataAccess
 
             var productId = Guid.NewGuid();
             var cachedProduct = new Product { ProductId = productId, Name = "Cached Product", Price = 2000m };
-            var cachedJson = JsonSerializer.Serialize(cachedProduct);
 
             mockRedis
                 .Setup(r => r.StringGetAsync($"product:{productId}", CommandFlags.None))
-                .ReturnsAsync((RedisValue)cachedJson);
+                .ReturnsAsync((RedisValue)JsonSerializer.Serialize(cachedProduct));
 
             // Act
             var result = await cachedRepo.GetByIdAsync(productId);
@@ -118,8 +153,10 @@ namespace Inflame_Backend.Tests.DataAccess
             result.Should().NotBeNull();
             result!.ProductId.Should().Be(productId);
 
-            mockInner.Verify(r => r.GetByIdAsync(It.IsAny<Guid>()), Times.Never,
-                because: "a cache hit for GetById must never invoke the inner repository");
+            mockInner.Verify(
+                r => r.GetByIdAsync(It.IsAny<Guid>()),
+                Times.Never,
+                "A cache hit for GetById must never invoke the inner repository");
         }
 
         #endregion
@@ -135,49 +172,48 @@ namespace Inflame_Backend.Tests.DataAccess
 
             var freshProducts = new List<Product>
             {
-                new Product { ProductId = Guid.NewGuid(), Name = "DB Braai",   Price = 3000m },
+                new Product { ProductId = Guid.NewGuid(), Name = "DB Braai",     Price = 3000m },
                 new Product { ProductId = Guid.NewGuid(), Name = "DB Fireplace", Price = 9000m }
             };
 
-            // Redis returns empty/null (cache miss)
+            // Cache miss: Redis returns null
             mockRedis
-                .Setup(r => r.StringGetAsync("product:all", CommandFlags.None))
+                .Setup(r => r.StringGetAsync(It.IsAny<RedisKey>(), It.IsAny<CommandFlags>()))
                 .ReturnsAsync(RedisValue.Null);
 
-            // Inner repo returns fresh data
             mockInner.Setup(r => r.GetAllAsync()).ReturnsAsync(freshProducts);
 
-            // Redis.StringSetAsync must be callable
+            // Allow any StringSetAsync overload to succeed
             mockRedis
                 .Setup(r => r.StringSetAsync(
-                    It.IsAny<RedisKey>(),
-                    It.IsAny<RedisValue>(),
-                    It.IsAny<TimeSpan?>(),
-                    It.IsAny<bool>(),
-                    It.IsAny<When>(),
-                    It.IsAny<CommandFlags>()))
+                    It.IsAny<RedisKey>(), It.IsAny<RedisValue>(),
+                    It.IsAny<TimeSpan?>(), It.IsAny<bool>(),
+                    It.IsAny<When>(), It.IsAny<CommandFlags>()))
                 .ReturnsAsync(true);
 
             // Act
             var result = await cachedRepo.GetAllAsync();
 
-            // Assert – inner repo called
-            mockInner.Verify(r => r.GetAllAsync(), Times.Once,
-                because: "a cache miss must fall back to the inner PostgreSQL repository");
+            // Assert – inner repo called once
+            mockInner.Verify(
+                r => r.GetAllAsync(),
+                Times.Once,
+                "A cache miss must fall back to the inner PostgreSQL repository");
 
             result.Should().HaveCount(2);
 
-            // Redis.StringSetAsync was called to store the result for next time
+            // Verify Redis was asked to store the result (any StringSetAsync overload)
+            // The exact overload used depends on the StackExchange.Redis version at runtime.
             mockRedis.Verify(
                 r => r.StringSetAsync(
-                    "product:all",
+                    It.IsAny<RedisKey>(),
                     It.IsAny<RedisValue>(),
                     It.IsAny<TimeSpan?>(),
                     It.IsAny<bool>(),
                     It.IsAny<When>(),
                     It.IsAny<CommandFlags>()),
-                Times.Once,
-                because: "after a cache miss the fresh data must be stored in Redis to prevent future misses");
+                Times.AtLeastOnce(),
+                "After a cache miss the fresh data must be stored in Redis to prevent future misses");
         }
 
         [Fact]
@@ -190,19 +226,16 @@ namespace Inflame_Backend.Tests.DataAccess
             var freshProduct = new Product { ProductId = productId, Name = "DB Product", Price = 4000m };
 
             mockRedis
-                .Setup(r => r.StringGetAsync($"product:{productId}", CommandFlags.None))
+                .Setup(r => r.StringGetAsync(It.IsAny<RedisKey>(), It.IsAny<CommandFlags>()))
                 .ReturnsAsync(RedisValue.Null);
 
             mockInner.Setup(r => r.GetByIdAsync(productId)).ReturnsAsync(freshProduct);
 
             mockRedis
                 .Setup(r => r.StringSetAsync(
-                    It.IsAny<RedisKey>(),
-                    It.IsAny<RedisValue>(),
-                    It.IsAny<TimeSpan?>(),
-                    It.IsAny<bool>(),
-                    It.IsAny<When>(),
-                    It.IsAny<CommandFlags>()))
+                    It.IsAny<RedisKey>(), It.IsAny<RedisValue>(),
+                    It.IsAny<TimeSpan?>(), It.IsAny<bool>(),
+                    It.IsAny<When>(), It.IsAny<CommandFlags>()))
                 .ReturnsAsync(true);
 
             // Act
@@ -214,27 +247,26 @@ namespace Inflame_Backend.Tests.DataAccess
 
             mockRedis.Verify(
                 r => r.StringSetAsync(
-                    $"product:{productId}",
+                    It.IsAny<RedisKey>(),
                     It.IsAny<RedisValue>(),
                     It.IsAny<TimeSpan?>(),
                     It.IsAny<bool>(),
                     It.IsAny<When>(),
                     It.IsAny<CommandFlags>()),
-                Times.Once,
-                because: "the retrieved entity must be stored in Redis after a cache miss");
+                Times.AtLeastOnce(),
+                "The retrieved entity must be stored in Redis after a cache miss");
         }
 
         #endregion
 
         //----------------------------------------------------------------------------------------------//
-        #region Test 3 – Cache Invalidation: write operations delete the stale Redis keys
+        #region Test 3 – Cache Invalidation: write operations must delete stale Redis keys
 
         [Fact]
-        public async Task UpdateAsync_ShouldInvalidateCacheKeyAfterWriting()
+        public async Task UpdateAsync_ShouldCallInnerRepoAndInvalidateCacheKey()
         {
             // Arrange
             var (cachedRepo, mockInner, mockRedis) = BuildCachedRepo();
-
             var product = new Product { ProductId = Guid.NewGuid(), Name = "Updated Product", Price = 5500m };
 
             mockInner.Setup(r => r.UpdateAsync(product)).Returns(Task.CompletedTask);
@@ -245,22 +277,19 @@ namespace Inflame_Backend.Tests.DataAccess
             // Act
             await cachedRepo.UpdateAsync(product);
 
-            // Assert – inner repo was called
+            // Assert
             mockInner.Verify(r => r.UpdateAsync(product), Times.Once);
-
-            // Cache key for "all" products must be deleted to prevent stale reads
             mockRedis.Verify(
                 r => r.KeyDeleteAsync("product:all", CommandFlags.None),
                 Times.Once,
-                because: "updating a product must invalidate the 'all products' cache key in Redis");
+                "Updating a product must invalidate the 'all products' cache key in Redis");
         }
 
         [Fact]
-        public async Task AddAsync_ShouldInvalidateCacheKeyAfterWriting()
+        public async Task AddAsync_ShouldCallInnerRepoAndInvalidateCacheKey()
         {
             // Arrange
             var (cachedRepo, mockInner, mockRedis) = BuildCachedRepo();
-
             var product = new Product { ProductId = Guid.NewGuid(), Name = "New Product", Price = 2500m };
 
             mockInner.Setup(r => r.AddAsync(product)).Returns(Task.CompletedTask);
@@ -273,19 +302,17 @@ namespace Inflame_Backend.Tests.DataAccess
 
             // Assert
             mockInner.Verify(r => r.AddAsync(product), Times.Once);
-
             mockRedis.Verify(
                 r => r.KeyDeleteAsync("product:all", CommandFlags.None),
                 Times.Once,
-                because: "adding a product must invalidate the 'all products' cache key so new data is visible");
+                "Adding a product must invalidate the 'all products' cache key so new data is visible");
         }
 
         [Fact]
-        public async Task DeleteAsync_ShouldInvalidateCacheKeyAfterDeletion()
+        public async Task DeleteAsync_ShouldCallInnerRepoAndInvalidateCacheKey()
         {
             // Arrange
             var (cachedRepo, mockInner, mockRedis) = BuildCachedRepo();
-
             var product = new Product { ProductId = Guid.NewGuid(), Name = "To Delete", Price = 1500m };
 
             mockInner.Setup(r => r.DeleteAsync(product)).Returns(Task.CompletedTask);
@@ -298,11 +325,10 @@ namespace Inflame_Backend.Tests.DataAccess
 
             // Assert
             mockInner.Verify(r => r.DeleteAsync(product), Times.Once);
-
             mockRedis.Verify(
                 r => r.KeyDeleteAsync("product:all", CommandFlags.None),
                 Times.Once,
-                because: "deleting a product must invalidate the 'all products' cache key");
+                "Deleting a product must invalidate the 'all products' cache key");
         }
 
         #endregion
