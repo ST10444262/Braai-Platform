@@ -69,7 +69,7 @@ namespace Inflame_Backend.Features.Product.Commands
                 }
 
                 baseProduct.Name = dto.Name;
-                baseProduct.Category = dto.Category;
+                baseProduct.Category = dto.Category ?? string.Empty;
                 baseProduct.Brand = dto.Brand;
                 baseProduct.IsImported = dto.IsImported;
                 baseProduct.IsCustomisable = dto.IsCustomisable;

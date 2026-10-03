@@ -48,6 +48,23 @@ namespace Inflame_Backend.Data.Repositories.ProductCatalog
 
             return dbData ?? new System.Collections.Generic.List<ProductImage>();
         }
+        public override async Task AddAsync(ProductImage entity)
+        {
+            await base.AddAsync(entity);
+            await _redisDatabase.KeyDeleteAsync($"{_cacheKeyPrefix}_ProductId_{entity.ProductId}");
+        }
+
+        public override async Task UpdateAsync(ProductImage entity)
+        {
+            await base.UpdateAsync(entity);
+            await _redisDatabase.KeyDeleteAsync($"{_cacheKeyPrefix}_ProductId_{entity.ProductId}");
+        }
+
+        public override async Task DeleteAsync(ProductImage entity)
+        {
+            await base.DeleteAsync(entity);
+            await _redisDatabase.KeyDeleteAsync($"{_cacheKeyPrefix}_ProductId_{entity.ProductId}");
+        }
         #endregion
     }
 }

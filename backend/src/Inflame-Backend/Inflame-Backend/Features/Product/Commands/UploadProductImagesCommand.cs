@@ -21,14 +21,17 @@ namespace Inflame_Backend.Features.Product.Commands
     {
         private readonly IProductImageRepository _productImageRepository;
         private readonly IStorageAdapter _storageAdapter;
+        private readonly Microsoft.Extensions.Logging.ILogger<UploadProductImagesCommandHandler> _logger;
 
         //------------------------------------------------------------------------------------------//
         public UploadProductImagesCommandHandler(
             IProductImageRepository productImageRepository,
-            IStorageAdapter storageAdapter)
+            IStorageAdapter storageAdapter,
+            Microsoft.Extensions.Logging.ILogger<UploadProductImagesCommandHandler> logger)
         {
             _productImageRepository = productImageRepository;
             _storageAdapter = storageAdapter;
+            _logger = logger;
         }
 
         //------------------------------------------------------------------------------------------//
@@ -73,8 +76,9 @@ namespace Inflame_Backend.Features.Product.Commands
                 }
                 return true;
             }
-            catch
+            catch (Exception ex)
             {
+                _logger.LogError(ex, "Failed to upload product images.");
                 return false;
             }
         }

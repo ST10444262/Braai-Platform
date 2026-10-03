@@ -51,7 +51,8 @@ namespace Inflame_Backend.Models.ProductCatalog
         public bool IsVisible { get; set; } = true;
 
         [Reference(typeof(ProductImage), includeInQuery: false)]
-        public List<ProductImage> Images { get; set; } = new List<ProductImage>();
+        [Newtonsoft.Json.JsonIgnore]
+        public List<ProductImage>? Images { get; set; } = null;
     }
 }
 //---------------------END OF FILE------------------------------------------------------------------//

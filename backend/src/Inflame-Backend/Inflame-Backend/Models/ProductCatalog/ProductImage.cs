@@ -23,6 +23,7 @@ namespace Inflame_Backend.Models.ProductCatalog
         public bool IsPrimary { get; set; }
 
         [Reference(typeof(Product), includeInQuery: false)]
+        [Newtonsoft.Json.JsonIgnore]
         public Product? Product { get; set; }
     }
 }
