@@ -87,7 +87,7 @@ export function useContactUsForm(){
 
     //tries to send data to api and catches any errors
     try {
-      await submitContactUsEnquiry({firstName, lastName, email, phoneNumber, message});
+      await submitContactUsEnquiry({firstName, lastName, email, phone: phoneNumber, message});
       setSubmitted(true);
     } catch (err) {
       console.error('Contact us form submission failed:', err);

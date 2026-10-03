@@ -10,7 +10,7 @@ export async function submitCustomBuild(payload: CustomBuildRequest): Promise<Cu
     });
 
     if(!res.ok){
-        throw new Error('Failed to submit custom build: ${res.status}');
+        throw new Error(`Failed to submit custom build: ${res.status}`);
     }
 
     return res.json();

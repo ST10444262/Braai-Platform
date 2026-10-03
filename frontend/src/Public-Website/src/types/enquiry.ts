@@ -3,7 +3,7 @@ export interface QuoteRequest{
     firstName: string;
     lastName:string;
     email: string;
-    phoneNumber: string;
+    phone: string;
     message?:string;
 }
 export type EnquiryResponse = string;
