@@ -19,6 +19,11 @@ namespace Inflame_Backend.Controllers.Admin
     public record ChangePasswordRequestDto(string CurrentPassword, string NewPassword);
 
     /// <summary>
+    /// Request body for changing user preferences.
+    /// </summary>
+    public record UpdatePreferencesRequestDto(bool ReceiveQuoteEmails);
+
+    /// <summary>
     /// Handles authentication and staff account management.
     /// </summary>
     [ApiController]
@@ -179,7 +184,8 @@ namespace Inflame_Backend.Controllers.Admin
                 email = result.Email,
                 fullName = result.FullName,
                 role = result.Role,
-                twoFactorEnabled = result.TwoFactorEnabled
+                twoFactorEnabled = result.TwoFactorEnabled,
+                receiveQuoteEmails = result.ReceiveQuoteEmails
             });
         }
         //------------------------------------------------------------------------------------------//
@@ -216,6 +222,34 @@ namespace Inflame_Backend.Controllers.Admin
 
             return Ok(new { success = true, message = result.Message });
         }
+        
+        //------------------------------------------------------------------------------------------//
+        /// <summary>
+        /// Updates the signed-in user's preferences.
+        /// </summary>
+        [HttpPut("me/preferences")]
+        [Authorize]
+        public async Task<IActionResult> UpdatePreferences(
+            [FromBody] UpdatePreferencesRequestDto request)
+        {
+            var idClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+
+            if (idClaim == null || !Guid.TryParse(idClaim.Value, out var userId))
+            {
+                return Unauthorized();
+            }
+
+            var command = new UpdateStaffPreferencesCommand(userId, request.ReceiveQuoteEmails);
+            var result = await _mediator.Send(command);
+
+            if (!result.Success)
+            {
+                return NotFound(new { success = false, message = result.Message });
+            }
+
+            return Ok(new { success = true, message = result.Message });
+        }
+        
         //------------------------------------------------------------------------------------------//
         /// <summary>
         /// Provisions a new staff account. SuperAdmins can create Admins or Employees. Admins can only create Employees.

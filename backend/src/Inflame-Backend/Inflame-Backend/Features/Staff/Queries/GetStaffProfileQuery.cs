@@ -27,6 +27,7 @@ namespace Inflame_Backend.Features.Staff.Queries
         public string FullName { get; set; } = string.Empty;
         public string Role { get; set; } = string.Empty;
         public bool TwoFactorEnabled { get; set; }
+        public bool ReceiveQuoteEmails { get; set; }
     }
     #endregion
 
@@ -80,7 +81,8 @@ namespace Inflame_Backend.Features.Staff.Queries
                 Email = staff.Email ?? string.Empty,
                 FullName = staff.FullName ?? string.Empty,
                 Role = staff.Role ?? string.Empty,
-                TwoFactorEnabled = twoFactorEnabled
+                TwoFactorEnabled = twoFactorEnabled,
+                ReceiveQuoteEmails = staff.ReceiveQuoteEmails
             };
         }
     }

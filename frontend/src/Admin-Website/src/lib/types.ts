@@ -6,6 +6,7 @@ export interface Me {
   fullName: string;
   role: Role;
   twoFactorEnabled: boolean;
+  receiveQuoteEmails: boolean;
 }
 
 export interface LoginResponse {

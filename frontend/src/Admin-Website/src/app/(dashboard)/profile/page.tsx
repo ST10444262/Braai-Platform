@@ -22,6 +22,7 @@ export default function ProfilePage() {
   const [setup, setSetup] = useState<Setup | null>(null);
   const [code, setCode] = useState("");
   const [busy, setBusy] = useState(false);
+  const [prefBusy, setPrefBusy] = useState(false);
 
   if (!ready) return <Spinner />;
   if (!me) return <ErrorNote message="Could not load your profile." />;
@@ -73,6 +74,19 @@ export default function ProfilePage() {
     setTwoFaOpen(false);
     setSetup(null);
     setCode("");
+  }
+
+  async function toggleQuoteEmails() {
+    setPrefBusy(true);
+    try {
+      await api.put("/admin/account/me/preferences", { receiveQuoteEmails: !me?.receiveQuoteEmails });
+      toast(`Quote emails ${!me?.receiveQuoteEmails ? "enabled" : "disabled"}.`);
+      await reloadMe();
+    } catch (err) {
+      toast((err as Error).message, "err");
+    } finally {
+      setPrefBusy(false);
+    }
   }
 
   return (
@@ -136,6 +150,18 @@ export default function ProfilePage() {
             </div>
             <Button variant="secondary" onClick={() => setTwoFaOpen(true)}>
               Manage 2FA Devices
+            </Button>
+          </div>
+
+          <div className="flex items-center justify-between gap-4 rounded-3xl border border-line bg-white p-6 shadow-sm">
+            <div>
+              <h3 className="text-sm font-semibold">Email Notifications</h3>
+              <p className="mt-1 max-w-xs text-xs text-muted">
+                Receive an email notification every time a new quote request is submitted by a customer.
+              </p>
+            </div>
+            <Button variant={me.receiveQuoteEmails ? "secondary" : "primary"} loading={prefBusy} onClick={toggleQuoteEmails}>
+              {me.receiveQuoteEmails ? "Disable" : "Enable"}
             </Button>
           </div>
         </div>

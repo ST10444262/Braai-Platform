@@ -38,7 +38,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setMe(await api.get<Me>("/admin/account/me"));
     } catch {
       // /me not available yet: fall back to what the token tells us
-      setMe({ staffId: null, email: decoded.email ?? "", fullName: decoded.email ?? "Staff", role: decoded.role, twoFactorEnabled: false });
+      setMe({ staffId: null, email: decoded.email ?? "", fullName: decoded.email ?? "Staff", role: decoded.role, twoFactorEnabled: false, receiveQuoteEmails: false });
     }
   }, []);
 
