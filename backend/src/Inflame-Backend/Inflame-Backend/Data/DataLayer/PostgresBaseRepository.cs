@@ -79,7 +79,26 @@ namespace Inflame_Backend.Data.DataLayer
         /// <returns></returns>
         public async Task UpdateAsync(T entity)
         {
-            await _supabaseInstance.Client.From<T>().Update(entity);
+            var property = typeof(T).GetProperties()
+                .FirstOrDefault(p => p.GetCustomAttribute<PrimaryKeyAttribute>() != null);
+
+            if (property == null)
+            {
+                throw new InvalidOperationException($"No PrimaryKey attribute found on type {typeof(T).Name}");
+            }
+
+            var columnName = property.GetCustomAttribute<PrimaryKeyAttribute>()?.ColumnName ?? property.Name;
+            var idValue = property.GetValue(entity)?.ToString();
+
+            if (string.IsNullOrWhiteSpace(idValue))
+            {
+                throw new InvalidOperationException($"Primary key value is null or empty for entity {typeof(T).Name}");
+            }
+
+            await _supabaseInstance.Client
+                .From<T>()
+                .Filter(columnName, Supabase.Postgrest.Constants.Operator.Equals, idValue)
+                .Update(entity);
         }
         //------------------------------------------------------------------------------------------//
         /// <summary>
@@ -89,7 +108,26 @@ namespace Inflame_Backend.Data.DataLayer
         /// <returns></returns>
         public async Task DeleteAsync(T entity)
         {
-            await _supabaseInstance.Client.From<T>().Delete(entity);
+            var property = typeof(T).GetProperties()
+                .FirstOrDefault(p => p.GetCustomAttribute<PrimaryKeyAttribute>() != null);
+
+            if (property == null)
+            {
+                throw new InvalidOperationException($"No PrimaryKey attribute found on type {typeof(T).Name}");
+            }
+
+            var columnName = property.GetCustomAttribute<PrimaryKeyAttribute>()?.ColumnName ?? property.Name;
+            var idValue = property.GetValue(entity)?.ToString();
+
+            if (string.IsNullOrWhiteSpace(idValue))
+            {
+                throw new InvalidOperationException($"Primary key value is null or empty for entity {typeof(T).Name}");
+            }
+
+            await _supabaseInstance.Client
+                .From<T>()
+                .Filter(columnName, Supabase.Postgrest.Constants.Operator.Equals, idValue)
+                .Delete();
         }
     }
 }

@@ -48,6 +48,27 @@ namespace Inflame_Backend.Data.Repositories.CRM
 
             return notes ?? new System.Collections.Generic.List<InternalNote>();
         }
+
+        //------------------------------------------------------------------------------------------//
+        public override async Task AddAsync(InternalNote entity)
+        {
+            await base.AddAsync(entity);
+            await _redisDatabase.KeyDeleteAsync($"internal_note_client_{entity.ClientId}");
+        }
+
+        //------------------------------------------------------------------------------------------//
+        public override async Task UpdateAsync(InternalNote entity)
+        {
+            await base.UpdateAsync(entity);
+            await _redisDatabase.KeyDeleteAsync($"internal_note_client_{entity.ClientId}");
+        }
+
+        //------------------------------------------------------------------------------------------//
+        public override async Task DeleteAsync(InternalNote entity)
+        {
+            await base.DeleteAsync(entity);
+            await _redisDatabase.KeyDeleteAsync($"internal_note_client_{entity.ClientId}");
+        }
     }
 }
 //---------------------END OF FILE------------------------------------------------------------------//

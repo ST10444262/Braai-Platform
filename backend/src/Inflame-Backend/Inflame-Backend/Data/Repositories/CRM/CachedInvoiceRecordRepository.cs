@@ -48,6 +48,27 @@ namespace Inflame_Backend.Data.Repositories.CRM
 
             return invoices ?? new System.Collections.Generic.List<InvoiceRecord>();
         }
+
+        //------------------------------------------------------------------------------------------//
+        public override async Task AddAsync(InvoiceRecord entity)
+        {
+            await base.AddAsync(entity);
+            await _redisDatabase.KeyDeleteAsync($"invoice_record_client_{entity.ClientId}");
+        }
+
+        //------------------------------------------------------------------------------------------//
+        public override async Task UpdateAsync(InvoiceRecord entity)
+        {
+            await base.UpdateAsync(entity);
+            await _redisDatabase.KeyDeleteAsync($"invoice_record_client_{entity.ClientId}");
+        }
+
+        //------------------------------------------------------------------------------------------//
+        public override async Task DeleteAsync(InvoiceRecord entity)
+        {
+            await base.DeleteAsync(entity);
+            await _redisDatabase.KeyDeleteAsync($"invoice_record_client_{entity.ClientId}");
+        }
     }
 }
 //---------------------END OF FILE------------------------------------------------------------------//
