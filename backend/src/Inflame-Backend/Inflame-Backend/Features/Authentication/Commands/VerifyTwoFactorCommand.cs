@@ -1,7 +1,9 @@
 using Inflame_Backend.Features.Authentication.DTOs;
 using Inflame_Backend.Identity;
+using Inflame_Backend.Services.Authentication;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Configuration;
 
 namespace Inflame_Backend.Features.Authentication.Commands
 {
@@ -10,7 +12,7 @@ namespace Inflame_Backend.Features.Authentication.Commands
     /// MediatR command and handler for verifying a two factor code.
     /// </summary>
     public record VerifyTwoFactorCommand(
-        Guid UserId,
+        string Challenge,
         string Code
     ) : IRequest<VerifyTwoFactorResponseDto>;
 
@@ -21,12 +23,21 @@ namespace Inflame_Backend.Features.Authentication.Commands
             VerifyTwoFactorResponseDto>
     {
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly TwoFactorChallengeService _twoFactorChallengeService;
+        private readonly JwtTokenService _jwtTokenService;
+        private readonly IConfiguration _configuration;
 
         //------------------------------------------------------------------------------------------//
         public VerifyTwoFactorCommandHandler(
-            UserManager<ApplicationUser> userManager)
+            UserManager<ApplicationUser> userManager,
+            TwoFactorChallengeService twoFactorChallengeService,
+            JwtTokenService jwtTokenService,
+            IConfiguration configuration)
         {
             _userManager = userManager;
+            _twoFactorChallengeService = twoFactorChallengeService;
+            _jwtTokenService = jwtTokenService;
+            _configuration = configuration;
         }
 
         //------------------------------------------------------------------------------------------//
@@ -37,8 +48,44 @@ namespace Inflame_Backend.Features.Authentication.Commands
             VerifyTwoFactorCommand request,
             CancellationToken cancellationToken)
         {
+            if (string.IsNullOrWhiteSpace(request.Challenge))
+            {
+                return new VerifyTwoFactorResponseDto
+                {
+                    Success = false,
+                    Message = "Two-factor setup challenge is required.",
+                    TwoFactorEnabled = false
+                };
+            }
+
+            var challengeIsValid =
+                _twoFactorChallengeService.TryReadChallenge(
+                    request.Challenge,
+                    out var userId,
+                    out var purpose);
+
+            if (!challengeIsValid)
+            {
+                return new VerifyTwoFactorResponseDto
+                {
+                    Success = false,
+                    Message = "Two-factor setup challenge is invalid or expired.",
+                    TwoFactorEnabled = false
+                };
+            }
+
+            if (purpose != "setup")
+            {
+                return new VerifyTwoFactorResponseDto
+                {
+                    Success = false,
+                    Message = "Invalid two-factor setup challenge.",
+                    TwoFactorEnabled = false
+                };
+            }
+
             var user = await _userManager.FindByIdAsync(
-                request.UserId.ToString());
+                userId.ToString());
 
             if (user == null)
             {
@@ -46,6 +93,16 @@ namespace Inflame_Backend.Features.Authentication.Commands
                 {
                     Success = false,
                     Message = "User not found.",
+                    TwoFactorEnabled = false
+                };
+            }
+
+            if (!user.IsActive)
+            {
+                return new VerifyTwoFactorResponseDto
+                {
+                    Success = false,
+                    Message = "User account is inactive.",
                     TwoFactorEnabled = false
                 };
             }
@@ -96,11 +153,20 @@ namespace Inflame_Backend.Features.Authentication.Commands
                 };
             }
 
+            var token =
+                await _jwtTokenService.GenerateTokenAsync(user);
+
+            var expiryMinutes =
+                _configuration.GetValue<int>(
+                    "Jwt:ExpiryMinutes");
+
             return new VerifyTwoFactorResponseDto
             {
                 Success = true,
                 Message = "Two-factor authentication enabled successfully.",
-                TwoFactorEnabled = true
+                TwoFactorEnabled = true,
+                Token = token,
+                ExpiresAt = DateTime.UtcNow.AddMinutes(expiryMinutes)
             };
         }
     }

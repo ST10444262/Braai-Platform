@@ -24,6 +24,9 @@ namespace Inflame_Backend.Models.CRM
         [Column("full_name")]
         public string FullName { get; set; } = string.Empty;
 
+        [Column("profile_image_url")]
+        public string? ProfileImageUrl { get; set; }
+
         [Column("role")]
         public string Role { get; set; } = string.Empty;
 
@@ -36,14 +39,13 @@ namespace Inflame_Backend.Models.CRM
         [Column("created_at")]
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-        [Reference(typeof(InternalNote))]
+        [Reference(typeof(InternalNote), includeInQuery: false)]
         public List<InternalNote> InternalNotes { get; set; } = new List<InternalNote>();
-
-        [Reference(typeof(InvoiceRecord))]
+        
+        [Reference(typeof(InvoiceRecord), includeInQuery: false)]
         public List<InvoiceRecord> UploadedInvoices { get; set; } = new List<InvoiceRecord>();
-
-        [Reference(typeof(GalleryImage))]
-        public List<GalleryImage> UploadedPhotos { get; set; } = new List<GalleryImage>();
+        
+        [Reference(typeof(GalleryImage), includeInQuery: false)]
+        public List<GalleryImage> UploadedPhotos { get; set; } = new List<GalleryImage>();   
     }
 }
-//---------------------END OF FILE------------------------------------------------------------------//

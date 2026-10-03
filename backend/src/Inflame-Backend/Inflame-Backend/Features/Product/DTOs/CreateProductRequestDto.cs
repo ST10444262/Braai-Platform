@@ -22,7 +22,7 @@ namespace Inflame_Backend.Features.Product.DTOs
         public bool IsVisible { get; set; } = false;
 
         //------------------------------------------------------------------------------------------//
-        public string ProductType { get; set; } 
+        public string ProductType { get; set; } = string.Empty;
 
         //------------------------------------------------------------------------------------------//
         // Braai Specific Properties

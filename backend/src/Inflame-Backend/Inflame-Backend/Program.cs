@@ -8,6 +8,7 @@ using Inflame_Backend.Data.Repositories.CustomBuild;
 using Inflame_Backend.Data.Repositories.ProductCatalog;
 using Inflame_Backend.Facades;
 using Inflame_Backend.Identity;
+using Inflame_Backend.Services.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
@@ -17,7 +18,10 @@ using Microsoft.IdentityModel.Tokens;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddControllers();
+builder.Services.AddControllers(options =>
+{
+    options.Filters.Add<Inflame_Backend.Filters.XssSanitizationFilter>();
+});
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
@@ -28,6 +32,24 @@ builder.Services.AddMediatR(config =>
     config.RegisterServicesFromAssembly(typeof(Program).Assembly);
 });
 
+//------------------------------------------------------------------------------------------//
+#region CORS Configuration
+
+// Configure CORS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend",
+        policy =>
+        {
+            var allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>() ?? new[] { "http://localhost:3000", "http://localhost:3001", "https://your-frontend-domain.com" };
+            policy.WithOrigins(allowedOrigins)
+                  .AllowAnyHeader()
+                  .AllowAnyMethod()
+                  .AllowCredentials(); 
+        });
+});
+
+#endregion
 //------------------------------------------------------------------------------------------//
 #region Rate Limiting
 
@@ -57,6 +79,8 @@ builder.Services.AddRateLimiter(options =>
 #endregion
 //------------------------------------------------------------------------------------------//
 #region Adds Services
+
+builder.Services.AddHttpContextAccessor();
 
 // Register Data Instances as Singletons
 var redisConnectionString = builder.Configuration.GetConnectionString("Redis") ?? "localhost";
@@ -115,6 +139,8 @@ builder.Services.AddScoped<IGalleryImageRepository>(sp => new CachedGalleryImage
 
 // Services
 builder.Services.AddScoped<Inflame_Backend.Services.IEmailService, Inflame_Backend.Services.SmtpEmailService>();
+builder.Services.AddScoped<TwoFactorChallengeService>();
+builder.Services.AddScoped<TrustedDeviceService>();
 
 // Facades
 builder.Services.AddScoped<IProductCatalogueFacade, ProductCatalogueFacade>();
@@ -252,8 +278,66 @@ if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
+else
+{
+    // Use HTTP Strict Transport Security (HSTS) in production
+    app.UseHsts();
+}
 
 app.UseHttpsRedirection();
+
+// Use CORS
+app.UseCors("AllowFrontend");
+
+//------------------------------------------------------------------------------------------//
+#region Security Headers
+
+// Add Security Headers Middleware
+app.Use(async (context, next) =>
+{
+    context.Response.Headers.Append("X-Content-Type-Options", "nosniff");
+    context.Response.Headers.Append("X-Frame-Options", "DENY");
+    context.Response.Headers.Append("X-XSS-Protection", "1; mode=block");
+    context.Response.Headers.Append("Referrer-Policy", "strict-origin-when-cross-origin");
+    context.Response.Headers.Append("Content-Security-Policy", "default-src 'self'; script-src 'self'; object-src 'none'; frame-ancestors 'none';");
+    await next();
+});
+
+#endregion
+//------------------------------------------------------------------------------------------//
+#region Cloudflare Network Segregation
+
+app.Use(async (context, next) =>
+{
+    // Skip this check in development to allow local testing
+    if (app.Environment.IsDevelopment())
+    {
+        await next();
+        return;
+    }
+
+    var expectedSecret = builder.Configuration["Cloudflare:Secret"];
+    
+    // If no secret is configured, bypass the check (fail-safe)
+    if (string.IsNullOrEmpty(expectedSecret))
+    {
+        await next();
+        return;
+    }
+
+    if (!context.Request.Headers.TryGetValue("X-Cloudflare-Secret", out var providedSecret) || 
+        providedSecret != expectedSecret)
+    {
+        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+        await context.Response.WriteAsync("Direct access to this service is prohibited.");
+        return;
+    }
+
+    await next();
+});
+
+#endregion
+//------------------------------------------------------------------------------------------//
 
 app.UseRateLimiter();
 app.UseAuthentication();

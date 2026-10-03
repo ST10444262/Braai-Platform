@@ -1,4 +1,4 @@
-﻿using Inflame_Backend.Data.Repositories.CRM;
+using Inflame_Backend.Data.Repositories.CRM;
 using Inflame_Backend.Features.Authentication.Commands;
 using Inflame_Backend.Features.Authentication.DTOs;
 using Inflame_Backend.Features.Staff.Commands;
@@ -9,7 +9,6 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 
 namespace Inflame_Backend.Controllers.Admin
 {
@@ -26,22 +25,20 @@ namespace Inflame_Backend.Controllers.Admin
     public class AccountController : ControllerBase
     {
         private readonly IMediator _mediator;
-        private readonly IStaffAccountRepository _staffRepository;
-        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IStaffAccountRepository _staffAccountRepository;
 
         //------------------------------------------------------------------------------------------//
         public AccountController(
             IMediator mediator,
-            IStaffAccountRepository staffRepository,
-            UserManager<ApplicationUser> userManager)
+            IStaffAccountRepository staffAccountRepository)
         {
             _mediator = mediator;
-            _staffRepository = staffRepository;
-            _userManager = userManager;
+            _staffAccountRepository = staffAccountRepository;
         }
+
         //------------------------------------------------------------------------------------------//
         /// <summary>
-        /// Authenticates a staff member and returns a JWT.
+        /// Authenticates a staff member and returns a JWT or a two-factor challenge.
         /// </summary>
         [HttpPost("login")]
         [AllowAnonymous]
@@ -62,6 +59,7 @@ namespace Inflame_Backend.Controllers.Admin
 
             return Ok(result);
         }
+
         //------------------------------------------------------------------------------------------//
         /// <summary>
         /// Verifies the 2FA code during the secondary login step and issues the final JWT.
@@ -72,8 +70,9 @@ namespace Inflame_Backend.Controllers.Admin
             [FromBody] VerifyLoginTwoFactorRequestDto request)
         {
             var command = new VerifyLoginTwoFactorCommand(
-                request.UserId,
-                request.Code);
+                request.Challenge,
+                request.Code,
+                request.RememberDevice);
 
             var result = await _mediator.Send(command);
 
@@ -84,6 +83,75 @@ namespace Inflame_Backend.Controllers.Admin
 
             return Ok(result);
         }
+
+        //------------------------------------------------------------------------------------------//
+        /// <summary>
+        /// Generates two-factor authentication setup details (shared key and formatted QR URI) using a setup challenge token.
+        /// </summary>
+        [HttpPost("2fa/setup")]
+        [AllowAnonymous]
+        public async Task<ActionResult<SetupTwoFactorResponseDto>> SetupTwoFactor(
+            [FromBody] SetupTwoFactorRequestDto request)
+        {
+            var command = new SetupTwoFactorCommand(
+                request.Challenge);
+
+            var result = await _mediator.Send(command);
+
+            if (!result.Success)
+            {
+                return BadRequest(result);
+            }
+
+            return Ok(result);
+        }
+
+        //------------------------------------------------------------------------------------------//
+        /// <summary>
+        /// Verifies the provided 6-digit authenticator code and enables two-factor authentication for the user using a setup challenge token.
+        /// </summary>
+        [HttpPost("2fa/verify")]
+        [AllowAnonymous]
+        public async Task<ActionResult<VerifyTwoFactorResponseDto>> VerifyTwoFactor(
+            [FromBody] VerifyTwoFactorRequestDto request)
+        {
+            var command = new VerifyTwoFactorCommand(
+                request.Challenge,
+                request.Code);
+
+            var result = await _mediator.Send(command);
+
+            if (!result.Success)
+            {
+                return BadRequest(result);
+            }
+
+            return Ok(result);
+        }
+
+        //------------------------------------------------------------------------------------------//
+        /// <summary>
+        /// Resets two-factor authentication for a staff member.
+        /// Restricted to SuperAdmins and Admins.
+        /// </summary>
+        [HttpPost("2fa/reset")]
+        [Authorize(Roles = "SuperAdmin,Admin")]
+        public async Task<ActionResult<ResetTwoFactorResponseDto>> ResetTwoFactor(
+            [FromBody] ResetTwoFactorRequestDto request)
+        {
+            var command = new ResetTwoFactorCommand(
+                request.UserId);
+
+            var result = await _mediator.Send(command);
+
+            if (!result.Success)
+            {
+                return BadRequest(result);
+            }
+
+            return Ok(result);
+        }
+
         //------------------------------------------------------------------------------------------//
         /// <summary>
         /// Returns the signed-in user's staff profile (including the StaffId needed for notes and invoice uploads).
@@ -160,11 +228,12 @@ namespace Inflame_Backend.Controllers.Admin
         //------------------------------------------------------------------------------------------//
         /// <summary>
         /// Provisions a new staff account. SuperAdmins can create Admins or Employees. Admins can only create Employees.
+        /// Accepts multipart/form-data for uploading optional profile images.
         /// </summary>
         [HttpPost("staff")]
         [Authorize(Roles = "SuperAdmin,Admin")]
         public async Task<ActionResult<CreateStaffAccountResponseDto>> CreateStaff(
-            [FromBody] CreateStaffAccountRequestDto request)
+            [FromForm] CreateStaffAccountRequestDto request)
         {
             var requestedRole = string.IsNullOrWhiteSpace(request.Role) ? "Employee" : request.Role;
 
@@ -182,7 +251,8 @@ namespace Inflame_Backend.Controllers.Admin
                 request.Email,
                 request.Password,
                 request.FullName,
-                requestedRole);
+                requestedRole,
+                request.ProfileImage);
 
             var result = await _mediator.Send(command);
 
@@ -193,6 +263,120 @@ namespace Inflame_Backend.Controllers.Admin
 
             return Ok(result);
         }
+
+        //------------------------------------------------------------------------------------------//
+        /// <summary>
+        /// Updates an existing staff account. Admins can only update Employees, while SuperAdmins can update Admins and Employees.
+        /// Accepts multipart/form-data for optional profile image replacement.
+        /// </summary>
+        [HttpPut("staff/{staffId:guid}")]
+        [Authorize(Roles = "SuperAdmin,Admin")]
+        public async Task<ActionResult<UpdateStaffAccountResponseDto>> UpdateStaff(
+            Guid staffId,
+            [FromForm] UpdateStaffAccountRequestDto request)
+        {
+            var requestedRole =
+                string.IsNullOrWhiteSpace(request.Role)
+                    ? "Employee"
+                    : request.Role;
+
+            // An Admin may only edit Employee accounts.
+            if (User.IsInRole("Admin"))
+            {
+                var staffAccount =
+                    await _staffAccountRepository.GetByIdAsync(staffId);
+
+                if (staffAccount == null)
+                {
+                    return NotFound(new
+                    {
+                        message = "Staff account not found."
+                    });
+                }
+
+                if (staffAccount.Role != "Employee")
+                {
+                    return Forbid();
+                }
+
+                if (requestedRole != "Employee")
+                {
+                    return Forbid();
+                }
+            }
+
+            // SuperAdmin and Admin cannot assign SuperAdmin.
+            if (requestedRole == "SuperAdmin")
+            {
+                return Forbid();
+            }
+
+            var command = new UpdateStaffAccountCommand(
+                staffId,
+                request.Email,
+                request.FullName,
+                requestedRole,
+                request.IsActive,
+                request.NewPassword,
+                request.ProfileImage);
+
+            var result = await _mediator.Send(command);
+
+            if (!result.Success)
+            {
+                return BadRequest(result);
+            }
+
+            return Ok(result);
+        }
+
+        //------------------------------------------------------------------------------------------//
+        /// <summary>
+        /// Deletes a staff account.
+        /// Admins may delete Employees only.
+        /// SuperAdmins may delete Employees and Admins.
+        /// SuperAdmin accounts and the requesting user's own account are protected.
+        /// </summary>
+        [HttpDelete("staff/{staffId:guid}")]
+        [Authorize(Roles = "SuperAdmin,Admin")]
+        public async Task<ActionResult<DeleteStaffAccountResponseDto>> DeleteStaff(
+            Guid staffId)
+        {
+            var requestingUserIdString =
+                User.FindFirst(
+                    System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+            if (!Guid.TryParse(
+                    requestingUserIdString,
+                    out var requestingUserId))
+            {
+                return Unauthorized(new
+                {
+                    message = "Unable to determine the requesting user."
+                });
+            }
+
+            var requestingRole =
+                User.IsInRole("SuperAdmin")
+                    ? "SuperAdmin"
+                    : "Admin";
+
+            var command = new DeleteStaffAccountCommand(
+                staffId,
+                requestingUserId,
+                requestingRole);
+
+            var result =
+                await _mediator.Send(command);
+
+            if (!result.Success)
+            {
+                return BadRequest(result);
+            }
+
+            return Ok(result);
+        }
+
         //------------------------------------------------------------------------------------------//
         /// <summary>
         /// Retrieves staff accounts using query parameters.
@@ -204,69 +388,6 @@ namespace Inflame_Backend.Controllers.Admin
             [FromQuery] GetAdminStaffQuery query)
         {
             var result = await _mediator.Send(query);
-
-            return Ok(result);
-        }
-        //------------------------------------------------------------------------------------------//
-        /// <summary>
-        /// Generates two-factor authentication setup details (shared key and formatted QR URI) for Microsoft Authenticator.
-        /// </summary>
-        [HttpPost("2fa/setup")]
-        [Authorize]
-        public async Task<ActionResult<SetupTwoFactorResponseDto>> SetupTwoFactor()
-        {
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-
-            if (userIdClaim == null ||
-                !Guid.TryParse(userIdClaim.Value, out var userId))
-            {
-                return Unauthorized(new
-                {
-                    message = "Unable to identify the authenticated user."
-                });
-            }
-
-            var command = new SetupTwoFactorCommand(userId);
-
-            var result = await _mediator.Send(command);
-
-            if (!result.Success)
-            {
-                return BadRequest(result);
-            }
-
-            return Ok(result);
-        }
-        //------------------------------------------------------------------------------------------//
-        /// <summary>
-        /// Verifies the provided 6-digit authenticator code and enables two-factor authentication for the user.
-        /// </summary>
-        [HttpPost("2fa/verify")]
-        [Authorize]
-        public async Task<ActionResult<VerifyTwoFactorResponseDto>> VerifyTwoFactor(
-            [FromBody] VerifyTwoFactorRequestDto request)
-        {
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-
-            if (userIdClaim == null ||
-                !Guid.TryParse(userIdClaim.Value, out var userId))
-            {
-                return Unauthorized(new
-                {
-                    message = "Unable to identify the authenticated user."
-                });
-            }
-
-            var command = new VerifyTwoFactorCommand(
-                userId,
-                request.Code);
-
-            var result = await _mediator.Send(command);
-
-            if (!result.Success)
-            {
-                return BadRequest(result);
-            }
 
             return Ok(result);
         }

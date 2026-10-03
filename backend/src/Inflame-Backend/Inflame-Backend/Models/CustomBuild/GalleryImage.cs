@@ -29,7 +29,7 @@ namespace Inflame_Backend.Models.CustomBuild
         [Column("uploaded_at")]
         public DateTime UploadedAt { get; set; } = DateTime.UtcNow;
 
-        [Reference(typeof(StaffAccount))]
+        [Reference(typeof(StaffAccount), includeInQuery: false)]
         public StaffAccount? UploadedBy { get; set; }
     }
 }
