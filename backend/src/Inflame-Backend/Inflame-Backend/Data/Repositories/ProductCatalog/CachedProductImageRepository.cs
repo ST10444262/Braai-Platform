@@ -26,6 +26,29 @@ namespace Inflame_Backend.Data.Repositories.ProductCatalog
             _innerSpecificRepository = innerRepository;
         }
         #endregion
+        #region Handler Methods
+        //------------------------------------------------------------------------------------------//
+        public async Task<System.Collections.Generic.List<ProductImage>> GetByProductIdAsync(Guid productId)
+        {
+            var cacheKey = $"{_cacheKeyPrefix}_ProductId_{productId}";
+            var cachedData = await _redisDatabase.StringGetAsync(cacheKey);
+
+            if (!cachedData.IsNullOrEmpty)
+            {
+                var result = JsonSerializer.Deserialize<System.Collections.Generic.List<ProductImage>>((string)cachedData!);
+                if (result != null) return result;
+            }
+
+            var dbData = await _innerSpecificRepository.GetByProductIdAsync(productId);
+            if (dbData != null)
+            {
+                var options = new JsonSerializerOptions { ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles };
+                await _redisDatabase.StringSetAsync(cacheKey, JsonSerializer.Serialize(dbData, options), CacheExpiration);
+            }
+
+            return dbData ?? new System.Collections.Generic.List<ProductImage>();
+        }
+        #endregion
     }
 }
 //---------------------END OF FILE------------------------------------------------------------------//

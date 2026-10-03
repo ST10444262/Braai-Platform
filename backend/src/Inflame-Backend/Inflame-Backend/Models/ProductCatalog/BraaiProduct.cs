@@ -19,7 +19,7 @@ namespace Inflame_Backend.Models.ProductCatalog
         [Column("braai_type")]
         public string BraaiType { get; set; } = string.Empty;
 
-        [Reference(typeof(Product))]
+        [Reference(typeof(Product), includeInQuery: false)]
         public Product? BaseProduct { get; set; }
     }
 }

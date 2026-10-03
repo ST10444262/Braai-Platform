@@ -1,8 +1,11 @@
 using Inflame_Backend.Data.Instances;
 using StackExchange.Redis;
+using Supabase.Postgrest.Attributes;
 using Supabase.Postgrest.Models;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using System.Text.Json;
 using System.Threading.Tasks;
 
@@ -20,6 +23,7 @@ namespace Inflame_Backend.Data.DataLayer
         protected readonly IDatabase _redisDatabase;
         protected static readonly TimeSpan CacheExpiration = TimeSpan.FromMinutes(5);
         protected readonly string _cacheKeyPrefix;
+
         //------------------------------------------------------------------------------------------//
         /// <summary>
         /// Injects the interface and the RedisInstance into the CachedBaseRepository constructor.
@@ -33,6 +37,35 @@ namespace Inflame_Backend.Data.DataLayer
             _cacheKeyPrefix = typeof(T).Name.ToLower();
         }
         #endregion
+
+        //------------------------------------------------------------------------------------------//
+        /// <summary>
+        /// Inspects the entity decorated with PrimaryKeyAttribute to retrieve its Guid value.
+        /// </summary>
+        private Guid GetEntityId(T entity)
+        {
+            var property = typeof(T)
+                .GetProperties()
+                .FirstOrDefault(
+                    p => p.GetCustomAttribute<PrimaryKeyAttribute>() != null);
+
+            if (property == null)
+            {
+                throw new InvalidOperationException(
+                    $"No PrimaryKey attribute found on type {typeof(T).Name}");
+            }
+
+            var value = property.GetValue(entity);
+
+            if (value is Guid id)
+            {
+                return id;
+            }
+
+            throw new InvalidOperationException(
+                $"Primary key for {typeof(T).Name} is not a Guid.");
+        }
+
         //------------------------------------------------------------------------------------------//
         /// <summary>
         /// Retrieves all entities of type T, first checking the Redis cache before querying the underlying repository.
@@ -58,6 +91,7 @@ namespace Inflame_Backend.Data.DataLayer
 
             return entities ?? new List<T>();
         }
+
         //------------------------------------------------------------------------------------------//
         /// <summary>
         /// Retrieves an entity by its unique identifier, checking the cache first.
@@ -84,6 +118,7 @@ namespace Inflame_Backend.Data.DataLayer
 
             return entity;
         }
+
         //------------------------------------------------------------------------------------------//
         /// <summary>
         /// Adds a new entity to the underlying repository and invalidates the relevant cache entries in Redis.
@@ -93,8 +128,16 @@ namespace Inflame_Backend.Data.DataLayer
         public async Task AddAsync(T entity)
         {
             await _innerRepository.AddAsync(entity);
-            await _redisDatabase.KeyDeleteAsync($"{_cacheKeyPrefix}:all");
+
+            await _redisDatabase.KeyDeleteAsync(
+                $"{_cacheKeyPrefix}:all");
+
+            var id = GetEntityId(entity);
+
+            await _redisDatabase.KeyDeleteAsync(
+                $"{_cacheKeyPrefix}:{id}");
         }
+
         //------------------------------------------------------------------------------------------//
         /// <summary>
         /// Updates an existing entity in the underlying repository and invalidates the relevant cache entries in Redis.
@@ -104,8 +147,16 @@ namespace Inflame_Backend.Data.DataLayer
         public async Task UpdateAsync(T entity)
         {
             await _innerRepository.UpdateAsync(entity);
-            await _redisDatabase.KeyDeleteAsync($"{_cacheKeyPrefix}:all");
+
+            await _redisDatabase.KeyDeleteAsync(
+                $"{_cacheKeyPrefix}:all");
+
+            var id = GetEntityId(entity);
+
+            await _redisDatabase.KeyDeleteAsync(
+                $"{_cacheKeyPrefix}:{id}");
         }
+
         //------------------------------------------------------------------------------------------//
         /// <summary>
         /// Deletes an entity from the underlying repository and invalidates the relevant cache entries in Redis.
@@ -115,7 +166,14 @@ namespace Inflame_Backend.Data.DataLayer
         public async Task DeleteAsync(T entity)
         {
             await _innerRepository.DeleteAsync(entity);
-            await _redisDatabase.KeyDeleteAsync($"{_cacheKeyPrefix}:all");
+
+            await _redisDatabase.KeyDeleteAsync(
+                $"{_cacheKeyPrefix}:all");
+
+            var id = GetEntityId(entity);
+
+            await _redisDatabase.KeyDeleteAsync(
+                $"{_cacheKeyPrefix}:{id}");
         }
     }
 }

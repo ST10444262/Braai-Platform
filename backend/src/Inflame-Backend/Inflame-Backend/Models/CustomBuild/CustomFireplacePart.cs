@@ -19,7 +19,7 @@ namespace Inflame_Backend.Models.CustomBuild
         [Column("part_name")]
         public string PartName { get; set; } = string.Empty;
 
-        [Reference(typeof(CustomOption))]
+        [Reference(typeof(CustomOption), includeInQuery: false)]
         public CustomOption? CustomOption { get; set; }
     }
 }

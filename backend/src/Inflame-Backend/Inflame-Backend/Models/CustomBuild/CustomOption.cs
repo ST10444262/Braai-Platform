@@ -38,10 +38,10 @@ namespace Inflame_Backend.Models.CustomBuild
         [Column("additional_message")]
         public string AdditionalMessage { get; set; } = string.Empty;
 
-        [Reference(typeof(CustomBraaiPart))]
+        [Reference(typeof(CustomBraaiPart), includeInQuery: false)]
         public List<CustomBraaiPart> BraaiParts { get; set; } = new List<CustomBraaiPart>();
 
-        [Reference(typeof(CustomFireplacePart))]
+        [Reference(typeof(CustomFireplacePart), includeInQuery: false)]
         public List<CustomFireplacePart> FireplaceParts { get; set; } = new List<CustomFireplacePart>();
     }
 }

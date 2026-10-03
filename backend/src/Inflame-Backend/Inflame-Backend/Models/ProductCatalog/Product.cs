@@ -50,7 +50,7 @@ namespace Inflame_Backend.Models.ProductCatalog
         [Column("is_visible")]
         public bool IsVisible { get; set; } = true;
 
-        [Reference(typeof(ProductImage))]
+        [Reference(typeof(ProductImage), includeInQuery: false)]
         public List<ProductImage> Images { get; set; } = new List<ProductImage>();
     }
 }
