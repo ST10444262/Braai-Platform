@@ -409,6 +409,13 @@ namespace Inflame_Backend.Controllers.Admin
 
             if (!result.Success)
             {
+                if (result.Message != null && (
+                    result.Message.Contains("Forbidden", StringComparison.OrdinalIgnoreCase) ||
+                    result.Message.Contains("cannot be assigned", StringComparison.OrdinalIgnoreCase) ||
+                    result.Message.Contains("cannot be edited", StringComparison.OrdinalIgnoreCase)))
+                {
+                    return StatusCode(403, result);
+                }
                 return BadRequest(result);
             }
 
@@ -456,6 +463,13 @@ namespace Inflame_Backend.Controllers.Admin
 
             if (!result.Success)
             {
+                if (result.Message != null && (
+                    result.Message.Contains("cannot delete your own", StringComparison.OrdinalIgnoreCase) ||
+                    result.Message.Contains("cannot be deleted", StringComparison.OrdinalIgnoreCase) ||
+                    result.Message.Contains("Admins can only delete Employee", StringComparison.OrdinalIgnoreCase)))
+                {
+                    return StatusCode(403, result);
+                }
                 return BadRequest(result);
             }
 

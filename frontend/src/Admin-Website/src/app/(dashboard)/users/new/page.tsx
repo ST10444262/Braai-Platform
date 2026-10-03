@@ -33,12 +33,13 @@ export default function CreateUserPage() {
     }
     setBusy(true);
     try {
-      await api.post("/admin/account/staff", {
-        email: f.email.trim(),
-        password: f.password,
-        fullName: `${f.firstName.trim()} ${f.lastName.trim()}`,
-        role: f.role,
-      });
+      const form = new FormData();
+      form.append("email", f.email.trim());
+      form.append("password", f.password);
+      form.append("fullName", `${f.firstName.trim()} ${f.lastName.trim()}`);
+      form.append("role", f.role);
+
+      await api.form("/admin/account/staff", form);
       toast(`Account created. Share the temporary password with ${f.firstName.trim()}.`);
       router.push("/users");
     } catch (err) {
@@ -52,7 +53,7 @@ export default function CreateUserPage() {
     <>
       <div className="mb-3 text-[11px] text-muted">
         <Link href="/users" className="hover:text-ink">
-          Admin Users
+          Users
         </Link>{" "}
         › <span className="text-ink">Create User</span>
       </div>
@@ -94,7 +95,7 @@ export default function CreateUserPage() {
             </Button>
           </Link>
           <Button type="submit" loading={busy}>
-            + Create Employee
+            + Create User
           </Button>
         </div>
       </form>
