@@ -1,6 +1,5 @@
 name: Backend CI – Build & Test
 
-# Triggers: on every push or PR targeting main/develop for backend code
 on:
   push:
     branches: [ main, develop ]
@@ -15,90 +14,13 @@ on:
 
 env:
   DOTNET_VERSION: '10.0.x'
-  # Paths for the solution and test project
   SOLUTION_PATH: 'backend/src/Inflame-Backend/Inflame-Backend.slnx'
   TEST_PROJECT_PATH: 'backend/src/Inflame-Backend/Inflame-Backend.Tests/Inflame-Backend.Tests.csproj'
-  MAIN_PROJECT_PATH: 'backend/src/Inflame-Backend/Inflame-Backend/Inflame-Backend.csproj'
 
 jobs:
-  # ──────────────────────────────────────────────────────────────────
-  # Job 1: Build & Run All Unit Tests
-  # ──────────────────────────────────────────────────────────────────
   build-and-test:
-    name: Build & Unit Tests (.NET ${{ matrix.dotnet-version }})
+    name: Build & Test (.NET 10)
     runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        dotnet-version: [ '10.0.x' ]
-
-    steps:
-      # 1. Checkout the repository
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      # 2. Set up the correct .NET SDK version
-      - name: Setup .NET SDK
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: ${{ matrix.dotnet-version }}
-
-      # 3. Cache NuGet packages to speed up subsequent runs
-      - name: Cache NuGet packages
-        uses: actions/cache@v4
-        with:
-          path: ~/.nuget/packages
-          key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json', '**/*.csproj') }}
-          restore-keys: |
-            ${{ runner.os }}-nuget-
-
-      # 4. Restore all NuGet dependencies
-      - name: Restore NuGet dependencies
-        run: dotnet restore ${{ env.SOLUTION_PATH }}
-
-      # 5. Build the entire solution (Release mode)
-      - name: Build solution
-        run: dotnet build ${{ env.SOLUTION_PATH }} --no-restore --configuration Release
-
-      # 6. Run the full unit-test suite with code coverage collected
-      - name: Run unit tests with coverage
-        run: |
-          dotnet test ${{ env.TEST_PROJECT_PATH }} \
-            --no-build \
-            --configuration Release \
-            --logger "trx;LogFileName=test-results.trx" \
-            --logger "console;verbosity=normal" \
-            --collect:"XPlat Code Coverage" \
-            --results-directory ./TestResults
-
-      # 7. Publish test results so they appear in the Actions summary
-      - name: Publish test results
-        uses: dorny/test-reporter@v1
-        if: always()   # run even if tests fail so we see the report
-        with:
-          name: xUnit Test Results
-          path: '**/TestResults/test-results.trx'
-          reporter: dotnet-trx
-          fail-on-error: true
-
-      # 8. Upload the raw coverage and TRX files as artifacts for inspection
-      - name: Upload test artefacts
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: test-results-${{ github.run_number }}
-          path: |
-            **/TestResults/**
-          retention-days: 14
-
-  # ──────────────────────────────────────────────────────────────────
-  # Job 2: Code Coverage Report (separate job, depends on build-and-test)
-  # ──────────────────────────────────────────────────────────────────
-  coverage-report:
-    name: Coverage Report
-    runs-on: ubuntu-latest
-    needs: build-and-test
-    if: github.event_name == 'pull_request'   # only generate report on PRs
 
     steps:
       - name: Checkout repository
@@ -109,28 +31,52 @@ jobs:
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
-      - name: Restore NuGet dependencies
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/*.props') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Restore dependencies
         run: dotnet restore ${{ env.SOLUTION_PATH }}
 
-      - name: Collect code coverage
+      - name: Build solution
+        run: dotnet build ${{ env.SOLUTION_PATH }} --no-restore --configuration Release
+
+      - name: Run unit tests with coverage
         run: |
           dotnet test ${{ env.TEST_PROJECT_PATH }} \
+            --no-build \
             --configuration Release \
+            --logger "trx;LogFileName=test-results.trx" \
+            --logger "console;verbosity=normal" \
             --collect:"XPlat Code Coverage" \
-            --results-directory ./coverage
+            --results-directory ./TestResults
 
-      - name: Generate HTML coverage report (ReportGenerator)
-        run: |
-          dotnet tool install --global dotnet-reportgenerator-globaltool --ignore-failed-sources || true
-          reportgenerator \
-            -reports:"coverage/**/coverage.cobertura.xml" \
-            -targetdir:"coverage/report" \
-            -reporttypes:"HtmlSummary;Cobertura;Badges" \
-            -verbosity:Info
-
-      - name: Upload coverage report artifact
-        uses: actions/upload-artifact@v4
+      - name: Publish test results to PR / Actions summary
+        uses: dorny/test-reporter@v1
+        if: always()
         with:
-          name: coverage-report-${{ github.run_number }}
-          path: coverage/report
-          retention-days: 30
+          name: xUnit Test Results
+          path: '**/TestResults/test-results.trx'
+          reporter: dotnet-trx
+          fail-on-error: true
+
+      - name: Generate HTML coverage report
+        if: always()
+        run: |
+          dotnet tool install --global dotnet-reportgenerator-globaltool || true
+          reportgenerator \
+            -reports:"TestResults/**/coverage.cobertura.xml" \
+            -targetdir:"TestResults/CoverageReport" \
+            -reporttypes:"HtmlSummary;Cobertura;Badges"
+
+      - name: Upload test & coverage artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-and-coverage-${{ github.run_number }}
+          path: TestResults/
+          retention-days: 14
