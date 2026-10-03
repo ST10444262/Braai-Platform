@@ -39,7 +39,6 @@ namespace Inflame_Backend.Models.CRM
         [Column("created_at")]
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-     
         [Reference(typeof(InternalNote))]
         public List<InternalNote> InternalNotes { get; set; } = new List<InternalNote>();
         
@@ -47,7 +46,6 @@ namespace Inflame_Backend.Models.CRM
         public List<InvoiceRecord> UploadedInvoices { get; set; } = new List<InvoiceRecord>();
         
         [Reference(typeof(GalleryImage))]
-        public List<GalleryImage> UploadedPhotos { get; set; } = new List<GalleryImage>();
-        
+        public List<GalleryImage> UploadedPhotos { get; set; } = new List<GalleryImage>();   
     }
 }

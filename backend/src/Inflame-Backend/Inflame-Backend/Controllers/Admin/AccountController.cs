@@ -252,6 +252,53 @@ namespace Inflame_Backend.Controllers.Admin
 
         //------------------------------------------------------------------------------------------//
         /// <summary>
+        /// Deletes a staff account.
+        /// Admins may delete Employees only.
+        /// SuperAdmins may delete Employees and Admins.
+        /// SuperAdmin accounts and the requesting user's own account are protected.
+        /// </summary>
+        [HttpDelete("staff/{staffId:guid}")]
+        [Authorize(Roles = "SuperAdmin,Admin")]
+        public async Task<ActionResult<DeleteStaffAccountResponseDto>> DeleteStaff(
+            Guid staffId)
+        {
+            var requestingUserIdString =
+                User.FindFirst(
+                    System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+            if (!Guid.TryParse(
+                    requestingUserIdString,
+                    out var requestingUserId))
+            {
+                return Unauthorized(new
+                {
+                    message = "Unable to determine the requesting user."
+                });
+            }
+
+            var requestingRole =
+                User.IsInRole("SuperAdmin")
+                    ? "SuperAdmin"
+                    : "Admin";
+
+            var command = new DeleteStaffAccountCommand(
+                staffId,
+                requestingUserId,
+                requestingRole);
+
+            var result =
+                await _mediator.Send(command);
+
+            if (!result.Success)
+            {
+                return BadRequest(result);
+            }
+
+            return Ok(result);
+        }
+
+        //------------------------------------------------------------------------------------------//
+        /// <summary>
         /// Retrieves staff accounts using query parameters.
         /// Restricted to SuperAdmin and Admin authorization.
         /// </summary>
