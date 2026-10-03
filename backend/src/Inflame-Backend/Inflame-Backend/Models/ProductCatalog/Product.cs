@@ -11,7 +11,7 @@ namespace Inflame_Backend.Models.ProductCatalog
     [Table("product")]
     public class Product : BaseModel
     {
-        [PrimaryKey("product_id", false)]
+        [PrimaryKey("product_id", true)]
         public Guid ProductId { get; set; } = Guid.NewGuid();
 
         [Column("name")]
@@ -50,8 +50,9 @@ namespace Inflame_Backend.Models.ProductCatalog
         [Column("is_visible")]
         public bool IsVisible { get; set; } = true;
 
-        [Reference(typeof(ProductImage))]
-        public List<ProductImage> Images { get; set; } = new List<ProductImage>();
+        [Reference(typeof(ProductImage), includeInQuery: false)]
+        [Newtonsoft.Json.JsonIgnore]
+        public List<ProductImage>? Images { get; set; } = null;
     }
 }
 //---------------------END OF FILE------------------------------------------------------------------//

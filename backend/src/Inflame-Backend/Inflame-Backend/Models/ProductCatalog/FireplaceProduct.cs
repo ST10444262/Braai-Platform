@@ -10,7 +10,7 @@ namespace Inflame_Backend.Models.ProductCatalog
     [Table("fireplace_product")]
     public class FireplaceProduct : BaseModel
     {
-        [PrimaryKey("product_id", false)]
+        [PrimaryKey("product_id", true)]
         public Guid ProductId { get; set; }
 
         [Column("heat_output_kw")]
@@ -19,7 +19,7 @@ namespace Inflame_Backend.Models.ProductCatalog
         [Column("fireplace_type")]
         public string FireplaceType { get; set; } = string.Empty;
 
-        [Reference(typeof(Product))]
+        [Reference(typeof(Product), includeInQuery: false)]
         public Product? BaseProduct { get; set; }
     }
 }

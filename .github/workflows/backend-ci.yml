@@ -1,0 +1,82 @@
+name: Backend CI – Build & Test
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend-ci.yml'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend-ci.yml'
+
+env:
+  DOTNET_VERSION: '10.0.x'
+  SOLUTION_PATH: 'backend/src/Inflame-Backend/Inflame-Backend.slnx'
+  TEST_PROJECT_PATH: 'backend/src/Inflame-Backend/Inflame-Backend.Tests/Inflame-Backend.Tests.csproj'
+
+jobs:
+  build-and-test:
+    name: Build & Test (.NET 10)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/*.props') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Restore dependencies
+        run: dotnet restore ${{ env.SOLUTION_PATH }}
+
+      - name: Build solution
+        run: dotnet build ${{ env.SOLUTION_PATH }} --no-restore --configuration Release
+
+      - name: Run unit tests with coverage
+        run: |
+          dotnet test ${{ env.TEST_PROJECT_PATH }} \
+            --no-build \
+            --configuration Release \
+            --logger "trx;LogFileName=test-results.trx" \
+            --logger "console;verbosity=normal" \
+            --collect:"XPlat Code Coverage" \
+            --results-directory ./TestResults
+
+      - name: Publish test results to PR / Actions summary
+        uses: dorny/test-reporter@v1
+        if: always()
+        with:
+          name: xUnit Test Results
+          path: '**/TestResults/test-results.trx'
+          reporter: dotnet-trx
+          fail-on-error: true
+
+      - name: Generate HTML coverage report
+        if: always()
+        run: |
+          dotnet tool install --global dotnet-reportgenerator-globaltool || true
+          reportgenerator \
+            -reports:"TestResults/**/coverage.cobertura.xml" \
+            -targetdir:"TestResults/CoverageReport" \
+            -reporttypes:"HtmlSummary;Cobertura;Badges"
+
+      - name: Upload test & coverage artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-and-coverage-${{ github.run_number }}
+          path: TestResults/
+          retention-days: 14

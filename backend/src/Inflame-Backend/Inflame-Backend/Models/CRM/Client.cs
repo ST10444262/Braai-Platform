@@ -32,13 +32,13 @@ namespace Inflame_Backend.Models.CRM
         [Column("created_at")]
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-        [Reference(typeof(Enquiry))]
+        [Reference(typeof(Enquiry), includeInQuery: false)]
         public List<Enquiry> Enquiries { get; set; } = new List<Enquiry>();
 
-        [Reference(typeof(InvoiceRecord))]
+        [Reference(typeof(InvoiceRecord), includeInQuery: false)]
         public List<InvoiceRecord> InvoiceRecords { get; set; } = new List<InvoiceRecord>();
 
-        [Reference(typeof(InternalNote))]
+        [Reference(typeof(InternalNote), includeInQuery: false)]
         public List<InternalNote> InternalNotes { get; set; } = new List<InternalNote>();
     }
 }

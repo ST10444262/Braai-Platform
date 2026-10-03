@@ -10,7 +10,7 @@ namespace Inflame_Backend.Models.ProductCatalog
     [Table("braai_product")]
     public class BraaiProduct : BaseModel
     {
-        [PrimaryKey("product_id", false)]
+        [PrimaryKey("product_id", true)]
         public Guid ProductId { get; set; }
 
         [Column("fuel_type")]
@@ -19,7 +19,7 @@ namespace Inflame_Backend.Models.ProductCatalog
         [Column("braai_type")]
         public string BraaiType { get; set; } = string.Empty;
 
-        [Reference(typeof(Product))]
+        [Reference(typeof(Product), includeInQuery: false)]
         public Product? BaseProduct { get; set; }
     }
 }

@@ -2,8 +2,10 @@
 {
     public class VerifyLoginTwoFactorRequestDto
     {
-        public Guid UserId { get; set; }
+        public string Challenge { get; set; } = string.Empty;
 
         public string Code { get; set; } = string.Empty;
+
+        public bool RememberDevice { get; set; }
     }
 }

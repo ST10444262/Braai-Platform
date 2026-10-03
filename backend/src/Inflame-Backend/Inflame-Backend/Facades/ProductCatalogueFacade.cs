@@ -16,6 +16,7 @@ namespace Inflame_Backend.Facades
         private readonly IProductRepository _productRepository;
         private readonly IBraaiProductRepository _braaiProductRepository;
         private readonly IFireplaceProductRepository _fireplaceProductRepository;
+        private readonly IProductImageRepository _productImageRepository;
 
         #region Constructors
 
@@ -29,11 +30,13 @@ namespace Inflame_Backend.Facades
         public ProductCatalogueFacade(
             IProductRepository productRepository, 
             IBraaiProductRepository braaiProductRepository,
-            IFireplaceProductRepository fireplaceProductRepository)
+            IFireplaceProductRepository fireplaceProductRepository,
+            IProductImageRepository productImageRepository)
         {
             _productRepository = productRepository ?? throw new ArgumentNullException(nameof(productRepository));
             _braaiProductRepository = braaiProductRepository ?? throw new ArgumentNullException(nameof(braaiProductRepository));
             _fireplaceProductRepository = fireplaceProductRepository ?? throw new ArgumentNullException(nameof(fireplaceProductRepository));
+            _productImageRepository = productImageRepository ?? throw new ArgumentNullException(nameof(productImageRepository));
         }
 
         #endregion
@@ -109,6 +112,12 @@ namespace Inflame_Backend.Facades
                 .Take(pageSize)
                 .ToList();
 
+            // Populate images for the paginated products
+            foreach (var product in paginatedProducts)
+            {
+                product.Images = await _productImageRepository.GetByProductIdAsync(product.ProductId);
+            }
+
             return paginatedProducts;
         }
 
@@ -119,7 +128,12 @@ namespace Inflame_Backend.Facades
         public async Task<Product?> GetProductDetailsAsync(Guid productId)
         {
             // The facade abstracts the direct repository call from the controller
-            return await _productRepository.GetByIdAsync(productId);
+            var product = await _productRepository.GetByIdAsync(productId);
+            if (product != null)
+            {
+                product.Images = await _productImageRepository.GetByProductIdAsync(productId);
+            }
+            return product;
         }
 
         #endregion

@@ -67,7 +67,7 @@ namespace Inflame_Backend.Controllers.Admin
         [HttpPut("{productId}")]
         public async Task<ActionResult<UpdateProductResponseDto>> UpdateProduct(
             [FromRoute] Guid productId, 
-            [FromBody] UpdateProductRequestDto request)
+            [FromForm] UpdateProductRequestDto request)
         {
             bool hasPriceControl = User.IsInRole("SuperAdmin") || User.IsInRole("Admin");
             var command = new UpdateProductCommand(productId, request, hasPriceControl);

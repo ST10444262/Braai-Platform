@@ -1,4 +1,6 @@
+using Microsoft.AspNetCore.Http;
 using System;
+using System.Collections.Generic;
 
 namespace Inflame_Backend.Features.Product.DTOs
 {
@@ -10,7 +12,7 @@ namespace Inflame_Backend.Features.Product.DTOs
         //------------------------------------------------------------------------------------------//
         // Base Product Properties
         public string Name { get; set; } = string.Empty;
-        public string Category { get; set; } = string.Empty;
+        public string? Category { get; set; }
         public string Brand { get; set; } = string.Empty;
         public bool IsImported { get; set; }
         public bool IsCustomisable { get; set; }
@@ -28,6 +30,11 @@ namespace Inflame_Backend.Features.Product.DTOs
         // Fireplace Specific Properties (Optional)
         public decimal? HeatOutputKw { get; set; }
         public string? FireplaceType { get; set; }
+
+        //------------------------------------------------------------------------------------------//
+        // Image Upload Properties
+        public List<IFormFile>? Images { get; set; }
+        public List<Guid>? ExistingImageIds { get; set; }
     }
 }
 //---------------------END OF FILE------------------------------------------------------------------//
