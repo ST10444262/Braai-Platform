@@ -9,8 +9,10 @@ interface AuthCtx {
   role: Role | null;
   isAdmin: boolean;
   ready: boolean;
-  login: (email: string, password: string) => Promise<{ requiresTwoFactor: boolean; userId?: string }>;
-  verifyTwoFactor: (userId: string, code: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<{ requiresTwoFactor: boolean; requiresTwoFactorSetup?: boolean; userId?: string; twoFactorChallenge?: string }>;
+  verifyTwoFactor: (userId: string, code: string, challenge?: string) => Promise<void>;
+  setupTwoFactor: (challenge: string) => Promise<{ authenticatorUri: string; sharedKey: string }>;
+  finishSetupTwoFactor: (challenge: string, code: string) => Promise<void>;
   logout: () => void;
   reloadMe: () => Promise<void>;
 }
@@ -46,18 +48,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login: AuthCtx["login"] = async (email, password) => {
     const res = await api.post<LoginResponse>("/admin/account/login", { email, password });
-    if (res.requiresTwoFactor) return { requiresTwoFactor: true, userId: res.userId ?? undefined };
+    if (res.requiresTwoFactorSetup) {
+      return { requiresTwoFactor: false, requiresTwoFactorSetup: true, userId: res.userId ?? undefined, twoFactorChallenge: res.twoFactorChallenge ?? undefined };
+    }
+    if (res.requiresTwoFactor) return { requiresTwoFactor: true, userId: res.userId ?? undefined, twoFactorChallenge: res.twoFactorChallenge ?? undefined };
     if (!res.token) throw new Error("Login failed.");
     tokenStore.set(res.token);
     await reloadMe();
     return { requiresTwoFactor: false };
   };
 
-  const verifyTwoFactor: AuthCtx["verifyTwoFactor"] = async (userId, code) => {
-    const res = await api.post<{ token?: string }>("/admin/account/login/2fa", { userId, code });
+  const verifyTwoFactor: AuthCtx["verifyTwoFactor"] = async (userId, code, challenge) => {
+    const res = await api.post<{ token?: string }>("/admin/account/login/2fa", { userId, code, challenge });
     if (!res.token) throw new Error("Verification failed.");
     tokenStore.set(res.token);
     await reloadMe();
+  };
+
+  const setupTwoFactor: AuthCtx["setupTwoFactor"] = async (challenge) => {
+    const res = await api.post<{ authenticatorUri: string; sharedKey: string }>("/admin/account/2fa/setup", { challenge });
+    if (!res.authenticatorUri) throw new Error("Failed to get setup details.");
+    return res;
+  };
+
+  const finishSetupTwoFactor: AuthCtx["finishSetupTwoFactor"] = async (challenge, code) => {
+    const res = await api.post<{ success: boolean }>("/admin/account/2fa/verify", { challenge, code });
+    if (!res.success) throw new Error("Failed to verify code.");
   };
 
   const logout = () => {
@@ -69,7 +85,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <Ctx.Provider
-      value={{ me, role, isAdmin: role === "SuperAdmin" || role === "Admin", ready, login, verifyTwoFactor, logout, reloadMe }}
+      value={{ me, role, isAdmin: role === "SuperAdmin" || role === "Admin", ready, login, verifyTwoFactor, setupTwoFactor, finishSetupTwoFactor, logout, reloadMe }}
     >
       {children}
     </Ctx.Provider>

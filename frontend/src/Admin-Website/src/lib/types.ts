@@ -11,9 +11,11 @@ export interface Me {
 export interface LoginResponse {
   success: boolean;
   requiresTwoFactor: boolean;
+  requiresTwoFactorSetup?: boolean;
   message: string;
   token?: string | null;
   userId?: string | null;
+  twoFactorChallenge?: string | null;
 }
 
 export interface Enquiry {
