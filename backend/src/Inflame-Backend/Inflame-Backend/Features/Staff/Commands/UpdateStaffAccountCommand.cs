@@ -1,4 +1,4 @@
-﻿using Inflame_Backend.Data.Adapters;
+using Inflame_Backend.Data.Adapters;
 using Inflame_Backend.Data.Repositories.CRM;
 using Inflame_Backend.Features.Authentication.DTOs;
 using Inflame_Backend.Identity;
@@ -8,6 +8,11 @@ using Microsoft.AspNetCore.Identity;
 
 namespace Inflame_Backend.Features.Staff.Commands
 {
+    #region Command
+    //------------------------------------------------------------------------------------------//
+    /// <summary>
+    /// Command to update an existing staff account.
+    /// </summary>
     public record UpdateStaffAccountCommand(
         Guid StaffId,
         string Email,
@@ -15,9 +20,16 @@ namespace Inflame_Backend.Features.Staff.Commands
         string Role,
         bool IsActive,
         string? NewPassword,
-        IFormFile? ProfileImage
+        IFormFile? ProfileImage,
+        string RequestingUserRole
     ) : IRequest<UpdateStaffAccountResponseDto>;
+    #endregion
 
+    #region Handler
+    //------------------------------------------------------------------------------------------//
+    /// <summary>
+    /// Handles the UpdateStaffAccountCommand.
+    /// </summary>
     public class UpdateStaffAccountCommandHandler
         : IRequestHandler<
             UpdateStaffAccountCommand,
@@ -28,6 +40,10 @@ namespace Inflame_Backend.Features.Staff.Commands
         private readonly IStaffAccountRepository _staffAccountRepository;
         private readonly IStorageAdapter _storageAdapter;
 
+        //------------------------------------------------------------------------------------------//
+        /// <summary>
+        /// Constructor for UpdateStaffAccountCommandHandler.
+        /// </summary>
         public UpdateStaffAccountCommandHandler(
             UserManager<ApplicationUser> userManager,
             RoleManager<IdentityRole<Guid>> roleManager,
@@ -40,6 +56,10 @@ namespace Inflame_Backend.Features.Staff.Commands
             _storageAdapter = storageAdapter;
         }
 
+        //------------------------------------------------------------------------------------------//
+        /// <summary>
+        /// Processes the UpdateStaffAccountCommand.
+        /// </summary>
         public async Task<UpdateStaffAccountResponseDto> Handle(
             UpdateStaffAccountCommand request,
             CancellationToken cancellationToken)
@@ -56,6 +76,28 @@ namespace Inflame_Backend.Features.Staff.Commands
                     Success = false,
                     Message = "Staff account not found."
                 };
+            }
+
+            // An Admin may only edit Employee accounts.
+            if (request.RequestingUserRole == "Admin")
+            {
+                if (staffAccount.Role != "Employee")
+                {
+                    return new UpdateStaffAccountResponseDto
+                    {
+                        Success = false,
+                        Message = "Forbidden: Admins can only edit Employee accounts."
+                    };
+                }
+
+                if (request.Role != "Employee")
+                {
+                    return new UpdateStaffAccountResponseDto
+                    {
+                        Success = false,
+                        Message = "Forbidden: Admins can only assign the Employee role."
+                    };
+                }
             }
 
             // Find the corresponding ASP.NET Identity user.
@@ -303,4 +345,6 @@ namespace Inflame_Backend.Features.Staff.Commands
             };
         }
     }
+    #endregion
 }
+//---------------------END OF FILE------------------------------------------------------------------//

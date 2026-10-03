@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Inflame_Backend.Data.Repositories.CRM;
 using Inflame_Backend.Features.Authentication.Commands;
 using Inflame_Backend.Features.Authentication.DTOs;
@@ -25,15 +26,12 @@ namespace Inflame_Backend.Controllers.Admin
     public class AccountController : ControllerBase
     {
         private readonly IMediator _mediator;
-        private readonly IStaffAccountRepository _staffAccountRepository;
 
         //------------------------------------------------------------------------------------------//
         public AccountController(
-            IMediator mediator,
-            IStaffAccountRepository staffAccountRepository)
+            IMediator mediator)
         {
             _mediator = mediator;
-            _staffAccountRepository = staffAccountRepository;
         }
 
         //------------------------------------------------------------------------------------------//
@@ -167,23 +165,21 @@ namespace Inflame_Backend.Controllers.Admin
                 return Unauthorized();
             }
 
-            var staff = (await _staffRepository.GetAllAsync())
-                .FirstOrDefault(s => s.IdentityUserId == userId);
+            var query = new GetStaffProfileQuery(userId);
+            var result = await _mediator.Send(query);
 
-            var user = await _userManager.FindByIdAsync(userId.ToString());
-
-            if (staff == null || user == null)
+            if (!result.Success)
             {
-                return NotFound(new { message = "Staff profile not found." });
+                return NotFound(new { message = result.Message });
             }
 
             return Ok(new
             {
-                staffId = staff.StaffId,
-                email = staff.Email,
-                fullName = staff.FullName,
-                role = staff.Role,
-                twoFactorEnabled = await _userManager.GetTwoFactorEnabledAsync(user)
+                staffId = result.StaffId,
+                email = result.Email,
+                fullName = result.FullName,
+                role = result.Role,
+                twoFactorEnabled = result.TwoFactorEnabled
             });
         }
         //------------------------------------------------------------------------------------------//
@@ -197,33 +193,28 @@ namespace Inflame_Backend.Controllers.Admin
         {
             var idClaim = User.FindFirst(ClaimTypes.NameIdentifier);
 
-            if (idClaim == null)
+            if (idClaim == null || !Guid.TryParse(idClaim.Value, out var userId))
             {
                 return Unauthorized();
             }
 
-            var user = await _userManager.FindByIdAsync(idClaim.Value);
-
-            if (user == null)
-            {
-                return Unauthorized();
-            }
-
-            var result = await _userManager.ChangePasswordAsync(
-                user,
+            var command = new ChangePasswordCommand(
+                userId,
                 request.CurrentPassword,
                 request.NewPassword);
 
-            if (!result.Succeeded)
+            var result = await _mediator.Send(command);
+
+            if (!result.Success)
             {
                 return BadRequest(new
                 {
                     success = false,
-                    message = string.Join("; ", result.Errors.Select(e => e.Description))
+                    message = result.Message
                 });
             }
 
-            return Ok(new { success = true, message = "Password updated." });
+            return Ok(new { success = true, message = result.Message });
         }
         //------------------------------------------------------------------------------------------//
         /// <summary>
@@ -280,36 +271,7 @@ namespace Inflame_Backend.Controllers.Admin
                     ? "Employee"
                     : request.Role;
 
-            // An Admin may only edit Employee accounts.
-            if (User.IsInRole("Admin"))
-            {
-                var staffAccount =
-                    await _staffAccountRepository.GetByIdAsync(staffId);
-
-                if (staffAccount == null)
-                {
-                    return NotFound(new
-                    {
-                        message = "Staff account not found."
-                    });
-                }
-
-                if (staffAccount.Role != "Employee")
-                {
-                    return Forbid();
-                }
-
-                if (requestedRole != "Employee")
-                {
-                    return Forbid();
-                }
-            }
-
-            // SuperAdmin and Admin cannot assign SuperAdmin.
-            if (requestedRole == "SuperAdmin")
-            {
-                return Forbid();
-            }
+            var requestingRole = User.IsInRole("SuperAdmin") ? "SuperAdmin" : "Admin";
 
             var command = new UpdateStaffAccountCommand(
                 staffId,
@@ -318,7 +280,8 @@ namespace Inflame_Backend.Controllers.Admin
                 requestedRole,
                 request.IsActive,
                 request.NewPassword,
-                request.ProfileImage);
+                request.ProfileImage,
+                requestingRole);
 
             var result = await _mediator.Send(command);
 
