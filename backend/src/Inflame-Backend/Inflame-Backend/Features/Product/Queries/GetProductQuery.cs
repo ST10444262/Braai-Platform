@@ -27,6 +27,12 @@ namespace Inflame_Backend.Features.Product.Queries
         public string? Category { get; set; }
 
         //------------------------------------------------------------------------------------------//
+        /// <summary>
+        /// Optional, generic search across name, brand, or SKU
+        /// </summary>
+        public string? SearchTerm { get; set; }
+
+        //------------------------------------------------------------------------------------------//
         public string? ProductType { get; set; }
 
         //------------------------------------------------------------------------------------------//

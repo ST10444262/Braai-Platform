@@ -44,7 +44,7 @@ namespace Inflame_Backend.Facades
         /// <summary>
         /// Retrieves a paginated and filtered catalog of products.
         /// </summary>
-        public async Task<IEnumerable<Product>> GetFilteredCatalogAsync(string? category, string? productType, string? brand, decimal? minPrice, decimal? maxPrice, string? fuelType, decimal? minHeatOutputKw, decimal? maxHeatOutputKw, string? sortBy, int pageNumber = 1, int pageSize = 20, bool includeHidden = false)
+        public async Task<IEnumerable<Product>> GetFilteredCatalogAsync(string? category, string? productType, string? brand, decimal? minPrice, decimal? maxPrice, string? fuelType, decimal? minHeatOutputKw, decimal? maxHeatOutputKw, string? sortBy, string? searchTerm = null, int pageNumber = 1, int pageSize = 20, bool includeHidden = false)
         {
             // Fetches from the Product Catalog Repository
             var allProducts = await _productRepository.GetAllAsync();
@@ -92,6 +92,7 @@ namespace Inflame_Backend.Facades
                 .FilterByBrand(brand)
                 .FilterByPriceRange(minPrice, maxPrice)
                 .FilterByProductIds(allowedIds)
+                .FilterBySearchTerm(searchTerm)
                 .ApplySorting(sortBy);
 
             // Conditionally filter by visibility for public users

@@ -26,8 +26,9 @@ namespace Inflame_Backend.Facades
         /// <param name="pageNumber">The current page number (default is 1).</param>
         /// <param name="pageSize">The number of items per page (default is 20).</param>
         /// <param name="includeHidden">If true, returns all products regardless of visibility (for Admin use).</param>
+        /// <param name="searchTerm">Optional generic search term.</param>
         /// <returns>A collection of products matching the criteria for the specified page.</returns>
-        Task<IEnumerable<Product>> GetFilteredCatalogAsync(string? category, string? productType, string? brand, decimal? minPrice, decimal? maxPrice, string? fuelType, decimal? minHeatOutputKw, decimal? maxHeatOutputKw, string? sortBy, int pageNumber = 1, int pageSize = 20, bool includeHidden = false);
+        Task<IEnumerable<Product>> GetFilteredCatalogAsync(string? category, string? productType, string? brand, decimal? minPrice, decimal? maxPrice, string? fuelType, decimal? minHeatOutputKw, decimal? maxHeatOutputKw, string? sortBy, string? searchTerm = null, int pageNumber = 1, int pageSize = 20, bool includeHidden = false);
 
         //------------------------------------------------------------------------------------------//
         /// <summary>

@@ -59,6 +59,7 @@ namespace Inflame_Backend.Features.Product.Queries
                 request.MinHeatOutputKw,
                 request.MaxHeatOutputKw,
                 request.SortBy,
+                request.SearchTerm,
                 request.PageNumber,
                 request.PageSize,
                 includeHidden: true

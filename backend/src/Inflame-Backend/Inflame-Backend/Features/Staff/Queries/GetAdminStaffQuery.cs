@@ -30,6 +30,12 @@ namespace Inflame_Backend.Features.Staff.Queries
         public string? Role { get; set; }
 
         //------------------------------------------------------------------------------------------//
+        /// <summary>
+        /// Optional, generic search across name or email
+        /// </summary>
+        public string? SearchTerm { get; set; }
+
+        //------------------------------------------------------------------------------------------//
         public int PageNumber { get; set; } = 1;
 
         //------------------------------------------------------------------------------------------//
