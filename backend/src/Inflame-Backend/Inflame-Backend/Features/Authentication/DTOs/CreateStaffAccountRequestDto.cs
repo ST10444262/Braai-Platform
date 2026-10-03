@@ -1,8 +1,10 @@
+using Microsoft.AspNetCore.Http;
+
 namespace Inflame_Backend.Features.Authentication.DTOs
 {
     /// <summary>
-    /// Data Transfer Object (DTO) representing the request payload for creating a new staff account,
-    /// carrying account registration details including email, password, full name.
+    /// Data Transfer Object (DTO) representing the request payload for creating
+    /// a new staff account.
     /// </summary>
     public class CreateStaffAccountRequestDto
     {
@@ -13,5 +15,7 @@ namespace Inflame_Backend.Features.Authentication.DTOs
         public string FullName { get; set; } = string.Empty;
 
         public string Role { get; set; } = "Employee";
+
+        public IFormFile? ProfileImage { get; set; }
     }
 }

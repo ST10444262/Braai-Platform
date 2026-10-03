@@ -72,7 +72,7 @@ export function useQuoteForm(productId: string){
 
         try{
             //sending quote request to api
-            await submitQuoteRequest({firstName, lastName, email, phoneNumber, productId, message:message||undefined,}); //sending notes as undefined incase its an empty string
+            await submitQuoteRequest({firstName, lastName, email, phone: phoneNumber, productId, message:message||undefined,}); //sending notes as undefined incase its an empty string
 
             //marking the form as successfully submitted
             setSubmitted(true);

@@ -44,14 +44,8 @@ namespace Inflame_Backend.Features.Product.DTOs
                 .ToList();
 
             // Extract subclass properties using pattern matching
-            if (p is Inflame_Backend.Models.ProductCatalog.BraaiProduct braai)
-            {
-                FuelType = braai.FuelType;
-            }
-            else if (p is Inflame_Backend.Models.ProductCatalog.FireplaceProduct fireplace)
-            {
-                HeatOutputKw = fireplace.HeatOutputKw;
-            }
+            // Note: Product does not inherit BraaiProduct or FireplaceProduct.
+            // If you need subclass properties, you must join or query them separately.
         }
     }
 }

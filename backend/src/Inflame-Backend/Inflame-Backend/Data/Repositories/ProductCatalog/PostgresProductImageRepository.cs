@@ -21,6 +21,16 @@ namespace Inflame_Backend.Data.Repositories.ProductCatalog
         {
         }
         #endregion
+        #region Handler Methods
+        //------------------------------------------------------------------------------------------//
+        public async Task<System.Collections.Generic.List<ProductImage>> GetByProductIdAsync(Guid productId)
+        {
+            var response = await _supabaseInstance.Client.From<ProductImage>()
+                .Where(x => x.ProductId == productId)
+                .Get();
+            return response.Models;
+        }
+        #endregion
     }
 }
 //---------------------END OF FILE------------------------------------------------------------------//

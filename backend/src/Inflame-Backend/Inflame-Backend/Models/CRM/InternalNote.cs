@@ -22,13 +22,13 @@ namespace Inflame_Backend.Models.CRM
         [Column("client_id")]
         public Guid ClientId { get; set; }
 
-        [Reference(typeof(Client))]
+        [Reference(typeof(Client), includeInQuery: false)]
         public Client? Client { get; set; }
 
         [Column("staff_account_id")]
         public Guid StaffAccountId { get; set; }
 
-        [Reference(typeof(StaffAccount))]
+        [Reference(typeof(StaffAccount), includeInQuery: false)]
         public StaffAccount? Author { get; set; }
     }
 }

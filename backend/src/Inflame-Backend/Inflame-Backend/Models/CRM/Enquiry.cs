@@ -33,13 +33,13 @@ namespace Inflame_Backend.Models.CRM
         [Column("product_id")]
         public Guid? ProductId { get; set; }
 
-        [Reference(typeof(Product))]
+        [Reference(typeof(Product), includeInQuery: false)]
         public Product? Product { get; set; }
 
         [Column("custom_option_id")]
         public Guid? CustomOptionId { get; set; }
 
-        [Reference(typeof(CustomOption))]
+        [Reference(typeof(CustomOption), includeInQuery: false)]
         public CustomOption? CustomOption { get; set; }
 
         [Column("message")]
@@ -57,7 +57,7 @@ namespace Inflame_Backend.Models.CRM
         [Column("client_id")]
         public Guid? ClientId { get; set; }
 
-        [Reference(typeof(Client))]
+        [Reference(typeof(Client), includeInQuery: false)]
         public Client? Client { get; set; }
     }
 }

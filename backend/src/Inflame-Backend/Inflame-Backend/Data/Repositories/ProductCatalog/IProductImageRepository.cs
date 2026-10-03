@@ -10,6 +10,7 @@ namespace Inflame_Backend.Data.Repositories.ProductCatalog
     /// </summary>
     public interface IProductImageRepository : IBaseRepository<ProductImage>
     {
+        Task<System.Collections.Generic.List<ProductImage>> GetByProductIdAsync(Guid productId);
     }
 }
 //---------------------END OF FILE------------------------------------------------------------------//
