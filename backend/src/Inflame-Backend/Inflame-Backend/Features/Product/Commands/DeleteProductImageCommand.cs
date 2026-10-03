@@ -15,14 +15,17 @@ namespace Inflame_Backend.Features.Product.Commands
     {
         private readonly IProductImageRepository _productImageRepository;
         private readonly IStorageAdapter _storageAdapter;
+        private readonly Microsoft.Extensions.Logging.ILogger<DeleteProductImageCommandHandler> _logger;
 
         //------------------------------------------------------------------------------------------//
         public DeleteProductImageCommandHandler(
             IProductImageRepository productImageRepository,
-            IStorageAdapter storageAdapter)
+            IStorageAdapter storageAdapter,
+            Microsoft.Extensions.Logging.ILogger<DeleteProductImageCommandHandler> logger)
         {
             _productImageRepository = productImageRepository;
             _storageAdapter = storageAdapter;
+            _logger = logger;
         }
 
         //------------------------------------------------------------------------------------------//
@@ -37,8 +40,9 @@ namespace Inflame_Backend.Features.Product.Commands
                 var fileName = image.Url.Substring(image.Url.LastIndexOf('/') + 1);
                 await _storageAdapter.DeleteFileAsync("products", fileName);
             }
-            catch
+            catch (Exception ex)
             {
+                _logger.LogError(ex, "Failed to delete file from Supabase storage. Url: {Url}, FileName: {FileName}", image.Url, image.Url.Substring(image.Url.LastIndexOf('/') + 1));
                 // Continue with database deletion even if storage deletion fails
             }
 

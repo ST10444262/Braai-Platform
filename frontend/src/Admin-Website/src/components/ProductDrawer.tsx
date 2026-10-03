@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Star, Trash2, X } from "lucide-react";
 import { api } from "@/lib/api";
-import type { Product } from "@/lib/types";
+import type { Product, ProductImage } from "@/lib/types";
 import { fmtDate } from "@/lib/format";
 import { Button, Chips, ConfirmDialog, Drawer, Dropzone, Field, Pill, TextInput, cn, inputCls, useToast } from "./ui";
 
@@ -47,6 +47,7 @@ export default function ProductDrawer({
   const [mode, setMode] = useState<Mode>("view");
   const [f, setF] = useState(empty);
   const [files, setFiles] = useState<File[]>([]);
+  const [keptImages, setKeptImages] = useState<ProductImage[]>([]);
   const [busy, setBusy] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
@@ -56,6 +57,7 @@ export default function ProductDrawer({
     if (!product) {
       setMode("create");
       setF({ ...empty, productType: defaultType, fuelType: defaultType === "Braai" ? "Gas" : "" });
+      setKeptImages([]);
       return;
     }
     setMode("view");
@@ -75,13 +77,14 @@ export default function ProductDrawer({
       heatOutputKw: product.heatOutputKw != null ? String(product.heatOutputKw) : "",
       fireplaceType: product.fireplaceType ?? "",
     });
+    setKeptImages(product.images ?? []);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, product?.productId, defaultType]);
+  }, [open, product?.productId, defaultType, product?.images]);
 
   const set = <K extends keyof typeof empty>(k: K, v: (typeof empty)[K]) => setF((p) => ({ ...p, [k]: v }));
   const readOnly = mode === "view";
   const isBraai = f.productType.toLowerCase().startsWith("braai");
-  const images = product?.images ?? [];
+  const images = mode === "view" ? (product?.images ?? []) : keptImages;
 
   function addFiles(list: File[]) {
     const ok = list.filter((x) => x.size <= 5 * 1024 * 1024);
@@ -118,26 +121,36 @@ export default function ProductDrawer({
         await api.form("/admin/products", fd);
         toast("Product created.");
       } else if (product) {
-        await api.put(`/admin/products/${product.productId}`, {
-          name: f.name.trim(),
-          category: isBraai ? f.braaiType : f.fireplaceType,
-          brand: f.brand.trim(),
-          isImported: f.isImported,
-          isCustomisable: f.isCustomisable,
-          price,
-          description: f.description,
-          onSpecial: f.onSpecial ? Number(f.onSpecial) : null,
-          isVisible: f.isVisible,
-          fuelType: isBraai ? f.fuelType || null : null,
-          braaiType: isBraai ? f.braaiType || null : null,
-          heatOutputKw: !isBraai && f.heatOutputKw ? Number(f.heatOutputKw) : null,
-          fireplaceType: !isBraai ? f.fireplaceType || null : null,
-        });
-        if (files.length && isAdmin) {
-          const fd = new FormData();
-          files.forEach((file) => fd.append("images", file));
-          await api.form(`/admin/products/${product.productId}/images`, fd);
+        const fd = new FormData();
+        fd.append("Name", f.name.trim());
+        fd.append("Category", isBraai ? f.braaiType : f.fireplaceType);
+        fd.append("Brand", f.brand.trim());
+        fd.append("IsImported", String(f.isImported));
+        fd.append("IsCustomisable", String(f.isCustomisable));
+        fd.append("Price", String(price));
+        fd.append("Description", f.description);
+        if (f.onSpecial) fd.append("OnSpecial", f.onSpecial);
+        fd.append("IsVisible", String(f.isVisible));
+        
+        if (isBraai) {
+          if (f.fuelType) fd.append("FuelType", f.fuelType);
+          if (f.braaiType) fd.append("BraaiType", f.braaiType);
+        } else {
+          if (f.heatOutputKw) fd.append("HeatOutputKw", f.heatOutputKw);
+          if (f.fireplaceType) fd.append("FireplaceType", f.fireplaceType);
         }
+
+        // Preserve existing images
+        keptImages.forEach((img) => {
+          fd.append("ExistingImageIds", img.imageId);
+        });
+
+        // Append new images
+        if (files.length && isAdmin) {
+          files.forEach((file) => fd.append("Images", file));
+        }
+
+        await api.form(`/admin/products/${product.productId}`, fd, "PUT");
         toast("Product updated.");
       }
       onChanged();
@@ -227,7 +240,7 @@ export default function ProductDrawer({
           </select>
         </Field>
 
-        {mode === "view" && images.length > 0 && (
+        {images.length > 0 && (
           <div className="grid h-44 place-items-center overflow-hidden rounded-xl bg-card">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={(images.find((i) => i.isPrimary) ?? images[0]).url} alt={f.name} className="h-full w-full object-cover" />
@@ -313,62 +326,53 @@ export default function ProductDrawer({
           </label>
         </div>
 
-        {(mode !== "view" || images.length > 0) && (
-          <Field label="Product Images">
-            {product && images.length > 0 && (
-              <div className="mb-3 grid grid-cols-3 gap-2">
-                {images.map((img) => (
-                  <div key={img.imageId} className="group relative aspect-square overflow-hidden rounded-lg bg-card">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={img.url} alt="" className="h-full w-full object-cover" />
-                    {img.isPrimary && (
-                      <span className="absolute left-1 top-1">
-                        <Pill tone="dark">Primary</Pill>
-                      </span>
-                    )}
-                    {mode === "edit" && isAdmin && (
-                      <div className="absolute inset-x-0 bottom-0 flex justify-center gap-1 bg-black/50 p-1 opacity-0 transition group-hover:opacity-100">
-                        {!img.isPrimary && (
-                          <button
-                            title="Make primary"
-                            onClick={() => imageAction(() => api.put(`/admin/products/${product.productId}/images/${img.imageId}/primary`))}
-                            className="rounded bg-white p-1"
-                          >
-                            <Star className="h-3 w-3" />
-                          </button>
-                        )}
-                        <button
-                          title="Delete image"
-                          onClick={() => imageAction(() => api.del(`/admin/products/${product.productId}/images/${img.imageId}`))}
-                          className="rounded bg-white p-1 text-red-600"
-                        >
-                          <Trash2 className="h-3 w-3" />
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-            {!readOnly && isAdmin && (
-              <>
-                <Dropzone title="Click to upload or drag and drop" hint="PNG, JPG up to 5MB" accept=".png,.jpg,.jpeg,.webp" onFiles={addFiles} />
-                {files.length > 0 && (
-                  <ul className="mt-2 space-y-1">
-                    {files.map((file, i) => (
-                      <li key={i} className={cn("flex items-center justify-between rounded-lg bg-card px-3 py-1.5 text-xs")}>
-                        <span className="truncate">{file.name}</span>
-                        <button onClick={() => setFiles((c) => c.filter((_, j) => j !== i))}>
-                          <X className="h-3 w-3" />
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </>
-            )}
-          </Field>
-        )}
+        <div className="block">
+          <span className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wide text-muted">Product Images</span>
+          {images.length > 0 && (
+            <div className="mb-3 grid grid-cols-3 gap-2">
+              {images.map((img) => (
+                <div key={img.imageId} className="group relative aspect-square overflow-hidden rounded-lg bg-card">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={img.url} alt="" className="h-full w-full object-cover" />
+                  {img.isPrimary && (
+                    <span className="absolute left-1 top-1">
+                      <Pill tone="dark">Primary</Pill>
+                    </span>
+                  )}
+                  {mode === "edit" && isAdmin && (
+                    <div className="absolute inset-x-0 bottom-0 flex justify-center gap-1 bg-black/50 p-1 opacity-0 transition group-hover:opacity-100">
+                      <button
+                        title="Remove image"
+                        type="button"
+                        onClick={() => setKeptImages((c) => c.filter((x) => x.imageId !== img.imageId))}
+                        className="rounded bg-white p-1 text-red-600"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+          {!readOnly && isAdmin && (
+            <>
+              <Dropzone title="Click to upload or drag and drop" hint="PNG, JPG up to 5MB" accept=".png,.jpg,.jpeg,.webp" onFiles={addFiles} />
+              {files.length > 0 && (
+                <ul className="mt-2 space-y-1">
+                  {files.map((file, i) => (
+                    <li key={i} className={cn("flex items-center justify-between rounded-lg bg-card px-3 py-1.5 text-xs")}>
+                      <span className="truncate">{file.name}</span>
+                      <button onClick={() => setFiles((c) => c.filter((_, j) => j !== i))}>
+                        <X className="h-3 w-3" />
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </>
+          )}
+        </div>
 
         {product && mode !== "create" && (
           <div className="rounded-xl bg-card p-4 text-xs">

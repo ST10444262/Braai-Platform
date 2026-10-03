@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
+using MediatR;
 using Inflame_Backend.Data.Adapters;
 using Inflame_Backend.Data.Repositories.ProductCatalog;
 using Inflame_Backend.Features.Product.Commands;
@@ -28,12 +29,16 @@ namespace Inflame_Backend.Tests.ApplicationLayer
         private static (UpdateProductCommandHandler handler,
                         Mock<IProductRepository> mockProductRepo,
                         Mock<IBraaiProductRepository> mockBraaiRepo,
-                        Mock<IFireplaceProductRepository> mockFireplaceRepo)
+                        Mock<IFireplaceProductRepository> mockFireplaceRepo,
+                        Mock<IProductImageRepository> mockImageRepo,
+                        Mock<IMediator> mockMediator)
             BuildUpdateHandlerWithProduct(Product? existingProduct = null)
         {
             var mockProductRepo    = new Mock<IProductRepository>();
             var mockBraaiRepo      = new Mock<IBraaiProductRepository>();
             var mockFireplaceRepo  = new Mock<IFireplaceProductRepository>();
+            var mockImageRepo      = new Mock<IProductImageRepository>();
+            var mockMediator       = new Mock<IMediator>();
 
             mockProductRepo
                 .Setup(r => r.GetByIdAsync(It.IsAny<Guid>()))
@@ -47,12 +52,18 @@ namespace Inflame_Backend.Tests.ApplicationLayer
                 .Setup(r => r.GetByIdAsync(It.IsAny<Guid>()))
                 .ReturnsAsync((FireplaceProduct?)null);
 
+            mockImageRepo
+                .Setup(r => r.GetByProductIdAsync(It.IsAny<Guid>()))
+                .ReturnsAsync(new List<ProductImage>());
+
             var handler = new UpdateProductCommandHandler(
                 mockProductRepo.Object,
                 mockBraaiRepo.Object,
-                mockFireplaceRepo.Object);
+                mockFireplaceRepo.Object,
+                mockImageRepo.Object,
+                mockMediator.Object);
 
-            return (handler, mockProductRepo, mockBraaiRepo, mockFireplaceRepo);
+            return (handler, mockProductRepo, mockBraaiRepo, mockFireplaceRepo, mockImageRepo, mockMediator);
         }
 
         //----------------------------------------------------------------------------------------------//
@@ -60,7 +71,7 @@ namespace Inflame_Backend.Tests.ApplicationLayer
         public async Task UpdateProductCommand_WhenProductDoesNotExist_ShouldReturnFailureWithoutCallingUpdate()
         {
             // Arrange – repository returns null → product not found
-            var (handler, mockProductRepo, _, _) = BuildUpdateHandlerWithProduct(existingProduct: null);
+            var (handler, mockProductRepo, _, _, _, _) = BuildUpdateHandlerWithProduct(existingProduct: null);
             var productId = Guid.NewGuid();
 
             var dto = new UpdateProductRequestDto
@@ -105,7 +116,7 @@ namespace Inflame_Backend.Tests.ApplicationLayer
                 Description  = "Test"
             };
 
-            var (handler, mockProductRepo, _, _) = BuildUpdateHandlerWithProduct(existingProduct);
+            var (handler, mockProductRepo, _, _, _, _) = BuildUpdateHandlerWithProduct(existingProduct);
 
             var dto = new UpdateProductRequestDto
             {
@@ -148,7 +159,7 @@ namespace Inflame_Backend.Tests.ApplicationLayer
                 Description = "Old description"
             };
 
-            var (handler, mockProductRepo, _, _) = BuildUpdateHandlerWithProduct(existingProduct);
+            var (handler, mockProductRepo, _, _, _, _) = BuildUpdateHandlerWithProduct(existingProduct);
 
             Product? capturedEntity = null;
             mockProductRepo
@@ -208,7 +219,7 @@ namespace Inflame_Backend.Tests.ApplicationLayer
                 Description = "Desc"
             };
 
-            var (handler, mockProductRepo, _, _) = BuildUpdateHandlerWithProduct(existingProduct);
+            var (handler, mockProductRepo, _, _, _, _) = BuildUpdateHandlerWithProduct(existingProduct);
 
             mockProductRepo
                 .Setup(r => r.UpdateAsync(It.IsAny<Product>()))
