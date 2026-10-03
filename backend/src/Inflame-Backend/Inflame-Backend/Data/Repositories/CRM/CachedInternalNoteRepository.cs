@@ -50,10 +50,11 @@ namespace Inflame_Backend.Data.Repositories.CRM
         }
 
         //------------------------------------------------------------------------------------------//
-        public override async Task AddAsync(InternalNote entity)
+        public override async Task<InternalNote> AddAsync(InternalNote entity)
         {
-            await base.AddAsync(entity);
+            var inserted = await base.AddAsync(entity);
             await _redisDatabase.KeyDeleteAsync($"internal_note_client_{entity.ClientId}");
+            return inserted;
         }
 
         //------------------------------------------------------------------------------------------//

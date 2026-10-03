@@ -50,10 +50,11 @@ namespace Inflame_Backend.Data.Repositories.CRM
         }
 
         //------------------------------------------------------------------------------------------//
-        public override async Task AddAsync(InvoiceRecord entity)
+        public override async Task<InvoiceRecord> AddAsync(InvoiceRecord entity)
         {
-            await base.AddAsync(entity);
+            var inserted = await base.AddAsync(entity);
             await _redisDatabase.KeyDeleteAsync($"invoice_record_client_{entity.ClientId}");
+            return inserted;
         }
 
         //------------------------------------------------------------------------------------------//

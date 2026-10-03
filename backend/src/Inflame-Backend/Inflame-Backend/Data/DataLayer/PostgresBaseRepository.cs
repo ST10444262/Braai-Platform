@@ -67,9 +67,10 @@ namespace Inflame_Backend.Data.DataLayer
         /// </summary>
         /// <param name="entity"></param>
         /// <returns></returns>
-        public async Task AddAsync(T entity)
+        public async Task<T> AddAsync(T entity)
         {
-            await _supabaseInstance.Client.From<T>().Insert(entity);
+            var response = await _supabaseInstance.Client.From<T>().Insert(entity);
+            return response.Models.FirstOrDefault() ?? entity;
         }
         //------------------------------------------------------------------------------------------//
         /// <summary>
