@@ -265,12 +265,17 @@ using (var scope = app.Services.CreateScope())
         scope.ServiceProvider
             .GetRequiredService<UserManager<ApplicationUser>>();
 
+    var staffAccountRepository =
+        scope.ServiceProvider
+            .GetRequiredService<Inflame_Backend.Data.Repositories.CRM.IStaffAccountRepository>();
+
     await IdentitySeeder.SeedRolesAsync(roleManager);
 
     await IdentitySeeder.SeedSuperAdminAsync(
         userManager,
         roleManager,
-        app.Configuration);
+        app.Configuration,
+        staffAccountRepository);
 }
 
 // Configure the HTTP request pipeline.

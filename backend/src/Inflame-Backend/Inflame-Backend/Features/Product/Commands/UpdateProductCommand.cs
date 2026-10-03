@@ -116,6 +116,31 @@ namespace Inflame_Backend.Features.Product.Commands
                         var deleteCommand = new DeleteProductImageCommand(img.ImageId);
                         await _mediator.Send(deleteCommand, cancellationToken);
                     }
+                    else
+                    {
+                        // Check if we need to update the primary status
+                        if (dto.PrimaryImageId.HasValue)
+                        {
+                            bool shouldBePrimary = img.ImageId == dto.PrimaryImageId.Value;
+                            if (img.IsPrimary != shouldBePrimary)
+                            {
+                                img.IsPrimary = shouldBePrimary;
+                                await _productImageRepository.UpdateAsync(img);
+                            }
+                        }
+                    }
+                }
+
+                // If no PrimaryImageId was explicitly set, and no existing images are primary, make the first one primary
+                if (!dto.PrimaryImageId.HasValue && existingImageIds.Count > 0)
+                {
+                    var keptImages = currentImages.Where(i => existingImageIds.Contains(i.ImageId)).ToList();
+                    if (keptImages.Any() && !keptImages.Any(i => i.IsPrimary))
+                    {
+                        var first = keptImages.First();
+                        first.IsPrimary = true;
+                        await _productImageRepository.UpdateAsync(first);
+                    }
                 }
 
                 // Upload New Images

@@ -42,11 +42,11 @@ export default function UsersPage() {
   }, [all, tab, search]);
   const rows = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
-  if (ready && !isAdmin) return <ErrorNote message="You don't have access to Admin Users." />;
+  if (ready && !isAdmin) return <ErrorNote message="You don't have access to Users." />;
 
   return (
     <>
-      <PageHeader title="Admin Users" subtitle="Manage every employee account with access to the Inflame platform" />
+      <PageHeader title="Users" subtitle="Manage every employee account with access to the Inflame platform" />
 
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div className="relative w-64">
@@ -63,7 +63,7 @@ export default function UsersPage() {
         </div>
         <Link href="/users/new">
           <Button>
-            <Plus className="h-4 w-4" /> Create Employee
+            <Plus className="h-4 w-4" /> Create User
           </Button>
         </Link>
       </div>
@@ -135,3 +135,4 @@ export default function UsersPage() {
     </>
   );
 }
+//---------------------END OF FILE------------------------------------------------------------------//

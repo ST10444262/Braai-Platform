@@ -56,7 +56,7 @@ namespace Inflame_Backend.Features.Enquiries.Commands
             {
                 switch (request.Status)
                 {
-                    case "UnderReview":
+                    case "Under Review":
                         manager.UnderReviewLead();
                         break;
                     case "Contacted":
@@ -106,7 +106,7 @@ namespace Inflame_Backend.Features.Enquiries.Commands
             return status switch
             {
                 "New" => new NewState(),
-                "UnderReview" => new UnderReviewState(),
+                "Under Review" => new UnderReviewState(),
                 "Contacted" => new ContactedState(),
                 "Converted" => new ConvertedState(),
                 "Dead" => new DeadState(),

@@ -10,7 +10,7 @@ interface AuthCtx {
   isAdmin: boolean;
   ready: boolean;
   login: (email: string, password: string) => Promise<{ requiresTwoFactor: boolean; requiresTwoFactorSetup?: boolean; userId?: string; twoFactorChallenge?: string }>;
-  verifyTwoFactor: (userId: string, code: string, challenge?: string) => Promise<void>;
+  verifyTwoFactor: (userId: string, code: string, challenge?: string, rememberDevice?: boolean) => Promise<void>;
   setupTwoFactor: (challenge: string) => Promise<{ authenticatorUri: string; sharedKey: string }>;
   finishSetupTwoFactor: (challenge: string, code: string) => Promise<void>;
   logout: () => void;
@@ -19,6 +19,7 @@ interface AuthCtx {
 
 const Ctx = createContext<AuthCtx | null>(null);
 
+//------------------------------------------------------------------------------------------//
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [me, setMe] = useState<Me | null>(null);
   const [role, setRole] = useState<Role | null>(null);
@@ -38,7 +39,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setMe(await api.get<Me>("/admin/account/me"));
     } catch {
       // /me not available yet: fall back to what the token tells us
-      setMe({ staffId: null, email: decoded.email ?? "", fullName: decoded.email ?? "Staff", role: decoded.role, twoFactorEnabled: false });
+      setMe({ staffId: null, email: decoded.email ?? "", fullName: decoded.email ?? "Staff", role: decoded.role, twoFactorEnabled: false, receiveQuoteEmails: false });
     }
   }, []);
 
@@ -58,8 +59,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { requiresTwoFactor: false };
   };
 
-  const verifyTwoFactor: AuthCtx["verifyTwoFactor"] = async (userId, code, challenge) => {
-    const res = await api.post<{ token?: string }>("/admin/account/login/2fa", { userId, code, challenge });
+  const verifyTwoFactor: AuthCtx["verifyTwoFactor"] = async (userId, code, challenge, rememberDevice = false) => {
+    const res = await api.post<{ token?: string }>("/admin/account/login/2fa", { userId, code, challenge, rememberDevice });
     if (!res.token) throw new Error("Verification failed.");
     tokenStore.set(res.token);
     await reloadMe();
@@ -92,8 +93,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 }
 
+//------------------------------------------------------------------------------------------//
 export function useAuth() {
   const c = useContext(Ctx);
   if (!c) throw new Error("useAuth must be used inside AuthProvider");
   return c;
 }
+//---------------------END OF FILE------------------------------------------------------------------//

@@ -1,3 +1,4 @@
+using Inflame_Backend.Data.Repositories.CRM;
 using Microsoft.AspNetCore.Identity;
 
 namespace Inflame_Backend.Identity
@@ -51,7 +52,8 @@ namespace Inflame_Backend.Identity
         public static async Task SeedSuperAdminAsync(
             UserManager<ApplicationUser> userManager,
             RoleManager<IdentityRole<Guid>> roleManager,
-            IConfiguration configuration)
+            IConfiguration configuration,
+            IStaffAccountRepository staffAccountRepository)
         {
             var email =
                 configuration["Identity:SeedAdmin:Email"];
@@ -71,6 +73,20 @@ namespace Inflame_Backend.Identity
 
             if (existingUser != null)
             {
+                var allStaff = await staffAccountRepository.GetAllAsync();
+                if (!allStaff.Any(s => s.IdentityUserId == existingUser.Id))
+                {
+                    await staffAccountRepository.AddAsync(new Inflame_Backend.Models.CRM.StaffAccount
+                    {
+                        StaffId = Guid.NewGuid(),
+                        IdentityUserId = existingUser.Id,
+                        Email = existingUser.Email,
+                        FullName = existingUser.FullName ?? "Initial SuperAdmin",
+                        Role = "SuperAdmin",
+                        IsActive = true,
+                        CreatedAt = DateTime.UtcNow
+                    });
+                }
                 return;
             }
 
@@ -116,6 +132,17 @@ namespace Inflame_Backend.Identity
                     string.Join(", ",
                         roleResult.Errors.Select(e => e.Description)));
             }
+
+            await staffAccountRepository.AddAsync(new Inflame_Backend.Models.CRM.StaffAccount
+            {
+                StaffId = Guid.NewGuid(),
+                IdentityUserId = user.Id,
+                Email = user.Email,
+                FullName = user.FullName,
+                Role = "SuperAdmin",
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow
+            });
         }
     }
 }

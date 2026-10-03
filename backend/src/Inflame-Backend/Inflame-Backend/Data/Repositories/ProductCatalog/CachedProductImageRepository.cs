@@ -48,10 +48,11 @@ namespace Inflame_Backend.Data.Repositories.ProductCatalog
 
             return dbData ?? new System.Collections.Generic.List<ProductImage>();
         }
-        public override async Task AddAsync(ProductImage entity)
+        public override async Task<ProductImage> AddAsync(ProductImage entity)
         {
-            await base.AddAsync(entity);
+            var inserted = await base.AddAsync(entity);
             await _redisDatabase.KeyDeleteAsync($"{_cacheKeyPrefix}_ProductId_{entity.ProductId}");
+            return inserted;
         }
 
         public override async Task UpdateAsync(ProductImage entity)

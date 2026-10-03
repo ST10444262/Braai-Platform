@@ -13,7 +13,7 @@ const NAV = [
   { href: "/products", label: "Product Catalogue", icon: Package },
   { href: "/leads", label: "Lead Management", icon: Funnel },
   { href: "/clients", label: "Client Directory", icon: Users },
-  { href: "/users", label: "Admin Users", icon: UserRoundCog, admin: true },
+  { href: "/users", label: "Users", icon: UserRoundCog, admin: true },
 ];
 
 export function Logo() {

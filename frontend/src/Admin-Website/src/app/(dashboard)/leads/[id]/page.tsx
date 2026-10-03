@@ -1,134 +1,189 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
-import { EllipsisVertical, Search } from "lucide-react";
+import { useState, useMemo } from "react";
+import Link from "next/link";
+import { useParams, useRouter } from "next/navigation";
 import { api, qs } from "@/lib/api";
 import { useLoad, useProductNames } from "@/lib/hooks";
-import { fullName, requestedProduct, timeAgo } from "@/lib/format";
+import { fullName, requestedProduct, fmtDateTime } from "@/lib/format";
 import type { Enquiry } from "@/lib/types";
-import { ErrorNote, PageHeader, Pagination, Spinner, StatusBadge, cn } from "@/components/ui";
+import { Button, ErrorNote, Spinner, StatusBadge, cn } from "@/components/ui";
+import { useToast } from "@/components/ui";
 
-const TABS = ["All", "New", "Contacted", "Converted", "Dead"] as const;
-const PAGE_SIZE = 8;
+const STATUSES = ["New", "Under Review", "Contacted", "Converted", "Dead"];
 
-export default function LeadsPage() {
+export default function LeadDetailsPage() {
+  const { id } = useParams<{ id: string }>();
   const router = useRouter();
+  const toast = useToast();
   const names = useProductNames();
-  const { data, loading, error } = useLoad(() => api.get<Enquiry[]>(`/admin/enquiries${qs({ pageNumber: 1, pageSize: 1000 })}`));
-  const [tab, setTab] = useState<(typeof TABS)[number]>("All");
-  const [search, setSearch] = useState("");
-  const [page, setPage] = useState(1);
 
-  const all = useMemo(() => data ?? [], [data]);
-  const counts = useMemo(() => {
-    const c: Record<string, number> = { All: all.length };
-    all.forEach((e) => (c[e.status] = (c[e.status] ?? 0) + 1));
-    return c;
-  }, [all]);
+  const { data, loading, error, reload } = useLoad(
+    async () => {
+      const res = await api.get<Enquiry[]>(`/admin/enquiries${qs({ enquiryId: id })}`);
+      return res[0] ?? null;
+    },
+    [id],
+  );
 
-  const filtered = useMemo(() => {
-    const s = search.trim().toLowerCase();
-    return all.filter((e) => {
-      if (tab !== "All" && e.status !== tab) return false;
-      if (!s) return true;
-      return [fullName(e), e.email, e.phone, requestedProduct(e, names)].some((v) => v.toLowerCase().includes(s));
-    });
-  }, [all, tab, search, names]);
+  const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
 
-  const rows = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
-  const dot: Record<string, string> = { New: "bg-orange-500", Contacted: "bg-stone-800", Converted: "bg-violet-500", Dead: "bg-stone-400" };
+  // Sync selectedStatus with data once loaded
+  useMemo(() => {
+    if (data && !selectedStatus) {
+      setSelectedStatus(data.status);
+    }
+  }, [data, selectedStatus]);
+
+  if (loading) return <Spinner />;
+  if (error) return <ErrorNote message={error} />;
+  if (!data) return <ErrorNote message="Lead not found." />;
+
+  async function handleUpdateStatus() {
+    if (!selectedStatus || selectedStatus === data?.status) return;
+    setBusy(true);
+    try {
+      await api.put(`/admin/enquiries/${id}/status`, { status: selectedStatus });
+      toast("Lead status updated successfully.");
+      await reload();
+    } catch (err) {
+      toast((err as Error).message, "err");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const tile = (label: string, value: React.ReactNode) => (
+    <div className="rounded-xl border border-line bg-card/60 p-4">
+      <div className="text-[9px] font-semibold uppercase tracking-wide text-muted">{label}</div>
+      <div className="mt-1 text-sm font-medium">{value}</div>
+    </div>
+  );
 
   return (
     <>
-      <PageHeader
-        title="Lead Management"
-        subtitle="View, filter, and manage every quote request submitted through the platform — from first contact to conversion."
-      />
-
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap gap-2">
-          {TABS.map((t) => (
-            <button
-              key={t}
-              onClick={() => {
-                setTab(t);
-                setPage(1);
-              }}
-              className={cn(
-                "flex items-center gap-2 rounded-full border px-4 py-1.5 text-xs font-semibold transition",
-                tab === t ? "border-ink bg-ink text-white" : "border-line bg-card hover:bg-stone-200/60",
-              )}
-            >
-              {t !== "All" && <span className={cn("h-1.5 w-1.5 rounded-full", dot[t])} />}
-              {t}
-              <span className={cn("rounded-full px-1.5 text-[10px]", tab === t ? "bg-white/20" : "bg-white")}>{counts[t] ?? 0}</span>
-            </button>
-          ))}
-        </div>
-        <div className="relative w-64">
-          <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted" />
-          <input
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              setPage(1);
-            }}
-            placeholder="Search leads..."
-            className="w-full rounded-full border border-line bg-card py-2 pl-9 pr-4 text-xs outline-none focus:bg-white"
-          />
-        </div>
+      <div className="mb-4 text-[11px] text-muted">
+        <Link href="/leads" className="hover:text-ink">
+          Lead Management
+        </Link>{" "}
+        › <span className="text-ink">{fullName(data)}</span>
       </div>
 
-      {error && <ErrorNote message={error} />}
-      {loading ? (
-        <Spinner />
-      ) : (
-        <div className="overflow-hidden rounded-2xl border border-line bg-card">
-          <table className="w-full text-left">
-            <thead>
-              <tr className="text-[10px] uppercase tracking-wider text-muted">
-                {["Customer", "Requested Product", "Contact", "Received", "Status", "Actions"].map((h) => (
-                  <th key={h} className="px-5 py-3 font-medium">
-                    {h}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((e) => (
-                <tr
-                  key={e.enquiryId}
-                  onClick={() => router.push(`/leads/${e.enquiryId}`)}
-                  className="cursor-pointer border-t border-line text-xs hover:bg-white/70"
-                >
-                  <td className="px-5 py-4">
-                    <div className="text-[13px] font-semibold">{fullName(e)}</div>
-                    <div className="text-[11px] text-muted">{e.email}</div>
-                  </td>
-                  <td className="px-5 py-4 font-medium">{requestedProduct(e, names)}</td>
-                  <td className="px-5 py-4 text-muted">{e.phone}</td>
-                  <td className="px-5 py-4 text-muted">{timeAgo(e.createdAt)}</td>
-                  <td className="px-5 py-4">
-                    <StatusBadge status={e.status} />
-                  </td>
-                  <td className="px-5 py-4 text-muted">
-                    <EllipsisVertical className="h-4 w-4" />
-                  </td>
-                </tr>
-              ))}
-              {rows.length === 0 && (
-                <tr>
-                  <td colSpan={6} className="py-12 text-center text-sm text-muted">
-                    No leads match your filters.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-          <Pagination page={page} pageSize={PAGE_SIZE} total={filtered.length} noun="leads" onChange={setPage} />
+      <div className="mb-8">
+        <h1 className="text-4xl font-bold tracking-tight">Lead Details</h1>
+        <p className="mt-2 text-sm text-muted">Full enquiry history and contact info.</p>
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-[1.5fr_1fr]">
+        <div className="flex flex-col gap-6">
+          {/* Main Info Card */}
+          <div className="rounded-3xl border border-line bg-white p-6 shadow-sm">
+            <div className="mb-6 flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-bold">{fullName(data)}</h2>
+                <div className="text-xs text-muted">{data.email}</div>
+              </div>
+              <StatusBadge status={data.status} />
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-2">
+              {tile("Requested Product", requestedProduct(data, names))}
+              {tile("Contact Number", data.phone || "Not provided")}
+              {tile("Received", timeAgoDisplay(data.createdAt))}
+              {tile("Source", data.enquiryType || "Website Quote Form")}
+            </div>
+            
+            {data.message && (
+              <div className="mt-4 rounded-xl border border-line bg-card/60 p-4">
+                <div className="text-[9px] font-semibold uppercase tracking-wide text-muted">Message</div>
+                <div className="mt-1 text-sm text-stone-700 whitespace-pre-wrap">{data.message}</div>
+              </div>
+            )}
+          </div>
         </div>
-      )}
+
+        <div className="flex flex-col gap-6">
+          {/* Update Status Card */}
+          <div className="rounded-3xl border border-line bg-white p-6 shadow-sm">
+            <div className="mb-4 text-[10px] font-semibold uppercase tracking-wide text-muted">Update Status</div>
+            <div className="flex flex-col gap-2">
+              {STATUSES.map((s) => {
+                const active = selectedStatus === s;
+                return (
+                  <label
+                    key={s}
+                    className={cn(
+                      "flex cursor-pointer items-center justify-between rounded-xl border p-3 transition",
+                      active ? "border-ink bg-stone-50" : "border-line bg-white hover:bg-card",
+                    )}
+                    onClick={() => setSelectedStatus(s)}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className={cn("grid h-4 w-4 place-items-center rounded-full border", active ? "border-ink" : "border-line")}>
+                        {active && <div className="h-2 w-2 rounded-full bg-ink" />}
+                      </div>
+                      <span className="text-sm font-semibold">{s === "Under Review" ? "Under Review" : s}</span>
+                    </div>
+                    <StatusBadge status={s} />
+                  </label>
+                );
+              })}
+            </div>
+            <Button
+              className="mt-5 w-full bg-ink text-white"
+              loading={busy}
+              onClick={handleUpdateStatus}
+              disabled={selectedStatus === data.status}
+            >
+              Update Lead Status
+            </Button>
+          </div>
+
+          {/* Activity Timeline Card */}
+          <div className="rounded-3xl border border-line bg-white p-6 shadow-sm">
+            <div className="mb-6 text-[10px] font-semibold uppercase tracking-wide text-muted">Activity Timeline</div>
+            <div className="relative pl-3">
+              <div className="absolute bottom-0 left-[21px] top-2 w-[1px] bg-line" />
+              <ul className="space-y-6">
+                
+                {data.createdAt !== data.updatedAt && (
+                   <li className="relative flex gap-4">
+                    <div className="relative z-10 mt-1 h-2.5 w-2.5 shrink-0 rounded-full bg-ink outline outline-[3px] outline-white" />
+                    <div>
+                      <div className="text-sm font-semibold text-ink">Lead status updated to {data.status}</div>
+                      <div className="text-[11px] text-muted">{fmtDateTime(data.updatedAt)}</div>
+                    </div>
+                  </li>
+                )}
+
+                <li className="relative flex gap-4">
+                  <div className="relative z-10 mt-1 h-2.5 w-2.5 shrink-0 rounded-full bg-ink outline outline-[3px] outline-white" />
+                  <div>
+                    <div className="text-sm font-semibold text-ink">Enquiry submitted via website</div>
+                    <div className="text-[11px] text-muted">{fmtDateTime(data.createdAt)}</div>
+                  </div>
+                </li>
+
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
     </>
   );
 }
+
+function timeAgoDisplay(iso: string) {
+  const s = (Date.now() - new Date(iso).getTime()) / 1000;
+  if (s < 60) return "Just now";
+  const m = Math.floor(s / 60);
+  if (m < 60) return `${m} min${m === 1 ? "" : "s"} ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h} hour${h === 1 ? "" : "s"} ago`;
+  const d = Math.floor(h / 24);
+  if (d === 1) return "Yesterday";
+  if (d < 7) return `${d} days ago`;
+  return new Date(iso).toLocaleDateString("en-ZA", { day: "2-digit", month: "short", year: "numeric" });
+}
+//---------------------END OF FILE------------------------------------------------------------------//

@@ -35,6 +35,7 @@ namespace Inflame_Backend.Features.Product.DTOs
         // Image Upload Properties
         public List<IFormFile>? Images { get; set; }
         public List<Guid>? ExistingImageIds { get; set; }
+        public Guid? PrimaryImageId { get; set; }
     }
 }
 //---------------------END OF FILE------------------------------------------------------------------//

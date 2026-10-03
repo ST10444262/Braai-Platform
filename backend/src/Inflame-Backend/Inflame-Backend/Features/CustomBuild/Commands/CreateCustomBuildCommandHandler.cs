@@ -52,8 +52,8 @@ namespace Inflame_Backend.Features.CustomBuild.Commands
                 StyleOption = "Standard"
             };
 
-            await _customOptionRepository.AddAsync(customOption);
-
+            var insertedOption = await _customOptionRepository.AddAsync(customOption);
+            
             // Initialize State Pattern
             var stateManager = new QuoteLeadManager();
             string initialState = stateManager.GetStatus();
@@ -67,12 +67,12 @@ namespace Inflame_Backend.Features.CustomBuild.Commands
             string buildDetails = $"Client: {data.FirstName} {data.LastName} ({data.Email}) | Custom Build: {data.OptionType} | Initial Status: {initialState}";
             notifier.NewQuoteRequested(buildDetails);
 
-            // Create the Enquiry entity linking back to the Custom Option
+            // Create the Enquiry entity linking back to the Custom Option using the DB-generated ID
             var enquiry = new Enquiry
             {
                 EnquiryId = Guid.NewGuid(),
                 EnquiryType = "Custom Build",
-                CustomOptionId = customOption.CustomOptionId,
+                CustomOptionId = insertedOption.CustomOptionId,
                 FirstName = data.FirstName,
                 LastName = data.LastName,
                 Email = data.Email,
@@ -83,9 +83,9 @@ namespace Inflame_Backend.Features.CustomBuild.Commands
                 Message = $"Custom Build Request for {data.OptionType}. Dimensions: W:{data.WidthMm}mm H:{data.HeightMm}mm D:{data.DepthMm}mm."
             };
 
-            await _enquiryRepository.AddAsync(enquiry);
+            var insertedEnquiry = await _enquiryRepository.AddAsync(enquiry);
 
-            return enquiry.EnquiryId;
+            return insertedEnquiry.EnquiryId;
         }
     }
 }
