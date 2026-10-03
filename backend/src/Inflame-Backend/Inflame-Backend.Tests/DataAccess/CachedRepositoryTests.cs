@@ -183,14 +183,6 @@ namespace Inflame_Backend.Tests.DataAccess
 
             mockInner.Setup(r => r.GetAllAsync()).ReturnsAsync(freshProducts);
 
-            // Allow any StringSetAsync overload to succeed
-            mockRedis
-                .Setup(r => r.StringSetAsync(
-                    It.IsAny<RedisKey>(), It.IsAny<RedisValue>(),
-                    It.IsAny<TimeSpan?>(), It.IsAny<bool>(),
-                    It.IsAny<When>(), It.IsAny<CommandFlags>()))
-                .ReturnsAsync(true);
-
             // Act
             var result = await cachedRepo.GetAllAsync();
 
@@ -202,17 +194,12 @@ namespace Inflame_Backend.Tests.DataAccess
 
             result.Should().HaveCount(2);
 
-            // Verify Redis was asked to store the result (any StringSetAsync overload)
-            // The exact overload used depends on the StackExchange.Redis version at runtime.
-            mockRedis.Verify(
-                r => r.StringSetAsync(
-                    It.IsAny<RedisKey>(),
-                    It.IsAny<RedisValue>(),
-                    It.IsAny<TimeSpan?>(),
-                    It.IsAny<bool>(),
-                    It.IsAny<When>(),
-                    It.IsAny<CommandFlags>()),
-                Times.AtLeastOnce(),
+            // Verify Redis was asked to store the result by checking Invocations directly.
+            // This avoids Moq overload resolution issues with different StackExchange.Redis versions.
+            var stringSetInvocations = System.Linq.Enumerable.Where(mockRedis.Invocations, 
+                i => i.Method.Name == "StringSetAsync");
+            
+            stringSetInvocations.Should().NotBeEmpty(
                 "After a cache miss the fresh data must be stored in Redis to prevent future misses");
         }
 
@@ -231,13 +218,6 @@ namespace Inflame_Backend.Tests.DataAccess
 
             mockInner.Setup(r => r.GetByIdAsync(productId)).ReturnsAsync(freshProduct);
 
-            mockRedis
-                .Setup(r => r.StringSetAsync(
-                    It.IsAny<RedisKey>(), It.IsAny<RedisValue>(),
-                    It.IsAny<TimeSpan?>(), It.IsAny<bool>(),
-                    It.IsAny<When>(), It.IsAny<CommandFlags>()))
-                .ReturnsAsync(true);
-
             // Act
             var result = await cachedRepo.GetByIdAsync(productId);
 
@@ -245,15 +225,10 @@ namespace Inflame_Backend.Tests.DataAccess
             mockInner.Verify(r => r.GetByIdAsync(productId), Times.Once);
             result.Should().NotBeNull();
 
-            mockRedis.Verify(
-                r => r.StringSetAsync(
-                    It.IsAny<RedisKey>(),
-                    It.IsAny<RedisValue>(),
-                    It.IsAny<TimeSpan?>(),
-                    It.IsAny<bool>(),
-                    It.IsAny<When>(),
-                    It.IsAny<CommandFlags>()),
-                Times.AtLeastOnce(),
+            var stringSetInvocations = System.Linq.Enumerable.Where(mockRedis.Invocations, 
+                i => i.Method.Name == "StringSetAsync");
+            
+            stringSetInvocations.Should().NotBeEmpty(
                 "The retrieved entity must be stored in Redis after a cache miss");
         }
 
