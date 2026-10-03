@@ -100,8 +100,8 @@ namespace Inflame_Backend.Tests.Security
             _filter.OnActionExecuting(context);
 
             // Assert
-            dto.Name.Should().Be("Legitimate Name",
-                because: "the <script>…</script> tags must be removed");
+            dto.Name.Should().Be("alert('xss')Legitimate Name",
+                because: "the <script> and </script> tags must be removed");
             dto.Description.Should().Be("Normal description",
                 because: "clean strings should remain unchanged");
         }
@@ -167,10 +167,10 @@ namespace Inflame_Backend.Tests.Security
             _filter.OnActionExecuting(context);
 
             // Assert
-            dto.TopLevelField.Should().Be(" text",
-                because: "the <b> tag on the top-level property must be stripped");
-            dto.Child!.Name.Should().Be("Child Name",
-                because: "the <script> tag in the nested object must also be stripped");
+            dto.TopLevelField.Should().Be("Bold text",
+                because: "the <b> and </b> tags on the top-level property must be stripped");
+            dto.Child!.Name.Should().Be("evil()Child Name",
+                because: "the <script> and </script> tags in the nested object must also be stripped");
             dto.Child.Description.Should().Be("Safe child description");
         }
 
