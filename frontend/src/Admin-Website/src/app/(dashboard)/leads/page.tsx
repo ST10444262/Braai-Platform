@@ -10,7 +10,7 @@ import type { Enquiry } from "@/lib/types";
 import { ErrorNote, PageHeader, Pagination, Spinner, StatusBadge, cn } from "@/components/ui";
 
 const PAGE_SIZE = 6;
-const TABS = ["All Leads", "New", "Contacted", "Converted", "Dead"] as const;
+const TABS = ["All Leads", "New", "UnderReview", "Contacted", "Converted", "Dead"] as const;
 
 export default function LeadsPage() {
   const router = useRouter();
@@ -28,6 +28,7 @@ export default function LeadsPage() {
   const counts = useMemo(() => ({
     "All Leads": all.length,
     New: all.filter((l) => l.status === "New").length,
+    UnderReview: all.filter((l) => l.status === "UnderReview").length,
     Contacted: all.filter((l) => l.status === "Contacted").length,
     Converted: all.filter((l) => l.status === "Converted").length,
     Dead: all.filter((l) => l.status === "Dead").length,
@@ -47,6 +48,7 @@ export default function LeadsPage() {
 
   function dotColor(status: string) {
     if (status === "New") return "bg-orange-500";
+    if (status === "UnderReview") return "bg-amber-500";
     if (status === "Converted") return "bg-purple-500";
     return "bg-stone-400";
   }
@@ -75,7 +77,7 @@ export default function LeadsPage() {
               {t !== "All Leads" && (
                 <span className={cn("h-1.5 w-1.5 rounded-full", dotColor(t))} />
               )}
-              {t}
+              {t === "UnderReview" ? "Under Review" : t}
               <span className={cn("rounded-full px-1.5 py-0.5 text-[9px]", tab === t ? "bg-white/20 text-white" : "bg-stone-100 text-muted")}>
                 {counts[t]}
               </span>
