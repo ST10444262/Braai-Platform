@@ -41,7 +41,7 @@ export default function HomePage() {
               Get an Estimate Quote &rarr;
             </Link>
             <Link
-              href="/custom-products" //REMEMBER TO CHANGE THIS LINK
+              href="/fireplaces" //REMEMBER TO CHANGE THIS LINK
               className="border border-white/60 hover:border-white text-white text-xs font-bold px-6 py-3 rounded uppercase tracking-wider transition-colors"
             >
               Room Size Calculator

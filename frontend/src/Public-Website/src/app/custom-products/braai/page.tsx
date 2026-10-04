@@ -35,24 +35,24 @@ export default function CustomBraaiPage() {
 
           <div className="bg-stone-100 rounded p-6 sm:p-8 mt-10">
             <h2 className="text-xl font-serif font-semibold text-[#9E2016] mb-1">Step 2: Technical Specifications</h2>
-            <p className="text-stone-500 text-sm mb-5">Provide estimated dimensions to help our engineers begin the drafting process.</p>
+            <p className="text-stone-700 text-sm mb-5">Provide estimated dimensions to help our engineers begin the drafting process.</p>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
-                <label className="block text-xs uppercase text-stone-500 mb-1">Width (mm)</label>
+                <label className="block text-xs uppercase text-stone-700 font-semibold mb-1">Width (mm)</label>
                 <input type="number" step="1" value={widthMm} onChange={(e) => setWidthMm(e.target.value)}
-                  placeholder="e.g. 1200" className="w-full border border-stone-300 rounded px-3 py-2 text-sm bg-white" />
+                  placeholder="e.g. 1200" className="w-full border border-stone-300 rounded px-3 py-2 text-sm bg-white text-stone-900 placeholder:text-stone-400" />
                 {errors.widthMm && <p className="text-red-600 text-xs mt-1">{errors.widthMm}</p>}
               </div>
               <div>
-                <label className="block text-xs uppercase text-stone-500 mb-1">Height (mm)</label>
+                <label className="block text-xs uppercase text-stone-700 font-semibold mb-1">Height (mm)</label>
                 <input type="number" step="1" value={heightMm} onChange={(e) => setHeightMm(e.target.value)}
-                  placeholder="e.g. 800" className="w-full border border-stone-300 rounded px-3 py-2 text-sm bg-white" />
+                  placeholder="e.g. 800" className="w-full border border-stone-300 rounded px-3 py-2 text-sm bg-white text-stone-900 placeholder:text-stone-400" />
                 {errors.heightMm && <p className="text-red-600 text-xs mt-1">{errors.heightMm}</p>}
               </div>
               <div>
-                <label className="block text-xs uppercase text-stone-500 mb-1">Depth (mm)</label>
+                <label className="block text-xs uppercase text-stone-700 font-semibold mb-1">Depth (mm)</label>
                 <input type="number" step="1" value={depthMm} onChange={(e) => setDepthMm(e.target.value)}
-                  placeholder="e.g. 500" className="w-full border border-stone-300 rounded px-3 py-2 text-sm bg-white" />
+                  placeholder="e.g. 500" className="w-full border border-stone-300 rounded px-3 py-2 text-sm bg-white text-stone-900 placeholder:text-stone-400" />
                 {errors.depthMm && <p className="text-red-600 text-xs mt-1">{errors.depthMm}</p>}
               </div>
             </div>
@@ -60,7 +60,7 @@ export default function CustomBraaiPage() {
 
           <div className="bg-stone-100 rounded p-6 sm:p-8 mt-6">
             <h2 className="text-xl font-serif font-semibold text-[#9E2016] mb-1">Step 3: Contact Details</h2>
-            <p className="text-stone-500 text-sm mb-5">Where should we send your preliminary engineering assessment?</p>
+            <p className="text-stone-700 text-sm mb-5">Where should we send your preliminary engineering assessment?</p>
 
             {submitted ? (
               <p className="text-green-700 text-sm">
@@ -70,30 +70,30 @@ export default function CustomBraaiPage() {
               <form onSubmit={handleSubmit} noValidate className="space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs uppercase text-stone-500 mb-1">First Name</label>
+                    <label className="block text-xs uppercase text-stone-700 font-semibold mb-1">First Name</label>
                     <input type="text" value={firstName} onChange={(e) => setFirstName(e.target.value)}
-                      className="w-full border border-stone-300 rounded px-3 py-2 text-sm bg-white" />
+                      className="w-full border border-stone-300 rounded px-3 py-2 text-sm bg-white text-stone-900 placeholder:text-stone-400" />
                     {errors.firstName && <p className="text-red-600 text-xs mt-1">{errors.firstName}</p>}
                   </div>
                   <div>
-                    <label className="block text-xs uppercase text-stone-500 mb-1">Last Name</label>
+                    <label className="block text-xs uppercase text-stone-700 font-semibold mb-1">Last Name</label>
                     <input type="text" value={lastName} onChange={(e) => setLastName(e.target.value)}
-                      className="w-full border border-stone-300 rounded px-3 py-2 text-sm bg-white" />
+                      className="w-full border border-stone-300 rounded px-3 py-2 text-sm bg-white text-stone-900 placeholder:text-stone-400" />
                     {errors.lastName && <p className="text-red-600 text-xs mt-1">{errors.lastName}</p>}
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs uppercase text-stone-500 mb-1">Email Address</label>
+                    <label className="block text-xs uppercase text-stone-700 font-semibold mb-1">Email Address</label>
                     <input type="email" value={email} onChange={(e) => setEmail(e.target.value)}
-                      className="w-full border border-stone-300 rounded px-3 py-2 text-sm bg-white" />
+                      className="w-full border border-stone-300 rounded px-3 py-2 text-sm bg-white text-stone-900 placeholder:text-stone-400" />
                     {errors.email && <p className="text-red-600 text-xs mt-1">{errors.email}</p>}
                   </div>
                   <div>
-                    <label className="block text-xs uppercase text-stone-500 mb-1">Phone Number</label>
+                    <label className="block text-xs uppercase text-stone-700 font-semibold mb-1">Phone Number</label>
                     <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)}
-                      className="w-full border border-stone-300 rounded px-3 py-2 text-sm bg-white" />
+                      className="w-full border border-stone-300 rounded px-3 py-2 text-sm bg-white text-stone-900 placeholder:text-stone-400" />
                     {errors.phone && <p className="text-red-600 text-xs mt-1">{errors.phone}</p>}
                   </div>
                 </div>
