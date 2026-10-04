@@ -23,6 +23,9 @@ const nextConfig: NextConfig = {
   },
   // Proxy API calls through Next so the browser never talks to the API directly (no CORS needed)
   async rewrites() {
+    if (!backend) {
+      return [];
+    }
     return [{ source: "/api/:path*", destination: `${backend}/api/:path*` }];
   },
 };
