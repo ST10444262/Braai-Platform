@@ -14,26 +14,19 @@ export default function RoomSizeCalculator() {
     const w = Number(width);
     const h = Number(height);
     //if any field is left empty then stop
-    if (!l || !w || !h || l<= 0 || w <= 0 || h <= 0) return;
+    if (!l || !w || !h ) return;
     
-    //calculating the volume. timesing by 10 to round it and then dividing by 10 to clean up the floating decimals to 1 decimal point
-    const calculatedVolume = Math.round((l * w * h) * 10) / 10;
+   // Calculate volume in m cubed
+  const calculatedVolume = Math.round((l * w * h) * 10) / 10;
 
-    //ratio for calculation provided by owner: 1 kW per 20 m cubed
+  // Calculate raw kW requirement 1 kW for every 30 m cubed. formula provided by owner
+  const rawKw = calculatedVolume / 30;
 
-    const CUBIC_METERS_PER_KW = 20; 
+  // Rounding up to the nearest fireplace rating 5, 7, 9, 12, 15 kW
+  const targetKw = rawKw <= 5 ? 5 : rawKw <= 7 ? 7 : rawKw <= 9 ? 9 : rawKw <= 12 ? 12 : 15;
 
-    //Calculating the raw required kW
-    const rawKw = calculatedVolume / CUBIC_METERS_PER_KW;
-
-    // normal fireplace ratings
-    const standardSizes = [5, 7, 9, 12, 15, 18, 20];
-
-    // Select the smallest standard unit that meets or exceeds the raw kW required
-    const targetKw = standardSizes.find((size) => size >= rawKw) || standardSizes[standardSizes.length - 1];
-
-    // Calculate maximum room volume capacity for the selected unit
-    const maxVolume = targetKw * CUBIC_METERS_PER_KW;
+  // Calculate maximum volume capacity for the target unit 30 m³ per kW
+  const maxVolume = targetKw * 30;
 
     setResult({ volume: calculatedVolume, kw: targetKw, maxVolume });
   }
