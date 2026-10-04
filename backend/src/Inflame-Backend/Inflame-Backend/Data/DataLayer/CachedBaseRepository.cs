@@ -125,17 +125,19 @@ namespace Inflame_Backend.Data.DataLayer
         /// </summary>
         /// <param name="entity"></param>
         /// <returns></returns>
-        public async Task AddAsync(T entity)
+        public virtual async Task<T> AddAsync(T entity)
         {
-            await _innerRepository.AddAsync(entity);
+            var inserted = await _innerRepository.AddAsync(entity);
 
             await _redisDatabase.KeyDeleteAsync(
                 $"{_cacheKeyPrefix}:all");
 
-            var id = GetEntityId(entity);
+            var id = GetEntityId(inserted);
 
             await _redisDatabase.KeyDeleteAsync(
                 $"{_cacheKeyPrefix}:{id}");
+                
+            return inserted;
         }
 
         //------------------------------------------------------------------------------------------//
@@ -144,7 +146,7 @@ namespace Inflame_Backend.Data.DataLayer
         /// </summary>
         /// <param name="entity"></param>
         /// <returns></returns>
-        public async Task UpdateAsync(T entity)
+        public virtual async Task UpdateAsync(T entity)
         {
             await _innerRepository.UpdateAsync(entity);
 
@@ -163,7 +165,7 @@ namespace Inflame_Backend.Data.DataLayer
         /// </summary>
         /// <param name="entity"></param>
         /// <returns></returns>
-        public async Task DeleteAsync(T entity)
+        public virtual async Task DeleteAsync(T entity)
         {
             await _innerRepository.DeleteAsync(entity);
 

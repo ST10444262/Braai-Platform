@@ -10,7 +10,7 @@ namespace Inflame_Backend.Models.ProductCatalog
     [Table("braai_product")]
     public class BraaiProduct : BaseModel
     {
-        [PrimaryKey("product_id", false)]
+        [PrimaryKey("product_id", true)]
         public Guid ProductId { get; set; }
 
         [Column("fuel_type")]

@@ -22,6 +22,8 @@ namespace Inflame_Backend.Features.Product.Commands
         private readonly IProductRepository _productRepository;
         private readonly IBraaiProductRepository _braaiProductRepository;
         private readonly IFireplaceProductRepository _fireplaceProductRepository;
+        private readonly IProductImageRepository _productImageRepository;
+        private readonly IMediator _mediator;
 
         //------------------------------------------------------------------------------------------//
         /// <summary>
@@ -30,11 +32,15 @@ namespace Inflame_Backend.Features.Product.Commands
         public UpdateProductCommandHandler(
             IProductRepository productRepository,
             IBraaiProductRepository braaiProductRepository,
-            IFireplaceProductRepository fireplaceProductRepository)
+            IFireplaceProductRepository fireplaceProductRepository,
+            IProductImageRepository productImageRepository,
+            IMediator mediator)
         {
             _productRepository = productRepository;
             _braaiProductRepository = braaiProductRepository;
             _fireplaceProductRepository = fireplaceProductRepository;
+            _productImageRepository = productImageRepository;
+            _mediator = mediator;
         }
 
         //------------------------------------------------------------------------------------------//
@@ -69,7 +75,7 @@ namespace Inflame_Backend.Features.Product.Commands
                 }
 
                 baseProduct.Name = dto.Name;
-                baseProduct.Category = dto.Category;
+                baseProduct.Category = dto.Category ?? string.Empty;
                 baseProduct.Brand = dto.Brand;
                 baseProduct.IsImported = dto.IsImported;
                 baseProduct.IsCustomisable = dto.IsCustomisable;
@@ -97,6 +103,51 @@ namespace Inflame_Backend.Features.Product.Commands
                     fireplaceProduct.HeatOutputKw = dto.HeatOutputKw ?? fireplaceProduct.HeatOutputKw;
                     fireplaceProduct.FireplaceType = dto.FireplaceType ?? fireplaceProduct.FireplaceType;
                     await _fireplaceProductRepository.UpdateAsync(fireplaceProduct);
+                }
+
+                // Process Existing Images (delete those that are not in the ExistingImageIds list)
+                var currentImages = await _productImageRepository.GetByProductIdAsync(request.ProductId);
+                var existingImageIds = dto.ExistingImageIds ?? new System.Collections.Generic.List<Guid>();
+
+                foreach (var img in currentImages)
+                {
+                    if (!existingImageIds.Contains(img.ImageId))
+                    {
+                        var deleteCommand = new DeleteProductImageCommand(img.ImageId);
+                        await _mediator.Send(deleteCommand, cancellationToken);
+                    }
+                    else
+                    {
+                        // Check if we need to update the primary status
+                        if (dto.PrimaryImageId.HasValue)
+                        {
+                            bool shouldBePrimary = img.ImageId == dto.PrimaryImageId.Value;
+                            if (img.IsPrimary != shouldBePrimary)
+                            {
+                                img.IsPrimary = shouldBePrimary;
+                                await _productImageRepository.UpdateAsync(img);
+                            }
+                        }
+                    }
+                }
+
+                // If no PrimaryImageId was explicitly set, and no existing images are primary, make the first one primary
+                if (!dto.PrimaryImageId.HasValue && existingImageIds.Count > 0)
+                {
+                    var keptImages = currentImages.Where(i => existingImageIds.Contains(i.ImageId)).ToList();
+                    if (keptImages.Any() && !keptImages.Any(i => i.IsPrimary))
+                    {
+                        var first = keptImages.First();
+                        first.IsPrimary = true;
+                        await _productImageRepository.UpdateAsync(first);
+                    }
+                }
+
+                // Upload New Images
+                if (dto.Images != null && dto.Images.Count > 0)
+                {
+                    var uploadCommand = new UploadProductImagesCommand(request.ProductId, dto.Images);
+                    await _mediator.Send(uploadCommand, cancellationToken);
                 }
 
                 return new UpdateProductResponseDto

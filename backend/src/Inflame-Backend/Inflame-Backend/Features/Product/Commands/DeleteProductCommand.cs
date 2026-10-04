@@ -23,6 +23,7 @@ namespace Inflame_Backend.Features.Product.Commands
         private readonly IBraaiProductRepository _braaiProductRepository;
         private readonly IFireplaceProductRepository _fireplaceProductRepository;
         private readonly IProductImageRepository _productImageRepository;
+        private readonly IMediator _mediator;
 
         //------------------------------------------------------------------------------------------//
         /// <summary>
@@ -32,12 +33,14 @@ namespace Inflame_Backend.Features.Product.Commands
             IProductRepository productRepository,
             IBraaiProductRepository braaiProductRepository,
             IFireplaceProductRepository fireplaceProductRepository,
-            IProductImageRepository productImageRepository)
+            IProductImageRepository productImageRepository,
+            IMediator mediator)
         {
             _productRepository = productRepository;
             _braaiProductRepository = braaiProductRepository;
             _fireplaceProductRepository = fireplaceProductRepository;
             _productImageRepository = productImageRepository;
+            _mediator = mediator;
         }
 
         //------------------------------------------------------------------------------------------//
@@ -71,13 +74,13 @@ namespace Inflame_Backend.Features.Product.Commands
                     await _fireplaceProductRepository.DeleteAsync(fireplaceProduct);
                 }
 
-                // Images might cascade via Supabase, but manually clearing them guarantees cache invalidation
+                // Images might cascade via Supabase, but manually clearing them guarantees cache invalidation and deletes files from storage
                 var allImages = await _productImageRepository.GetAllAsync();
                 foreach (var img in allImages)
                 {
                     if (img.ProductId == request.ProductId)
                     {
-                        await _productImageRepository.DeleteAsync(img);
+                        await _mediator.Send(new DeleteProductImageCommand(img.ImageId), cancellationToken);
                     }
                 }
 

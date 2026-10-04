@@ -37,6 +37,19 @@ namespace Inflame_Backend.Data.Adapters
             }
             catch (Exception ex)
             {
+                if (ex.Message.Contains("Bucket not found", StringComparison.OrdinalIgnoreCase))
+                {
+                    try
+                    {
+                        await _supabaseInstance.Client.Storage.CreateBucket(bucketName, new Supabase.Storage.BucketUpsertOptions { Public = true });
+                        var response = await _supabaseInstance.Client.Storage.From(bucketName).Upload(fileData, fileName, new Supabase.Storage.FileOptions { Upsert = true });
+                        return response;
+                    }
+                    catch (Exception innerEx)
+                    {
+                        throw new Exception($"Failed to create bucket and upload file: {innerEx.Message}");
+                    }
+                }
                 throw new Exception($"Failed to upload file to Supabase storage: {ex.Message}");
             }
         }

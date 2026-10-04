@@ -39,6 +39,9 @@ namespace Inflame_Backend.Models.CRM
         [Column("created_at")]
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
+        [Column("updated_at")]
+        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+
         [Reference(typeof(InternalNote), includeInQuery: false)]
         public List<InternalNote> InternalNotes { get; set; } = new List<InternalNote>();
         

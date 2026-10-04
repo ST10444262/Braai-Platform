@@ -22,6 +22,7 @@ namespace Inflame_Backend.Features.Authentication.Commands
     public class LoginCommandHandler
         : IRequestHandler<LoginCommand, LoginResponseDto>
     {
+        #region Dependencies
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly JwtTokenService _jwtTokenService;
         private readonly TwoFactorChallengeService _twoFactorChallengeService;
@@ -45,7 +46,9 @@ namespace Inflame_Backend.Features.Authentication.Commands
             _httpContextAccessor = httpContextAccessor;
             _configuration = configuration;
         }
+        #endregion
 
+        #region Execution
         //------------------------------------------------------------------------------------------//
         /// <summary>
         /// Handles the login request.
@@ -99,7 +102,7 @@ namespace Inflame_Backend.Features.Authentication.Commands
                         .Request.Cookies["Inflame.TrustedDevice"];
 
                 var trustedDeviceIsValid =
-                    _trustedDeviceService.TryValidateToken(
+                    await _trustedDeviceService.TryValidateTokenAsync(
                         trustedDeviceToken ?? string.Empty,
                         user.Id);
 
@@ -159,6 +162,7 @@ namespace Inflame_Backend.Features.Authentication.Commands
                 Message = "Two-factor authentication setup is required."
             };
         }
+        #endregion
     }
 }
 //---------------------END OF FILE------------------------------------------------------------------//
