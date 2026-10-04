@@ -23,7 +23,7 @@ export default function HomePage() {
         {/* Adding an overlay so the text easier to see */}
         <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/45 to-transparent -z-10" />
 
-        <div className="relative max-w-xl z-10 space-y-4 text-white">
+        <div className="relative max-w-2xl z-10 space-y-4 text-white">
           <span className="text-xs tracking-widest uppercase text-[#E67E22] font-bold">
             PREMIUM INSTALLATIONS
           </span>

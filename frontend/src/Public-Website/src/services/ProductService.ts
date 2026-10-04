@@ -28,7 +28,7 @@ function getProductImageUrl(product: ApiProduct):string{
 }
 //getting the products category
 function isCategory(product:ApiProduct, category:'braai'|'fireplace'):boolean{
-    return product.category.toLowerCase() === category;
+    return product.productType.toLowerCase() === category;
 }
 
 
@@ -41,7 +41,7 @@ function toBraaiProduct(p: ApiProduct): BraaiProductDetail {
     price:p.price,
     onSpecial:p.onSpecial,
     image:getProductImageUrl(p),
-    braaiType:p.productType,
+    braaiType:p.category,
     fuelType:p.fuelType ?? '', 
     description:p.description,
   };
@@ -55,7 +55,7 @@ function toFireplaceProduct(p: ApiProduct): FireplaceProductDetail {
     price:p.price,
     onSpecial:p.onSpecial,
     image:getProductImageUrl(p),
-    fireplaceType:p.productType,
+    fireplaceType:p.category,
     heatOutputKw:p.heatOutputKw ?? undefined, 
     description:p.description,
   };
@@ -76,7 +76,8 @@ function toOnSpecialProduct(p:ApiProduct):OnSpecialProduct{
 export async function getBraaiProducts(): Promise<BraaiProduct[]>{
 
     //category is filtered on the client side in case the backends category filter fails
-    const braaiProducts = await getProducts('braai');
+   // const braaiProducts = await getProducts('braai');
+    const braaiProducts = await getProducts();
     return braaiProducts.filter((p)=>isCategory(p, 'braai')).map(toBraaiProduct);
 }
 
@@ -95,7 +96,7 @@ export async function getOnSpecialProducts(): Promise<OnSpecialProduct[]>{
 
 export async function getFireplaceProducts(): Promise<FireplaceProduct[]>{
     //category is filtered on the client side in case the backends category filter fails
-    const fireplaceProducts = await getProducts('fireplace');
+    const fireplaceProducts = await getProducts();
     return fireplaceProducts.filter((p)=>isCategory(p, 'fireplace')).map(toFireplaceProduct);
 }
 
