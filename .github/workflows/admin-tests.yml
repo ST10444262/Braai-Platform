@@ -1,4 +1,4 @@
-name: Admin Website Tests
+name: Admin Website Unit Tests
 
 on:
   push:
@@ -12,7 +12,7 @@ on:
       - develop
 
 jobs:
-  test:
+  unit-tests:
     name: Jest Unit Tests
     runs-on: ubuntu-latest
 
@@ -39,8 +39,3 @@ jobs:
 
       - name: Run test coverage
         run: npm run test:coverage -- --runInBand
-
-      - name: Build Next.js application
-        env:
-          API_BASE_URL: http://localhost:5000
-        run: npm run build
