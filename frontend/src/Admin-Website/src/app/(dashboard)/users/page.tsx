@@ -42,14 +42,14 @@ export default function UsersPage() {
   }, [all, tab, search]);
   const rows = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
-  if (ready && !isAdmin) return <ErrorNote message="You don't have access to Users." />;
+  if (ready && !isAdmin) return <ErrorNote message="You don't have access to Admin Users." />;
 
   return (
     <>
-      <PageHeader title="Users" subtitle="Manage every employee account with access to the Inflame platform" />
+      <PageHeader title="Admin Users" subtitle="Manage every employee account with access to the Inflame platform" />
 
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <div className="relative w-64">
+      <div className="mb-4 space-y-3 md:flex md:flex-wrap md:items-center md:justify-between md:gap-3 md:space-y-0">
+        <div className="relative w-full md:w-64">
           <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted" />
           <input
             value={search}
@@ -58,17 +58,17 @@ export default function UsersPage() {
               setPage(1);
             }}
             placeholder="Search Users"
-            className="w-full rounded-full border border-line bg-card py-2 pl-9 pr-4 text-xs outline-none focus:bg-white"
+            className="w-full rounded-full border border-line bg-card py-2.5 pl-9 pr-4 text-base outline-none focus:bg-white md:py-2 md:text-xs"
           />
         </div>
-        <Link href="/users/new">
-          <Button>
-            <Plus className="h-4 w-4" /> Create User
+        <Link href="/users/new" className="block">
+          <Button className="w-full md:w-auto">
+            <Plus className="h-4 w-4" /> Create Employee
           </Button>
         </Link>
       </div>
 
-      <div className="mb-4 flex gap-2">
+      <div className="no-scrollbar -mx-4 mb-4 flex gap-2 overflow-x-auto px-4 md:mx-0 md:px-0">
         {TABS.map((t) => (
           <button
             key={t}
@@ -77,7 +77,7 @@ export default function UsersPage() {
               setPage(1);
             }}
             className={cn(
-              "flex items-center gap-2 rounded-full border px-4 py-1.5 text-xs font-semibold",
+              "flex shrink-0 items-center gap-2 whitespace-nowrap rounded-full border px-4 py-2 text-xs font-semibold md:py-1.5",
               tab === t ? "border-ink bg-ink text-white" : "border-line bg-card",
             )}
           >
@@ -92,7 +92,8 @@ export default function UsersPage() {
         <Spinner />
       ) : (
         <div className="max-w-3xl overflow-hidden rounded-2xl border border-line bg-card">
-          <table className="w-full text-left">
+          {/* Desktop table */}
+          <table className="hidden w-full text-left md:table">
             <thead>
               <tr className="text-[10px] uppercase tracking-wider text-muted">
                 <th className="px-5 py-3 font-medium">Employee</th>
@@ -120,19 +121,29 @@ export default function UsersPage() {
                   </td>
                 </tr>
               ))}
-              {rows.length === 0 && (
-                <tr>
-                  <td colSpan={3} className="py-12 text-center text-sm text-muted">
-                    No users found.
-                  </td>
-                </tr>
-              )}
             </tbody>
           </table>
+
+          {/* Mobile cards */}
+          <ul className="space-y-2 p-3 md:hidden">
+            {rows.map((u) => (
+              <li key={u.staffId}>
+                <Link href={`/users/${u.staffId}`} className="flex items-center gap-3 rounded-xl border border-line bg-white p-3.5 active:bg-card">
+                  <Avatar name={u.fullName} />
+                  <div className="min-w-0 flex-1">
+                    <div className="truncate text-sm font-semibold">{u.fullName}</div>
+                    <div className="truncate text-xs text-muted">{u.email}</div>
+                  </div>
+                  <Pill tone={u.role === "Employee" ? "grey" : "purple"}>{roleLabel(u.role)}</Pill>
+                </Link>
+              </li>
+            ))}
+          </ul>
+
+          {rows.length === 0 && <div className="py-12 text-center text-sm text-muted">No users found.</div>}
           <Pagination page={page} pageSize={PAGE_SIZE} total={filtered.length} noun="users" onChange={setPage} />
         </div>
       )}
     </>
   );
 }
-//---------------------END OF FILE------------------------------------------------------------------//

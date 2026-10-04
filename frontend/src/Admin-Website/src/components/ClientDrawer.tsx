@@ -111,9 +111,9 @@ export function ClientDrawer({
   const notes = [...(client?.internalNotes ?? [])].sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt));
   const invoices = [...(client?.invoiceRecords ?? [])].sort((a, b) => +new Date(b.uploadedAt) - +new Date(a.uploadedAt));
   const view = (label: string, value: string) => (
-    <div>
+    <div className="min-w-0">
       <div className="text-[10px] text-muted">{label}</div>
-      <div className="mt-0.5 text-xs font-semibold">{value || "—"}</div>
+      <div className="mt-0.5 break-words text-xs font-semibold">{value || "—"}</div>
     </div>
   );
 
@@ -128,7 +128,8 @@ export function ClientDrawer({
         headerRight={
           isAdmin && client ? (
             <Button variant="danger" size="sm" onClick={() => setConfirmDelete(true)}>
-              <Trash2 className="h-3 w-3" /> Delete Client
+              <Trash2 className="h-3 w-3" /> <span className="hidden sm:inline">Delete Client</span>
+              <span className="sm:hidden">Delete</span>
             </Button>
           ) : undefined
         }
@@ -147,18 +148,20 @@ export function ClientDrawer({
           <div className="py-16 text-center text-sm text-muted">Loading…</div>
         ) : (
           <>
-            <section className="rounded-2xl border border-line p-5">
+            <section className="rounded-2xl border border-line p-4 sm:p-5">
               <div className="mb-4 flex items-center justify-between">
                 <h3 className="text-[10px] font-semibold uppercase tracking-wide text-muted">Client Details</h3>
                 {editing ? (
-                  <div className="flex gap-3 text-xs font-medium">
-                    <button onClick={() => setEditing(false)} className="text-muted">
+                  <div className="flex gap-4 text-xs font-medium">
+                    <button onClick={() => setEditing(false)} className="py-1 text-muted">
                       Cancel
                     </button>
-                    <button onClick={saveDetails}>Save Changes</button>
+                    <button onClick={saveDetails} className="py-1">
+                      Save Changes
+                    </button>
                   </div>
                 ) : (
-                  <button onClick={() => setEditing(true)} className="flex items-center gap-1 text-xs font-medium">
+                  <button onClick={() => setEditing(true)} className="flex items-center gap-1 py-1 text-xs font-medium">
                     <Pencil className="h-3 w-3" /> Edit Details
                   </button>
                 )}
@@ -184,7 +187,7 @@ export function ClientDrawer({
                   </Field>
                 </div>
               ) : (
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   {view("Full Name", fullName(client))}
                   {view("Email Address", client.email)}
                   {view("Phone Number", client.phone)}
@@ -193,7 +196,7 @@ export function ClientDrawer({
               )}
             </section>
 
-            <section className="rounded-2xl border border-line p-5">
+            <section className="rounded-2xl border border-line p-4 sm:p-5">
               <h3 className="mb-3 text-[10px] font-semibold uppercase tracking-wide text-muted">Internal Notes & Comments</h3>
               <textarea
                 rows={3}
@@ -212,17 +215,17 @@ export function ClientDrawer({
                   const a = authorOf(n.staffAccountId, n.author?.fullName);
                   const canDelete = isAdmin || n.staffAccountId === me?.staffId;
                   return (
-                    <li key={n.noteId} className="grid grid-cols-[84px_1fr] gap-3">
-                      <div className="pt-3 text-right text-[10px] text-muted">{fmtDateTime(n.createdAt)}</div>
+                    <li key={n.noteId} className="grid gap-1 sm:grid-cols-[84px_1fr] sm:gap-3">
+                      <div className="text-[10px] text-muted sm:pt-3 sm:text-right">{fmtDateTime(n.createdAt)}</div>
                       <div className="rounded-xl bg-card p-3.5">
-                        <p className="whitespace-pre-wrap text-xs leading-relaxed">{n.content}</p>
+                        <p className="whitespace-pre-wrap break-words text-xs leading-relaxed">{n.content}</p>
                         <div className="mt-2 flex items-center justify-between">
                           <span className="flex items-center gap-1.5 text-[10px] text-muted">
                             <Avatar name={a.name} size={18} /> {a.role}
                           </span>
                           {canDelete && (
-                            <button onClick={() => deleteNote(n.noteId)} className="text-muted hover:text-red-600">
-                              <Trash2 className="h-3 w-3" />
+                            <button onClick={() => deleteNote(n.noteId)} className="grid h-8 w-8 place-items-center text-muted hover:text-red-600" aria-label="Delete note">
+                              <Trash2 className="h-3.5 w-3.5" />
                             </button>
                           )}
                         </div>
@@ -234,11 +237,11 @@ export function ClientDrawer({
               </ul>
             </section>
 
-            <section className="rounded-2xl border border-line p-5">
+            <section className="rounded-2xl border border-line p-4 sm:p-5">
               <h3 className="mb-3 text-[10px] font-semibold uppercase tracking-wide text-muted">Invoice Records</h3>
               <Dropzone
                 title="Upload Invoice/Receipt"
-                hint="Drag and drop PDF files here, or click to browse"
+                hint="Tap to choose files, or drag and drop PDFs here"
                 accept=".pdf,.png,.jpg,.jpeg"
                 onFiles={(files) => {
                   const ok = files.filter((f) => f.size <= 10 * 1024 * 1024);
@@ -249,17 +252,17 @@ export function ClientDrawer({
               <ul className="mt-4 space-y-2">
                 {invoices.map((i) => (
                   <li key={i.invoiceId} className="flex items-center gap-3 rounded-xl border border-line px-3 py-2.5">
-                    <div className="grid h-8 w-8 place-items-center rounded-lg bg-red-50 text-red-500">
+                    <div className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-red-50 text-red-500">
                       <FileText className="h-4 w-4" />
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="truncate text-xs font-medium">{i.fileName}</div>
                       <div className="text-[10px] text-muted">{fmtDate(i.uploadedAt)}</div>
                     </div>
-                    <a href={i.fileUrl} target="_blank" rel="noreferrer" className="text-muted hover:text-ink">
+                    <a href={i.fileUrl} target="_blank" rel="noreferrer" className="grid h-9 w-9 place-items-center text-muted hover:text-ink" aria-label="Download">
                       <Download className="h-4 w-4" />
                     </a>
-                    <button onClick={() => deleteInvoice(i.invoiceId)} className="text-muted hover:text-red-600">
+                    <button onClick={() => deleteInvoice(i.invoiceId)} className="grid h-9 w-9 place-items-center text-muted hover:text-red-600" aria-label="Delete invoice">
                       <Trash2 className="h-4 w-4" />
                     </button>
                   </li>

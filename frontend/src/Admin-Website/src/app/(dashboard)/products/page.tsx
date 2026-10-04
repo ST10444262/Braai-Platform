@@ -16,6 +16,20 @@ const TABS = [
   { key: "Fireplace", label: "Fireplaces" },
 ] as const;
 
+function Thumb({ product, size }: { product: Product; size: number }) {
+  const img = (product.images ?? []).find((i) => i.isPrimary) ?? product.images?.[0];
+  return (
+    <div style={{ width: size, height: size }} className="grid shrink-0 place-items-center overflow-hidden rounded-md bg-card">
+      {img ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={img.url} alt="" className="h-full w-full object-cover" />
+      ) : (
+        <ImageIcon className="h-4 w-4 text-stone-300" />
+      )}
+    </div>
+  );
+}
+
 export default function ProductsPage() {
   const { isAdmin } = useAuth();
   const { data, loading, error, reload } = useLoad(() => api.get<Product[]>(`/admin/products${qs({ pageNumber: 1, pageSize: 1000 })}`));
@@ -36,7 +50,7 @@ export default function ProductsPage() {
         subtitle="Manage your inventory of braais and fireplaces."
         action={
           isAdmin ? (
-            <Button onClick={() => setCreating(true)}>
+            <Button onClick={() => setCreating(true)} className="w-full sm:w-auto">
               <Plus className="h-4 w-4" /> Add Product
             </Button>
           ) : undefined
@@ -52,7 +66,7 @@ export default function ProductsPage() {
               setPage(1);
             }}
             className={cn(
-              "-mb-px border-b-2 px-1 pb-2 text-[11px] font-bold uppercase tracking-wider",
+              "-mb-px border-b-2 px-1 pb-3 text-[11px] font-bold uppercase tracking-wider md:pb-2",
               tab === t.key ? "border-ink text-ink" : "border-transparent text-muted",
             )}
           >
@@ -66,7 +80,8 @@ export default function ProductsPage() {
         <Spinner />
       ) : (
         <div className="overflow-hidden rounded-2xl border border-line bg-white">
-          <table className="w-full text-left">
+          {/* Desktop table */}
+          <table className="hidden w-full text-left md:table">
             <thead>
               <tr className="text-[10px] uppercase tracking-wider text-muted">
                 {["Thumbnail", "Product Name", "Brand", "Base Price", "Status", "Actions"].map((h) => (
@@ -77,41 +92,48 @@ export default function ProductsPage() {
               </tr>
             </thead>
             <tbody>
-              {rows.map((p) => {
-                const img = (p.images ?? []).find((i) => i.isPrimary) ?? p.images?.[0];
-                return (
-                  <tr key={p.productId} onClick={() => setOpenId(p.productId)} className="cursor-pointer border-t border-line text-xs hover:bg-card/60">
-                    <td className="px-5 py-3">
-                      <div className="grid h-9 w-9 place-items-center overflow-hidden rounded-md bg-card">
-                        {img ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img src={img.url} alt="" className="h-full w-full object-cover" />
-                        ) : (
-                          <ImageIcon className="h-4 w-4 text-stone-300" />
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-5 py-3 text-[13px] font-semibold">{p.name}</td>
-                    <td className="px-5 py-3 text-muted">{p.brand || "—"}</td>
-                    <td className="px-5 py-3 font-medium">{fmtMoney(p.price)}</td>
-                    <td className="px-5 py-3">
-                      <Pill tone={p.isVisible ? "dark" : "grey"}>{p.isVisible ? "Active" : "Draft"}</Pill>
-                    </td>
-                    <td className="px-5 py-3 text-muted">
-                      <EllipsisVertical className="h-4 w-4" />
-                    </td>
-                  </tr>
-                );
-              })}
-              {rows.length === 0 && (
-                <tr>
-                  <td colSpan={6} className="py-12 text-center text-sm text-muted">
-                    No {tab === "Braai" ? "braais" : "fireplaces"} yet.
+              {rows.map((p) => (
+                <tr key={p.productId} onClick={() => setOpenId(p.productId)} className="cursor-pointer border-t border-line text-xs hover:bg-card/60">
+                  <td className="px-5 py-3">
+                    <Thumb product={p} size={36} />
+                  </td>
+                  <td className="px-5 py-3 text-[13px] font-semibold">{p.name}</td>
+                  <td className="px-5 py-3 text-muted">{p.brand || "—"}</td>
+                  <td className="px-5 py-3 font-medium">{fmtMoney(p.price)}</td>
+                  <td className="px-5 py-3">
+                    <Pill tone={p.isVisible ? "dark" : "grey"}>{p.isVisible ? "Active" : "Draft"}</Pill>
+                  </td>
+                  <td className="px-5 py-3 text-muted">
+                    <EllipsisVertical className="h-4 w-4" />
                   </td>
                 </tr>
-              )}
+              ))}
             </tbody>
           </table>
+
+          {/* Mobile cards */}
+          <ul className="space-y-2 p-3 md:hidden">
+            {rows.map((p) => (
+              <li key={p.productId}>
+                <button
+                  onClick={() => setOpenId(p.productId)}
+                  className="flex w-full items-center gap-3 rounded-xl border border-line bg-white p-3 text-left active:bg-card"
+                >
+                  <Thumb product={p} size={56} />
+                  <div className="min-w-0 flex-1">
+                    <div className="truncate text-sm font-semibold">{p.name}</div>
+                    <div className="truncate text-xs text-muted">{p.brand || "—"}</div>
+                    <div className="mt-0.5 text-xs font-medium">{fmtMoney(p.price)}</div>
+                  </div>
+                  <Pill tone={p.isVisible ? "dark" : "grey"}>{p.isVisible ? "Active" : "Draft"}</Pill>
+                </button>
+              </li>
+            ))}
+          </ul>
+
+          {rows.length === 0 && (
+            <div className="py-12 text-center text-sm text-muted">No {tab === "Braai" ? "braais" : "fireplaces"} yet.</div>
+          )}
           <Pagination page={page} pageSize={PAGE_SIZE} total={list.length} noun="products" onChange={setPage} />
         </div>
       )}

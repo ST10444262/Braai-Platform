@@ -62,28 +62,28 @@ export default function ClientsPage() {
     <>
       <PageHeader title="Client Directory" subtitle="Manage and view all registered clients across the platform." />
 
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex gap-3">
-          <div className="relative w-64">
-            <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted" />
-            <input
-              value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
-                setPage(1);
-              }}
-              placeholder="Search clients..."
-              className="w-full rounded-full border border-line bg-card py-2 pl-9 pr-4 text-xs outline-none focus:bg-white"
-            />
-          </div>
-          <div className="relative">
+      <div className="mb-4 space-y-3 md:flex md:flex-wrap md:items-center md:justify-between md:gap-3 md:space-y-0">
+        <div className="relative w-full md:w-64">
+          <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted" />
+          <input
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(1);
+            }}
+            placeholder="Search clients..."
+            className="w-full rounded-full border border-line bg-card py-2.5 pl-9 pr-4 text-base outline-none focus:bg-white md:py-2 md:text-xs"
+          />
+        </div>
+        <div className="flex gap-3 md:contents">
+          <div className="relative flex-1 md:order-first md:ml-3 md:flex-none">
             <select
               value={filter}
               onChange={(e) => {
                 setFilter(e.target.value);
                 setPage(1);
               }}
-              className="h-full appearance-none rounded-full border border-line bg-card py-2 pl-4 pr-9 text-xs outline-none"
+              className="h-full w-full appearance-none rounded-full border border-line bg-card py-2.5 pl-4 pr-9 text-base outline-none md:py-2 md:text-xs"
             >
               <option value="all">Filter by...</option>
               <option value="with">Has invoices</option>
@@ -91,10 +91,10 @@ export default function ClientsPage() {
             </select>
             <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted" />
           </div>
+          <Button onClick={() => setCreating(true)} className="shrink-0 md:ml-auto">
+            <Plus className="h-4 w-4" /> Create Client
+          </Button>
         </div>
-        <Button onClick={() => setCreating(true)}>
-          <Plus className="h-4 w-4" /> Create Client
-        </Button>
       </div>
 
       {error && <ErrorNote message={error} />}
@@ -102,7 +102,8 @@ export default function ClientsPage() {
         <Spinner />
       ) : (
         <div className="overflow-hidden rounded-2xl border border-line bg-card">
-          <table className="w-full text-left">
+          {/* Desktop table */}
+          <table className="hidden w-full text-left md:table">
             <thead>
               <tr className="text-[10px] uppercase tracking-wider text-muted">
                 {["Client Name", "Email Address", "Phone Number", "Total Uploaded Invoices", "Actions"].map((h) => (
@@ -129,15 +130,32 @@ export default function ClientsPage() {
                   </td>
                 </tr>
               ))}
-              {rows.length === 0 && (
-                <tr>
-                  <td colSpan={5} className="py-12 text-center text-sm text-muted">
-                    No clients found.
-                  </td>
-                </tr>
-              )}
             </tbody>
           </table>
+
+          {/* Mobile cards */}
+          <ul className="space-y-2 p-3 md:hidden">
+            {rows.map((c) => (
+              <li key={c.clientId} className="rounded-xl border border-line bg-white p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="truncate text-sm font-semibold">{fullName(c)}</div>
+                    <div className="truncate text-xs text-muted">{c.email}</div>
+                    <div className="text-xs text-muted">{c.phone}</div>
+                  </div>
+                  <button
+                    onClick={() => setOpenId(c.clientId)}
+                    className="shrink-0 rounded-full border border-line bg-white px-4 py-2 text-xs font-medium active:bg-stone-100"
+                  >
+                    Manage
+                  </button>
+                </div>
+                <div className="mt-2 text-[11px] text-muted">{invoiceCounts[c.clientId] ?? "…"} uploaded invoices</div>
+              </li>
+            ))}
+          </ul>
+
+          {rows.length === 0 && <div className="py-12 text-center text-sm text-muted">No clients found.</div>}
           <Pagination page={page} pageSize={PAGE_SIZE} total={filtered.length} noun="clients" onChange={setPage} />
         </div>
       )}
