@@ -128,36 +128,80 @@ describe("api request", () => {
     await expect(api.get("/x")).rejects.toMatchObject({ message: "Nope", status: 200 });
   });
 
-  describe("401 handling", () => {
-    // jsdom does not allow redefining window.location, but it reports any attempted
-    // navigation through console.error ("Not implemented: navigation"), so we use that.
-    let errSpy: jest.SpyInstance;
-    const navigated = () => errSpy.mock.calls.some((c) => String(c[0]?.message ?? c[0]).includes("navigation"));
-    beforeEach(() => {
-      errSpy = jest.spyOn(console, "error").mockImplementation(() => {});
-    });
-    afterEach(() => errSpy.mockRestore());
+describe("401 handling", () => {
+  // jsdom does not allow redefining window.location, but it reports
+  // attempted navigation through console.error
+  // ("Not implemented: navigation"), so we use that.
+  let errSpy: jest.SpyInstance;
 
-    it("clears the token and redirects to /login", async () => {
-      tokenStore.set("tok");
-      mockFetch(401, { message: "Expired" });
-      await expect(api.get("/admin/overview")).rejects.toThrow("Expired");
-      expect(tokenStore.get()).toBeNull();
-      expect(navigated()).toBe(true);
-    });
+  const navigated = () =>
+    errSpy.mock.calls.some((c) =>
+      String(c[0]?.message ?? c[0]).includes("navigation")
+    );
 
-    it("does not redirect for a failed login attempt", async () => {
-      tokenStore.set("tok");
-      mockFetch(401, { message: "Bad credentials" });
-      await expect(api.post("/admin/account/login", {})).rejects.toThrow("Bad credentials");
-      expect(tokenStore.get()).toBe("tok");
-      expect(navigated()).toBe(false);
-    });
+  beforeEach(() => {
+    // Every test must start with a clean authentication state.
+    tokenStore.clear();
 
-    it("does not redirect when there was no token to begin with", async () => {
-      mockFetch(401, { message: "Unauthorised" });
-      await expect(api.get("/x")).rejects.toThrow("Unauthorised");
-      expect(navigated()).toBe(false);
-    });
+    errSpy = jest
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
   });
+
+  afterEach(() => {
+    // Prevent authentication state leaking into the next test.
+    tokenStore.clear();
+
+    errSpy.mockRestore();
+  });
+
+  it("clears the token and redirects to /login", async () => {
+    tokenStore.set("tok");
+
+    mockFetch(401, {
+      message: "Expired",
+    });
+
+    await expect(
+      api.get("/admin/overview")
+    ).rejects.toThrow("Expired");
+
+    expect(tokenStore.get()).toBeNull();
+    expect(navigated()).toBe(true);
+  });
+
+  it("does not redirect for a failed login attempt", async () => {
+    tokenStore.set("tok");
+
+    mockFetch(401, {
+      message: "Bad credentials",
+    });
+
+    await expect(
+      api.post("/admin/account/login", {})
+    ).rejects.toThrow("Bad credentials");
+
+    // Login failures must not clear an existing token
+    // through the generic 401 handler.
+    expect(tokenStore.get()).toBe("tok");
+
+    expect(navigated()).toBe(false);
+  });
+
+  it("does not redirect when there was no token to begin with", async () => {
+    // Explicitly verify the condition this test is testing.
+    expect(tokenStore.get()).toBeNull();
+
+    mockFetch(401, {
+      message: "Unauthorised",
+    });
+
+    await expect(
+      api.get("/x")
+    ).rejects.toThrow("Unauthorised");
+
+    expect(tokenStore.get()).toBeNull();
+    expect(navigated()).toBe(false);
+  });
+});
 });

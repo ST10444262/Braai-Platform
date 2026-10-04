@@ -1,4 +1,3 @@
-cat > jest.config.mjs <<'EOF'
 import nextJest from "next/jest.js";
 
 const createJestConfig = nextJest({
@@ -27,10 +26,10 @@ const config = {
     "src/app/**/*.{ts,tsx}",
     "!src/app/layout.tsx",
     "!src/**/*.d.ts",
+    "!src/__tests__/**/*",
   ],
 
   coverageDirectory: "coverage",
 };
 
 export default createJestConfig(config);
-EOF
