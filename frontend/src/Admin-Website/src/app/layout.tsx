@@ -8,7 +8,10 @@ const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Inflame Admin Platform",
+  title: {
+    template: '%s | Admin Platform',
+    default: 'Inflame Admin Platform',
+  },
   description: "Staff dashboard for Inflame",
 };
 
