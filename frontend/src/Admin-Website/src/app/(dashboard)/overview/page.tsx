@@ -40,7 +40,7 @@ export default function OverviewPage() {
         subtitle="Monitor system health, active catalogue items, and real-time lead acquisition metrics across the platform."
       />
 
-      <div className="grid gap-5 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
         <Card className="lg:col-span-2">
           <h2 className="text-lg font-semibold">Lead Pipeline</h2>
           <p className="text-[11px] font-medium text-violet-600">{p.conversionRate}% Conversion Rate</p>
@@ -75,9 +75,10 @@ export default function OverviewPage() {
           </div>
         </Card>
 
-        <Card className={cn("bg-white", data.systemHealth ? "lg:col-span-2" : "lg:col-span-3")}>
+        <Card className={cn("min-w-0 bg-white", data.systemHealth ? "lg:col-span-2" : "lg:col-span-3")}>
           <h2 className="text-lg font-semibold">Recent Quote Requests</h2>
-          <table className="mt-4 w-full text-left">
+          <div className="overflow-x-auto">
+          <table className="mt-4 w-full min-w-[560px] text-left">
             <thead>
               <tr className="text-[10px] uppercase tracking-wider text-muted">
                 <th className="py-2 font-medium">Customer Name</th>
@@ -114,6 +115,7 @@ export default function OverviewPage() {
               )}
             </tbody>
           </table>
+          </div>
           <Link href="/leads" className="mt-3 inline-block text-xs font-medium text-muted hover:text-ink">
             View all leads →
           </Link>

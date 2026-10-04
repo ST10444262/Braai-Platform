@@ -80,8 +80,8 @@ export default function ProductsPage() {
         <Spinner />
       ) : (
         <div className="overflow-hidden rounded-2xl border border-line bg-white">
-          {/* Desktop table */}
-          <table className="hidden w-full text-left md:table">
+          <div className="overflow-x-auto">
+          <table className="w-full min-w-[720px] text-left">
             <thead>
               <tr className="text-[10px] uppercase tracking-wider text-muted">
                 {["Thumbnail", "Product Name", "Brand", "Base Price", "Status", "Actions"].map((h) => (
@@ -110,26 +110,7 @@ export default function ProductsPage() {
               ))}
             </tbody>
           </table>
-
-          {/* Mobile cards */}
-          <ul className="space-y-2 p-3 md:hidden">
-            {rows.map((p) => (
-              <li key={p.productId}>
-                <button
-                  onClick={() => setOpenId(p.productId)}
-                  className="flex w-full items-center gap-3 rounded-xl border border-line bg-white p-3 text-left active:bg-card"
-                >
-                  <Thumb product={p} size={56} />
-                  <div className="min-w-0 flex-1">
-                    <div className="truncate text-sm font-semibold">{p.name}</div>
-                    <div className="truncate text-xs text-muted">{p.brand || "—"}</div>
-                    <div className="mt-0.5 text-xs font-medium">{fmtMoney(p.price)}</div>
-                  </div>
-                  <Pill tone={p.isVisible ? "dark" : "grey"}>{p.isVisible ? "Active" : "Draft"}</Pill>
-                </button>
-              </li>
-            ))}
-          </ul>
+          </div>
 
           {rows.length === 0 && (
             <div className="py-12 text-center text-sm text-muted">No {tab === "Braai" ? "braais" : "fireplaces"} yet.</div>
