@@ -264,8 +264,8 @@ namespace Inflame_Backend.Tests.ApplicationLayer
             var mockImageRepo     = new Mock<IProductImageRepository>();
             var mockStorage       = new Mock<IStorageAdapter>();
 
-            mockProductRepo.Setup(r => r.AddAsync(It.IsAny<Product>())).Returns(Task.CompletedTask);
-            mockBraaiRepo.Setup(r => r.AddAsync(It.IsAny<BraaiProduct>())).Returns(Task.CompletedTask);
+            mockProductRepo.Setup(r => r.AddAsync(It.IsAny<Product>())).ReturnsAsync(new Product());
+            mockBraaiRepo.Setup(r => r.AddAsync(It.IsAny<BraaiProduct>())).ReturnsAsync(new BraaiProduct());
 
             var handler = new CreateProductCommandHandler(
                 mockProductRepo.Object,
@@ -325,8 +325,8 @@ namespace Inflame_Backend.Tests.ApplicationLayer
             var mockImageRepo     = new Mock<IProductImageRepository>();
             var mockStorage       = new Mock<IStorageAdapter>();
 
-            mockProductRepo.Setup(r => r.AddAsync(It.IsAny<Product>())).Returns(Task.CompletedTask);
-            mockFireplaceRepo.Setup(r => r.AddAsync(It.IsAny<FireplaceProduct>())).Returns(Task.CompletedTask);
+            mockProductRepo.Setup(r => r.AddAsync(It.IsAny<Product>())).ReturnsAsync(new Product());
+            mockFireplaceRepo.Setup(r => r.AddAsync(It.IsAny<FireplaceProduct>())).ReturnsAsync(new FireplaceProduct());
 
             var handler = new CreateProductCommandHandler(
                 mockProductRepo.Object,

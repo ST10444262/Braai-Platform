@@ -92,8 +92,8 @@ export default function UsersPage() {
         <Spinner />
       ) : (
         <div className="max-w-3xl overflow-hidden rounded-2xl border border-line bg-card">
-          {/* Desktop table */}
-          <table className="hidden w-full text-left md:table">
+          <div className="overflow-x-auto">
+          <table className="w-full min-w-[480px] text-left">
             <thead>
               <tr className="text-[10px] uppercase tracking-wider text-muted">
                 <th className="px-5 py-3 font-medium">Employee</th>
@@ -123,22 +123,7 @@ export default function UsersPage() {
               ))}
             </tbody>
           </table>
-
-          {/* Mobile cards */}
-          <ul className="space-y-2 p-3 md:hidden">
-            {rows.map((u) => (
-              <li key={u.staffId}>
-                <Link href={`/users/${u.staffId}`} className="flex items-center gap-3 rounded-xl border border-line bg-white p-3.5 active:bg-card">
-                  <Avatar name={u.fullName} />
-                  <div className="min-w-0 flex-1">
-                    <div className="truncate text-sm font-semibold">{u.fullName}</div>
-                    <div className="truncate text-xs text-muted">{u.email}</div>
-                  </div>
-                  <Pill tone={u.role === "Employee" ? "grey" : "purple"}>{roleLabel(u.role)}</Pill>
-                </Link>
-              </li>
-            ))}
-          </ul>
+          </div>
 
           {rows.length === 0 && <div className="py-12 text-center text-sm text-muted">No users found.</div>}
           <Pagination page={page} pageSize={PAGE_SIZE} total={filtered.length} noun="users" onChange={setPage} />

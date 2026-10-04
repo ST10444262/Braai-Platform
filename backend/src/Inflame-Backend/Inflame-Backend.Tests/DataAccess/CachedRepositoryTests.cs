@@ -267,7 +267,7 @@ namespace Inflame_Backend.Tests.DataAccess
             var (cachedRepo, mockInner, mockRedis) = BuildCachedRepo();
             var product = new Product { ProductId = Guid.NewGuid(), Name = "New Product", Price = 2500m };
 
-            mockInner.Setup(r => r.AddAsync(product)).Returns(Task.CompletedTask);
+            mockInner.Setup(r => r.AddAsync(product)).ReturnsAsync(product);
             mockRedis
                 .Setup(r => r.KeyDeleteAsync(It.IsAny<RedisKey>(), It.IsAny<CommandFlags>()))
                 .ReturnsAsync(true);

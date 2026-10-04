@@ -138,13 +138,13 @@ export default function ProfilePage() {
       <h1 className="text-4xl font-bold tracking-tight">My Profile</h1>
       <p className="mb-8 mt-2 text-sm text-muted">Manage your personal information, security preferences, and administrative settings.</p>
 
-      <div className="grid items-start gap-5 lg:grid-cols-[340px_1fr]">
-        <div className="rounded-3xl border border-line bg-white p-6 text-center shadow-sm">
+      <div className="grid items-start gap-5 lg:grid-cols-[340px_1fr] min-w-0">
+        <div className="rounded-3xl border border-line bg-white p-6 text-center shadow-sm min-w-0">
           <div className="flex justify-center">
             <Avatar name={me.fullName} size={96} />
           </div>
           <h2 className="mt-4 text-base font-semibold">{me.fullName}</h2>
-          <p className="text-xs text-muted">{me.email}</p>
+          <p className="text-xs text-muted break-all">{me.email}</p>
           <div className="mt-2">
             <Pill tone="red">{roleLabel(role).toUpperCase()}</Pill>
           </div>
@@ -153,15 +153,15 @@ export default function ProfilePage() {
               ["Timezone", "South Africa/Cape Town (SAST)"],
               ["Language", "English (US)"],
             ].map(([k, v]) => (
-              <div key={k} className="flex justify-between">
-                <dt className="text-muted">{k}</dt>
-                <dd className="font-medium">{v}</dd>
+              <div key={k} className="flex justify-between gap-3">
+                <dt className="text-muted shrink-0">{k}</dt>
+                <dd className="font-medium text-right min-w-0">{v}</dd>
               </div>
             ))}
           </dl>
         </div>
 
-        <div className="space-y-5">
+        <div className="space-y-5 min-w-0">
           <form onSubmit={updatePassword} className="rounded-3xl border border-line bg-white p-6 shadow-sm">
             <h3 className="text-sm font-semibold">Security & Authentication</h3>
             <p className="mb-5 text-xs text-muted">Update your password and secure your account.</p>
@@ -205,18 +205,18 @@ export default function ProfilePage() {
                   {trustedDevices.map((device) => {
                     const isMobile = device.deviceName.toLowerCase().includes("mobi") || device.deviceName.toLowerCase().includes("android") || device.deviceName.toLowerCase().includes("iphone");
                     const Icon = isMobile ? Smartphone : Laptop;
-                    
+
                     return (
-                      <div key={device.id} className="flex items-center justify-between rounded-xl bg-zinc-50 p-3 text-sm">
-                        <div className="flex items-center gap-3">
-                          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-zinc-500 shadow-sm">
+                      <div key={device.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl bg-zinc-50 p-3 text-sm min-w-0">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-zinc-500 shadow-sm">
                             <Icon size={18} />
                           </div>
-                          <div>
-                            <p className="font-medium text-xs truncate max-w-[200px]" title={device.deviceName}>
+                          <div className="min-w-0">
+                            <p className="font-medium text-xs truncate max-w-full" title={device.deviceName}>
                               {device.deviceName}
                             </p>
-                            <p className="text-[11px] text-muted">
+                            <p className="text-[11px] text-muted truncate">
                               Added: {new Date(device.createdAt).toLocaleDateString()} • Last used: {new Date(device.lastUsedAt).toLocaleDateString()}
                             </p>
                           </div>
@@ -224,7 +224,7 @@ export default function ProfilePage() {
                         <button
                           type="button"
                           onClick={() => revokeDevice(device.id)}
-                          className="rounded-lg p-2 text-red-500 hover:bg-red-50 transition-colors"
+                          className="shrink-0 rounded-lg p-2 text-red-500 hover:bg-red-50 transition-colors self-end sm:self-auto"
                           title="Revoke device"
                         >
                           <Trash2 size={16} />

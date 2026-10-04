@@ -90,7 +90,8 @@ const STATUS: Record<string, { label: string; cls: string; dot: string }> = {
 };
 
 export function StatusBadge({ status }: { status: string }) {
-  const s = STATUS[status] ?? STATUS.New;
+  // API sends "Under Review" (with a space) but the lookup key is "UnderReview"
+  const s = STATUS[status] ?? STATUS[status.replace(/\s+/g, "")] ?? STATUS.New;
   return (
     <span className={cn("inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1 text-[11px] font-medium", s.cls)}>
       <span className={cn("h-1.5 w-1.5 rounded-full", s.dot)} />

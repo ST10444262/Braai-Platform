@@ -35,7 +35,7 @@ export default function ClientsPage() {
 
   const rows = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
-  // The list endpoint doesn't include invoices, so fetch them for the visible rows only
+  
   useEffect(() => {
     let alive = true;
     rows.forEach(async (c) => {
@@ -44,13 +44,13 @@ export default function ClientsPage() {
         const detail = (await api.get<Client[]>(`/admin/crm/clients${qs({ clientId: c.clientId })}`))[0];
         if (alive && detail) setInvoiceCounts((m) => ({ ...m, [c.clientId]: detail.invoiceRecords?.length ?? 0 }));
       } catch {
-        /* leave blank */
+        
       }
     });
     return () => {
       alive = false;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+   
   }, [rows.map((r) => r.clientId).join(",")]);
 
   function refresh() {
@@ -102,8 +102,8 @@ export default function ClientsPage() {
         <Spinner />
       ) : (
         <div className="overflow-hidden rounded-2xl border border-line bg-card">
-          {/* Desktop table */}
-          <table className="hidden w-full text-left md:table">
+          <div className="overflow-x-auto">
+          <table className="w-full min-w-[720px] text-left">
             <thead>
               <tr className="text-[10px] uppercase tracking-wider text-muted">
                 {["Client Name", "Email Address", "Phone Number", "Total Uploaded Invoices", "Actions"].map((h) => (
@@ -132,28 +132,7 @@ export default function ClientsPage() {
               ))}
             </tbody>
           </table>
-
-          {/* Mobile cards */}
-          <ul className="space-y-2 p-3 md:hidden">
-            {rows.map((c) => (
-              <li key={c.clientId} className="rounded-xl border border-line bg-white p-4">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <div className="truncate text-sm font-semibold">{fullName(c)}</div>
-                    <div className="truncate text-xs text-muted">{c.email}</div>
-                    <div className="text-xs text-muted">{c.phone}</div>
-                  </div>
-                  <button
-                    onClick={() => setOpenId(c.clientId)}
-                    className="shrink-0 rounded-full border border-line bg-white px-4 py-2 text-xs font-medium active:bg-stone-100"
-                  >
-                    Manage
-                  </button>
-                </div>
-                <div className="mt-2 text-[11px] text-muted">{invoiceCounts[c.clientId] ?? "…"} uploaded invoices</div>
-              </li>
-            ))}
-          </ul>
+          </div>
 
           {rows.length === 0 && <div className="py-12 text-center text-sm text-muted">No clients found.</div>}
           <Pagination page={page} pageSize={PAGE_SIZE} total={filtered.length} noun="clients" onChange={setPage} />
