@@ -21,46 +21,8 @@ The platform consists of three main applications:
 
 ### 1.1 Architecture Diagram
 
-```text
-                               +-------------------------+
-                               |     Cloudflare CDN      |
-                               | Edge Caching / Security |
-                               +-----------+-------------+
-                                           |
-                   +-----------------------+-----------------------+
-                   |                                               |
-                   v                                               v
-      +------------------------+                      +------------------------+
-      |  Public Web App (SSR)  |                      |  Admin Dashboard (SPA) |
-      |       Next.js          |                      |        Next.js         |
-      +------------+-----------+                      +------------+-----------+
-                   |                                               |
-                   |       Reverse Proxy / API Rewrites            |
-                   +-----------------------+-----------------------+
-                                           |
-                                           v
-                              +-------------------------+
-                              |    Backend REST API     |
-                              |      ASP.NET Core       |
-                              |       N-Tier /          |
-                              |        MediatR          |
-                              +------+------------+-----+
-                                     |            |
-                                     |            v
-                                     |    +----------------+
-                                     |    | Redis / Upstash|
-                                     |    |    Caching     |
-                                     |    +----------------+
-                                     |
-                                     v
-                       +---------------------------+
-                       |    Supabase Ecosystem     |
-                       |                           |
-                       | - PostgreSQL Database     |
-                       | - Object Storage          |
-                       |   Images & Documents      |
-                       +---------------------------+
-```
+<img width="392" height="512" alt="Inflame Architecture diagram drawio" src="https://github.com/user-attachments/assets/140543b4-64e3-407a-939c-49b2f8522af0" />
+
 
 ---
 
@@ -176,8 +138,8 @@ The backend uses several established design patterns to keep the code organised 
 
 | Pattern                     | Category      | Purpose                                                                                                                    |
 | :-------------------------- | :------------ | :------------------------------------------------------------------------------------------------------------------------- |
-| **CQRS**                    | Architectural | Separates read operations from write operations so they can be handled independently.                                      |
-| **Repository**              | Architectural | Separates database access from the rest of the application through repositories such as `baseRepo`.                        |
+| **CQRS**                    | Architectural | Used to separate read and write operations so they can be handled independently.                                           |
+| **Repository**              | Architectural | Used to separates database access from the rest of the application through repositories such as `baseRepo`.                |
 | **Mediator**                | Behavioral    | Uses `MediatR` to route requests to the appropriate handler without placing business logic inside controllers.             |
 | **Command**                 | Behavioral    | Represents write operations as separate command objects.                                                                   |
 | **Singleton**               | Creational    | Allows shared resources such as Redis connections to be reused instead of creating unnecessary connections.                |
@@ -186,8 +148,8 @@ The backend uses several established design patterns to keep the code organised 
 | **Adapter**                 | Structural    | Uses `IStorageAdapter` to keep the application independent from the specific storage implementation.                       |
 | **Decorator**               | Structural    | Adds Redis caching around repository operations before data is requested from PostgreSQL.                                  |
 | **Facade**                  | Structural    | `ProductCatalogueFacade` provides a simpler interface for more complex catalogue operations.                               |
-| **Observer**                | Behavioral    | Allows events such as creating a `QuoteLead` to trigger additional actions such as notifications and analytics logging.    |
-| **State**                   | Behavioral    | Controls the different stages of a `QuoteLead`, such as `New → Quoted → Accepted → Fulfilled`.                             |
+| **Observer**                | Behavioral    | Allows events such as creating a `QuoteLead` to trigger additional actions such as notifications and logging.              |
+| **State**                   | Behavioral    | Controls the different stages of a `QuoteLead`, such as `New → Under Review → Contacted → Converted`.                      |
 | **Chain of Responsibility** | Behavioral    | Uses the ASP.NET Core middleware pipeline for authentication, JWT validation, rate limiting, and other request processing. |
 
 These patterns help keep the backend modular and make it easier to change or extend individual parts of the system without affecting the entire application.
@@ -226,15 +188,7 @@ GitHub Actions is used to automate testing and deployment.
 
 When a pull request is opened against `develop`, the pipeline runs checks such as:
 
-```text
-Pull Request
-     ↓
-Backend Tests
-     ↓
-Frontend Linting
-     ↓
-Checks Pass
-```
+<img width="122" height="182" alt="Untitled Diagram drawio" src="https://github.com/user-attachments/assets/c8111f4e-2500-466a-bc4b-3b574e5e10d4" />
 
 The backend uses xUnit tests, while the Next.js applications are checked using:
 
@@ -248,17 +202,7 @@ This helps identify problems before changes are merged.
 
 After changes are merged into `main`, the deployment process is triggered.
 
-```text
-Merge to main
-      ↓
-Build Docker Images
-      ↓
-Push Images
-      ↓
-Deploy Applications
-      ↓
-Production
-```
+<img width="122" height="232" alt="Untitled Diagram drawio (1)" src="https://github.com/user-attachments/assets/05a3c598-0f57-42df-945e-02c2ea074a6b" />
 
 This reduces the amount of manual work needed to deploy new versions of the application.
 
@@ -283,22 +227,6 @@ Supabase is also used for object storage, which allows the application to store 
 * Quote-related files
 
 Redis, through Upstash, is used separately for caching frequently accessed information.
-
-The main data flow is therefore:
-
-```text
-Next.js Frontend
-       ↓
-ASP.NET Core API
-       ↓
-Business Logic
-       ↓
-Redis Cache ──────→ Cached Data
-       ↓
-PostgreSQL
-       ↓
-Supabase Storage
-```
 
 ---
 
@@ -336,28 +264,7 @@ Uptime Robot is configured to send a request to the backend health-check endpoin
 
 The production setup can therefore be summarised as:
 
-```text
-                    Internet
-                       ↓
-                  Cloudflare
-                       ↓
-          +------------+------------+
-          |                         |
-          ↓                         ↓
-       Vercel                    Vercel
-     Public Web              Admin Dashboard
-          |                         |
-          +------------+------------+
-                       ↓
-                 ASP.NET Core
-                    Render
-                       ↓
-             +---------+---------+
-             |                   |
-             ↓                   ↓
-         Upstash              Supabase
-          Redis           PostgreSQL + Storage
-```
+<img width="452" height="462" alt="Untitled Diagram drawio" src="https://github.com/user-attachments/assets/490205d4-a9ae-41e5-9974-11c677b70c68" />
 
 ---
 
@@ -375,13 +282,8 @@ ASP.NET Core Identity is used together with role-based access control.
 
 The main roles are:
 
-```text
-SuperAdmin
-    ↓
-Admin
-    ↓
-Employee
-```
+<img width="122" height="202" alt="Untitled Diagram drawio" src="https://github.com/user-attachments/assets/dda40f53-ab9e-40b9-b4ce-06ca444b6fee" />
+
 
 Each role can be given different permissions depending on what the user needs to access.
 
@@ -434,32 +336,12 @@ This keeps the frontend communication with the backend structured and avoids exp
 
 ---
 
-# 9. Overall System
+# 9. Video Presentation
 
-The Braai-Platform brings the different components together into one system:
+[Video Link](Placeholder)
 
-```text
-                    CUSTOMER
-                       ↓
-              Public Next.js App
-                       ↓
-                Backend REST API
-                       ↓
-              Business Logic Layer
-                       ↓
-          +------------+------------+
-          |                         |
-          ↓                         ↓
-      Redis Cache              PostgreSQL
-          |                     Supabase
-          |                         |
-          +------------+------------+
-                       ↓
-                Object Storage
-                       ↓
-              Images & Documents
-```
+---
 
-The admin dashboard uses the same backend API but provides staff with additional functionality for managing customers, products, leads, and quotes.
+# 10. AI Usage Declaration
 
-The overall architecture separates the frontend, business logic, caching, database, and storage responsibilities. This makes the system easier to maintain and gives it room to scale as the number of products, customers, and enquiries increases.
+Generative AI tools were used during the development of the Inflame platform as learning and productivity aid. AI assisted in generating boilerplate code such as the files needed for each repository, optimizing methods and debugging. The core architecture, business logic, service usage/integration, and design choices are entirely original to my group. The AI-assisted code which was used was thoroughly reviewed, modified, and tested to ensure that we understood what was being done and that it met the requirements of our project scope. 
