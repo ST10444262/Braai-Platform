@@ -35,18 +35,18 @@ export default function RoomSizeCalculator() {
     <div className="border rounded p-5 mb-6" style={{ backgroundColor: '#faf6ee', borderColor: '#9E2016' }}>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
         <div>
-          <label className="block text-xs uppercase mb-1 font-semibold" style={{ color: '#9E2016' }}>Length (m)</label>
-          <input type="number" value={length} onChange={(e) => setLength(e.target.value)}
+          <label htmlFor="roomLength" className="block text-xs uppercase mb-1 font-semibold" style={{ color: '#9E2016' }}>Length (m)</label>
+          <input id = "roomLength" type="number" value={length} onChange={(e) => setLength(e.target.value)}
             className="w-full border rounded px-3 py-2 text-sm bg-white" style={{ borderColor: '#9E2016', color: '#9E2016' }} />
         </div>
         <div>
-          <label className="block text-xs uppercase mb-1 font-semibold" style={{ color: '#9E2016' }}>Width (m)</label>
-          <input type="number" value={width} onChange={(e) => setWidth(e.target.value)}
+          <label htmlFor="roomWidth" className="block text-xs uppercase mb-1 font-semibold" style={{ color: '#9E2016' }}>Width (m)</label>
+          <input id="roomWidth" type="number" value={width} onChange={(e) => setWidth(e.target.value)}
             className="w-full border rounded px-3 py-2 text-sm bg-white" style={{ borderColor: '#9E2016', color: '#9E2016' }} />
         </div>
         <div>
-          <label className="block text-xs uppercase mb-1 font-semibold" style={{ color: '#9E2016' }}>Height (m)</label>
-          <input type="number" value={height} onChange={(e) => setHeight(e.target.value)}
+          <label htmlFor="roomHeight" className="block text-xs uppercase mb-1 font-semibold" style={{ color: '#9E2016' }}>Height (m)</label>
+          <input id="roomHeight" type="number" value={height} onChange={(e) => setHeight(e.target.value)}
             className="w-full border rounded px-3 py-2 text-sm bg-white" style={{ borderColor: '#9E2016', color: '#9E2016' }} />
         </div>
       </div>

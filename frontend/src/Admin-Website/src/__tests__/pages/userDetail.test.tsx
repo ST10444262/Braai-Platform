@@ -2,7 +2,10 @@ import { render, screen } from "@testing-library/react";
 import UserDetailsPage from "@/app/(dashboard)/users/[id]/page";
 import { makeAuth, makeStaff } from "../helpers/testUtils";
 
-jest.mock("next/navigation", () => ({ useParams: () => ({ id: "s1" }) }));
+jest.mock("next/navigation", () => ({ 
+  useParams: () => ({ id: "s1" }),
+  useRouter: () => ({ push: jest.fn() })
+}));
 jest.mock("@/lib/auth", () => ({ useAuth: jest.fn() }));
 jest.mock("@/lib/api", () => ({ api: { get: jest.fn() }, qs: jest.requireActual("@/lib/api").qs }));
 import { api } from "@/lib/api";
@@ -77,10 +80,10 @@ describe("details", () => {
     await screen.findByText("Ann Smith");
     expect(screen.getAllByText(label).length).toBeGreaterThanOrEqual(2); // pill + tile
   });
-  it("keeps Edit and Delete disabled until the API supports them", async () => {
+  it("enables Edit and Delete buttons", async () => {
     render(<UserDetailsPage />);
     await screen.findByText("Ann Smith");
-    expect(screen.getByRole("button", { name: /Edit Employee/ })).toBeDisabled();
-    expect(screen.getByRole("button", { name: /Delete/ })).toBeDisabled();
+    expect(screen.getByRole("button", { name: /Edit Employee/ })).not.toBeDisabled();
+    expect(screen.getByRole("button", { name: /Delete/ })).not.toBeDisabled();
   });
 });

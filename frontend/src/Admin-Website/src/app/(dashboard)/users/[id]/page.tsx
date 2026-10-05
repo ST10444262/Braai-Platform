@@ -1,18 +1,35 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { Pencil, Trash2 } from "lucide-react";
 import { api, qs } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { useLoad } from "@/lib/hooks";
 import { fmtDate, roleLabel } from "@/lib/format";
 import type { Staff } from "@/lib/types";
-import { Avatar, Button, ErrorNote, Pill, Spinner } from "@/components/ui";
+import { Avatar, Button, ErrorNote, Pill, Spinner, useToast } from "@/components/ui";
 
 export default function UserDetailsPage() {
   const { id } = useParams<{ id: string }>();
+  const router = useRouter();
+  const toast = useToast();
   const { isAdmin, ready } = useAuth();
+  const [deleting, setDeleting] = useState(false);
+
+  async function del() {
+    if (!confirm("Are you sure you want to delete this user?")) return;
+    setDeleting(true);
+    try {
+      await api.del(`/admin/account/staff/${id}`);
+      toast("User deleted.");
+      router.push("/users");
+    } catch (err) {
+      toast((err as Error).message, "err");
+      setDeleting(false);
+    }
+  }
   const { data: user, loading, error } = useLoad(
     async () => (isAdmin ? ((await api.get<Staff[]>(`/admin/account/staff${qs({ staffAccountId: id })}`))[0] ?? null) : null),
     [id, isAdmin],
@@ -51,11 +68,12 @@ export default function UserDetailsPage() {
           </div>
         </div>
         <div className="flex gap-2">
-          {/* The API has no update/delete staff endpoints yet, so these stay disabled */}
-          <Button variant="secondary" size="sm" disabled title="Needs a PUT /api/admin/account/staff/{id} endpoint" className="flex-1 sm:flex-none">
-            <Pencil className="h-3 w-3" /> Edit Employee
-          </Button>
-          <Button variant="danger" size="sm" disabled title="Needs a DELETE /api/admin/account/staff/{id} endpoint" className="flex-1 sm:flex-none">
+          <Link href={`/users/${id}/edit`} className="flex-1 sm:flex-none">
+            <Button variant="secondary" size="sm" className="w-full">
+              <Pencil className="h-3 w-3" /> Edit Employee
+            </Button>
+          </Link>
+          <Button variant="danger" size="sm" onClick={del} loading={deleting} className="flex-1 sm:flex-none">
             <Trash2 className="h-3 w-3" /> Delete
           </Button>
         </div>
