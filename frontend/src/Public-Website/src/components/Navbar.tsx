@@ -32,7 +32,7 @@ export default function Navbar() {
       </Link>
 
       {/* Section for navigation links */}
-      <nav className="hidden md:flex items-center gap-6 sm:gap-8 text-xs sm:text-sm font-bold tracking-wider">
+      <nav className="hidden lg:flex items-center gap-6 sm:gap-8 text-xs sm:text-sm font-bold tracking-wider">
         {navigationLinks.map((link) => {
           const isActive = pathName === link.href;
           return (
@@ -54,7 +54,7 @@ export default function Navbar() {
       {/* Burger menu option that is only available on mobile devices */}
       <button
         onClick={() => setOpenNavMenu((prev) => !prev)}
-        className="md:hidden text-stone-700 p-2"
+        className="lg:hidden text-stone-700 p-2"
         aria-label="Toggle menu"
       >
         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -68,7 +68,7 @@ export default function Navbar() {
 
       {/* code for the dropdown menu */}
       {openNavMenu && (
-        <nav className="md:hidden absolute top-full left-0 w-full bg-[#FAF6EE] border-b border-stone-200 shadow-sm flex flex-col px-6 py-4 gap-4 text-sm font-bold tracking-wider z-50">
+        <nav className="lg:hidden absolute top-full left-0 w-full bg-[#FAF6EE] border-b border-stone-200 shadow-sm flex flex-col px-6 py-4 gap-4 text-sm font-bold tracking-wider z-50">
           {navigationLinks.map((link) => {
             const isActive = pathName === link.href;
             return (

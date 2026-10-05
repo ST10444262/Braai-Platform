@@ -14,19 +14,19 @@ export default function RoomSizeCalculator() {
     const w = Number(width);
     const h = Number(height);
     //if any field is left empty then stop
-    if (!l || !w || !h) return;
+    if (!l || !w || !h ) return;
     
-    //calculating the volume. timesing by 10 to round it and then dividing by 10 to clean up the floating decimals to 1 decimal point
-    const calculatedVolume = Math.round((l * w * h) * 10) / 10;
+   // Calculate volume in m cubed
+  const calculatedVolume = Math.round((l * w * h) * 10) / 10;
 
-    // Calculate raw kw requirement using the industry standard formula provided by inflames owner (Volume / 25) + 2
-    const rawKw = (calculatedVolume / 25) + 2;
+  // Calculate raw kW requirement 1 kW for every 30 m cubed. formula provided by owner
+  const rawKw = calculatedVolume / 30;
 
-    // rounding up to the closest standard retail size as fireplaces are not built with fractions like 6.2kw, they are usually produced at 5,7,9,12,15kw
-    const targetKw = rawKw <= 5 ? 5 : rawKw <= 7 ? 7 : rawKw <= 9 ? 9 : rawKw <= 12 ? 12 : 15;
+  // Rounding up to the nearest fireplace rating 5, 7, 9, 12, 15 kW
+  const targetKw = rawKw <= 5 ? 5 : rawKw <= 7 ? 7 : rawKw <= 9 ? 9 : rawKw <= 12 ? 12 : 15;
 
-    // determining the maximum volume that a specific kw power can handle, to display to the user
-    const maxVolume = (targetKw - 2) * 25;
+  // Calculate maximum volume capacity for the target unit 30 m³ per kW
+  const maxVolume = targetKw * 30;
 
     setResult({ volume: calculatedVolume, kw: targetKw, maxVolume });
   }

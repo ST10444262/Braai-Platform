@@ -101,12 +101,18 @@ export default function SpecialsPage() {
               <p className="text-stone-500 text-xs">
                 Check back soon or explore our full product range.
               </p>
-              <button
-                onClick={() => setActiveTab('all')}
-                className="mt-2 inline-block bg-[#9E2016] text-white text-xs font-bold px-5 py-2.5 rounded-sm uppercase tracking-wider hover:bg-red-800 transition-colors"
-              >
-                View All Specials
-              </button>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+              <Link
+                href="/braais"
+                className="mt-2 inline-block bg-[#9E2016] text-white text-xs font-bold px-5 py-2.5 rounded-sm uppercase tracking-wider hover:bg-red-800 transition-colors">
+                Explore Braais
+                </Link>
+                <Link
+                    href="/fireplaces"
+                    className="mt-2 inline-block bg-[#9E2016] text-white text-xs font-bold px-5 py-2.5 rounded-sm uppercase tracking-wider hover:bg-red-800 transition-colors">
+                    Explore Fireplaces
+                </Link>
+                </div>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
