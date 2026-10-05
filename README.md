@@ -121,7 +121,7 @@ Estimated Quote = R17,664
 
 The product catalogue has multiple filters which allows customers to narrow down a large number of products without having to search through the entire catalogue manually.
 
-**Why:** A large catalogue is hard to scroll through. With filters in place a customer can look for something specifically want, like a stainless steel Weber with high heat output and see only products that fit that criteria. A product has to match every selected filter to appear, so each extra filter makes the results more precise and shows the customer what they actually want.
+**Why:** A large catalogue is hard to scroll through. With filters in place a customer can look for something they specifically want, like a stainless steel Weber with high heat output and see only products that fit that criteria. A product has to match every selected filter to appear, so each extra filter makes the results more precise and shows the customer what they actually want.
 
 The available criteria can include values such as:
 - Brand
