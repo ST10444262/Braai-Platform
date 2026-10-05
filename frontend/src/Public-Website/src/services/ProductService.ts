@@ -24,7 +24,14 @@ async function getProductById(id:string): Promise<ApiProduct|null>{
 //getting the products image from database
 function getProductImageUrl(product: ApiProduct):string{
     const pImage = product.images.find((img)=>img.isPrimary);
-    return pImage?.url ?? product.images[0]?.url??'/categories/insert.webp';
+    let url = pImage?.url ?? product.images[0]?.url??'/categories/insert.webp';
+    
+    // Fix double slash from backend Supabase config
+    url = url.replace('.supabase.co//storage', '.supabase.co/storage');
+    // Remove trailing question mark if it exists
+    if(url.endsWith('?')) url = url.slice(0, -1);
+    
+    return url;
 }
 //getting the products category
 function isCategory(product:ApiProduct, category:'braai'|'fireplace'):boolean{
