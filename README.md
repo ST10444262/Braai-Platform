@@ -1,23 +1,23 @@
 # Braai-Platform Enterprise Ecosystem
 
-The Braai-Platform is a scalable web application designed to manage products, customer enquiries, quotes, and custom braai and fireplace installations.
+The Braai-Platform is a full-stack web application developed to support a braai and fireplace business. It brings product browsing, customer enquiries, quotation requests, and custom installation requirements into one system.
 
-The system is split into a customer-facing website, an internal staff dashboard, and a backend API. This separation makes the different parts of the application easy to manage while allowing the backend to handle the main business logic, authentication, database access, and communication between services.
+It consists of three main parts: a public website for customers, a administration dashboard for staff and a backend API. Each application has their specific responsibility. The backend connects the different parts and manages the core business rules, authentication, data access, and external services.
 
 ---
 
 ## 1. System Architecture
 
-The platform consists of three main applications:
+The system is divided into three main applications:
 
 1. **Public Customer Web App**
-   A Next.js application where customers can browse the product catalogue, search for products, and submit enquiries.
+   The customer-facing website is built with Next.js. Customers use the public web application to browse the product catalogue, search for products, view product information and submit enquiries or quotation requests.
 
 2. **Staff & Admin Dashboard**
-   A secure Next.js application used by staff to manage products, customers, leads, and quotes.
+   The staff dashboard is a separate Next.js application with authenticated access. It was designed with the intention to be used strictly by staff within the business, it provides staff with tools for managing products, customers, leads and quotes.
 
 3. **Enterprise Backend API**
-   An ASP.NET Core REST API written in C#. The API handles business logic, authentication, database operations, and communication with external services.
+   The backend is an ASP.NET Core REST API developed in C#. It acts as the central application layer and is responsible for all business logic, authentication, database operations and communication with supporting services.
 
 ### 1.1 Architecture Diagram
 
@@ -28,35 +28,36 @@ The platform consists of three main applications:
 
 # 2. Core Algorithms
 
-Three algorithms power the catalogue and quoting features:
+Three algorithms are used to support important catalogue and quotation features within the platform:
 
 | Algorithm | Problem it solves |
 | :-------- | :---------------- |
-| Search Relevance Scoring | Shows the best-matching products first |
-| Dimensional Quote Estimation | Gives staff a fast, consistent first estimate for custom builds |
-| Multi-Criteria Filtering | Lets customers narrow the catalogue by brand, material, etc. |
+| Search Relevance Scoring | This ranks products according to how closely they match a customer's search |
+| Dimensional Quote Estimation | It produces an initial estimate for custom braai and fireplace builds |
+| Multi-Criteria Filtering | This allows customers to narrow products using several catalogue filters |
 
 ---
 
 ## 2.1 Search Relevance Scoring
 
-**Why:** A customer searching Built-in Braai should see built-in braais first, not an unrelated fireplace. Each product gets a score from 0 to 1, and results are sorted high to low.
+The search system gives each product a relevance score based on how closely it matches the customer's search. This helps customers find exactly what they are looking for, the relevant products will appear near the top of the results instead of relying only on a basic text match.
 
+**Why:** A customer searching Built-in Braai should see built-in braais first, not an unrelated fireplace. Each product gets a score from 0 to 1, and results are sorted from high to low.
+
+**The score is calculated using three factors:**
 ```text
 Score = (0.5 × Title Score) + (0.3 × Category Score) + (0.2 × Keyword Score)
 ```
 
 | Part | What it measures |
 | :--- | :--------------- |
-| Title Score (weight 0.5) | Share of search words found in the product name (0–1) |
-| Category Score (weight 0.3) | 1 if the product is in the expected category, otherwise 0 |
-| Keyword Score (weight 0.2) | Average of `1 ÷ distance` across matched keywords (closer = higher) |
+| Title Score (weight 0.5) | This measures how many of the search terms occur in the product name |
+| Category Score (weight 0.3) | It gives a full match when the product belongs to the expected category |
+| Keyword Score (weight 0.2) | It uses the distance between the search term and matching keywords, with closer matches receiving a higher value |
 
-```text
-Search term ──► Title / Category / Keyword scores ──► Weighted total ──► Sort ──► Results
-```
+Each part produces a value between 0 and 1. The weighted values are then combined to output the final relevance score. Products with higher scores are placed before products with lower scores.
 
-**Example:** search Built-in Braai, expected category Braais
+**Example:** For example a customer searches "Built-in Braai" the expected category output is Braais, consider these two products
 
 ```text
 Built-in Braai 1200 Stainless Steel
@@ -72,32 +73,37 @@ Outdoor Fireplace
   Score    = 0 + 0 + 0.2×0.125          = 0.03
 ```
 
-The braai ranks first (0.95 vs 0.03).
+The Built-in Braai 1200 Stainless Steel will receive a score of 0.95, compared with 0.03 for the Outdoor Fireplace. The higher score causes the braai to appear first in the search results.
 
 ---
 
 ## 2.2 Dimensional Quote Estimation
 
-**Why:** Custom installs vary in size, so bigger builds need more material and labour. This gives staff a consistent starting estimate; a person still confirms the final quote.
+Custom installations can vary in size, material requirements, and labour. The quotation algorithm provides staff with a consistent starting estimate based on the dimensions and selected cost factors.
 
+**Why:** Because custom installs differ in size the bigger builds need more material and labour. This gives staff a consistent starting estimate. Although a staff member will still confirm the final quote.
+
+**The calculation begins by determining the approximate volume of the build:**
 ```text
 Volume = Length × Width × Height
+
+The estimated quotation is then calculated using the material cost, material factor, market adjustment, and labour charge:
+
 Quote  = (Volume × Material Factor × Base Cost) × (1 + Market Adjustment) + Labour
 ```
 
 | Term | Meaning |
 | :--- | :------ |
-| Volume | Size of the build in m³ |
+| Volume | Approximate size of the build in m³ |
 | Material Factor | Multiplier for material cost (1.0 = standard, higher = premium) |
 | Base Cost | Material cost per m³ |
-| Market Adjustment | Allowance for price swings (0.08 = +8%) |
-| Labour | Fixed labour charge |
+| Market Adjustment | Percentage allowance for changes in material prices |
+| Labour | Labour cost included in the estimate |
 
-```text
-Dimensions ──► Volume ──► × Material × Base Cost ──► × (1 + Market Adj.) ──► + Labour ──► Quote
-```
+The result is intended as an initial estimate rather than a final customer quotation. Staff can review the calculation and confirm the actual requirements before providing the final price.
 
-**Example:** 2 m × 1 m × 1 m, Material Factor 1.2, Base Cost R4,500/m³, Market Adjustment 0.08, Labour R6,000
+**Example:** Let's say a custom build has these values:
+2 m × 1 m × 1 m, Material Factor 1.2, Base Cost R4,500/m³, Market Adjustment 0.08, Labour R6,000
 
 ```text
 Volume        = 2 × 1 × 1          = 2 m³
@@ -113,22 +119,33 @@ Estimated Quote = R17,664
 
 ## 2.3 Multi-Criteria Product Filtering
 
-**Why:** Customers narrow a large catalogue with several filters at once. A product must match all selected filters (AND logic) to appear.
+The product catalogue has multiple filters which allows customers to narrow down a large number of products without having to search through the entire catalogue manually.
 
-```text
-All products ──► Brand ──► Material ──► Heat Output ──► Filtered results
-```
+**Why:** A large catalogue is hard to scroll through. With filters in place a customer can look for something specifically want, like a stainless steel Weber with high heat output and see only products that fit that criteria. A product has to match every selected filter to appear, so each extra filter makes the results more precise and shows the customer what they actually want.
 
-**Example:** Brand = Weber, Material = Stainless Steel, Heat Output = High
+The available criteria can include values such as:
+- Brand
+- Material
+- Heat Output
+- Product Type
+- Price Range
+- Other product-specific attributes
 
+The filters use "AND logic" meaning a product must satisfy every filter selected by the customer to remain in the result set.
+
+**Example:** Let's say a customer selects:
+Brand = Weber, Material = Stainless Steel, Heat Output = High
+
+**The filtering process progressively reduces the available products:**
 ```text
 Start (6 products)
-  Brand = Weber           → 4 left
-  Material = Stainless    → 3 left
-  Heat Output = High      → 2 left (Weber Compact, Weber Elite)
+  Brand = Weber            4 left
+  Material = Stainless     3 left
+  Heat Output = High       2 left (Weber Compact, Weber Elite)
 ```
+The final result will contain only the products that satisfy all three conditions.
 
-In code, each selected filter adds one chained `.Where(...)` to the query (Builder pattern), and unselected filters are skipped. Redis caches popular filter results so the database isn't queried every time.
+In the backend, each selected filter adds one chained `.Where(...)` to the query. Filters that have not been selected are ignored. Redis is also used to cache commonly requested filter results, reducing the number of repeated database queries for frequently accessed catalogue data.
 
 ---
 
