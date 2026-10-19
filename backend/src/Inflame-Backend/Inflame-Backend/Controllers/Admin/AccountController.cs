@@ -51,10 +51,39 @@ namespace Inflame_Backend.Controllers.Admin
         }
         #endregion
 
+        public const string AuthCookieName = "inflame_admin_token";
+
+        private void SetTokenCookie(string token, DateTime? expiresAt)
+        {
+            var cookieOptions = new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = Request.IsHttps,
+                SameSite = Request.IsHttps ? SameSiteMode.None : SameSiteMode.Lax,
+                Path = "/",
+                Expires = expiresAt ?? DateTime.UtcNow.AddHours(2)
+            };
+
+            Response.Cookies.Append(AuthCookieName, token, cookieOptions);
+        }
+
+        private void ClearTokenCookie()
+        {
+            var cookieOptions = new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = Request.IsHttps,
+                SameSite = Request.IsHttps ? SameSiteMode.None : SameSiteMode.Lax,
+                Path = "/"
+            };
+
+            Response.Cookies.Delete(AuthCookieName, cookieOptions);
+        }
+
         #region Authentication Endpoints
         //------------------------------------------------------------------------------------------//
         /// <summary>
-        /// Authenticates a staff member and returns a JWT or a two-factor challenge.
+        /// Authenticates a staff member and returns a JWT or a two-factor challenge, setting an httpOnly cookie upon success.
         /// </summary>
         [HttpPost("login")]
         [AllowAnonymous]
@@ -73,12 +102,17 @@ namespace Inflame_Backend.Controllers.Admin
                 return Unauthorized(result);
             }
 
+            if (!string.IsNullOrEmpty(result.Token))
+            {
+                SetTokenCookie(result.Token, result.ExpiresAt);
+            }
+
             return Ok(result);
         }
 
         //------------------------------------------------------------------------------------------//
         /// <summary>
-        /// Verifies the 2FA code during the secondary login step and issues the final JWT.
+        /// Verifies the 2FA code during the secondary login step and issues the final JWT via an httpOnly cookie.
         /// </summary>
         [HttpPost("login/2fa")]
         [AllowAnonymous]
@@ -97,7 +131,24 @@ namespace Inflame_Backend.Controllers.Admin
                 return Unauthorized(result);
             }
 
+            if (!string.IsNullOrEmpty(result.Token))
+            {
+                SetTokenCookie(result.Token, result.ExpiresAt);
+            }
+
             return Ok(result);
+        }
+
+        //------------------------------------------------------------------------------------------//
+        /// <summary>
+        /// Clears the authenticated staff member's session by deleting the httpOnly JWT cookie.
+        /// </summary>
+        [HttpPost("logout")]
+        [AllowAnonymous]
+        public IActionResult Logout()
+        {
+            ClearTokenCookie();
+            return Ok(new { success = true, message = "Logged out successfully." });
         }
 
         //------------------------------------------------------------------------------------------//
