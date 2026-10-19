@@ -4,6 +4,7 @@ using Inflame_Backend.Features.Client.Queries;
 using Inflame_Backend.Models.CRM;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
@@ -58,7 +59,7 @@ namespace Inflame_Backend.Controllers.Admin
                 return BadRequest(result);
             }
 
-            return Ok(result);
+            return CreatedAtAction(nameof(GetClients), new { ClientId = result.ClientId }, result);
         }
 
         //------------------------------------------------------------------------------------------//
@@ -118,7 +119,7 @@ namespace Inflame_Backend.Controllers.Admin
                 return BadRequest(result);
             }
 
-            return Ok(result);
+            return StatusCode(StatusCodes.Status201Created, result);
         }
 
         //------------------------------------------------------------------------------------------//
@@ -136,7 +137,7 @@ namespace Inflame_Backend.Controllers.Admin
                 return BadRequest(result);
             }
 
-            return Ok(result);
+            return StatusCode(StatusCodes.Status201Created, result);
         }
 
         //------------------------------------------------------------------------------------------//

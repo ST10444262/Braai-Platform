@@ -8,6 +8,7 @@ using Inflame_Backend.Identity;
 using Inflame_Backend.Models.CRM;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
@@ -374,7 +375,7 @@ namespace Inflame_Backend.Controllers.Admin
                 return BadRequest(result);
             }
 
-            return Ok(result);
+            return StatusCode(StatusCodes.Status201Created, result);
         }
 
         //------------------------------------------------------------------------------------------//
