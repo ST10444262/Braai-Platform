@@ -19,6 +19,7 @@ export default function ClientsPage() {
   const [openId, setOpenId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [invoiceCounts, setInvoiceCounts] = useState<Record<string, number>>({});
+  const [invoiceCountErrors, setInvoiceCountErrors] = useState<Record<string, boolean>>({});
 
   const all = useMemo(() => data ?? [], [data]);
 
@@ -35,26 +36,26 @@ export default function ClientsPage() {
 
   const rows = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
-  
   useEffect(() => {
     let alive = true;
     rows.forEach(async (c) => {
       if (invoiceCounts[c.clientId] !== undefined) return;
+      if (invoiceCountErrors[c.clientId]) return;
       try {
         const detail = (await api.get<Client[]>(`/admin/crm/clients${qs({ clientId: c.clientId })}`))[0];
         if (alive && detail) setInvoiceCounts((m) => ({ ...m, [c.clientId]: detail.invoiceRecords?.length ?? 0 }));
       } catch {
-        
+        if (alive) setInvoiceCountErrors((m) => ({ ...m, [c.clientId]: true }));
       }
     });
     return () => {
       alive = false;
     };
-   
   }, [rows.map((r) => r.clientId).join(",")]);
 
   function refresh() {
     setInvoiceCounts({});
+    setInvoiceCountErrors({});
     reload();
   }
 
@@ -119,7 +120,21 @@ export default function ClientsPage() {
                   <td className="px-5 py-4 text-[13px] font-semibold">{fullName(c)}</td>
                   <td className="px-5 py-4 text-muted">{c.email}</td>
                   <td className="px-5 py-4 text-muted">{c.phone}</td>
-                  <td className="px-5 py-4">{invoiceCounts[c.clientId] ?? "…"}</td>
+                  <td className="px-5 py-4">
+                    {invoiceCountErrors[c.clientId] ? (
+                      <span
+                        role="alert"
+                        className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-700 ring-1 ring-amber-200"
+                        title="Invoice count could not be loaded"
+                      >
+                       Unavailable
+                      </span>
+                    ) : invoiceCounts[c.clientId] !== undefined ? (
+                      invoiceCounts[c.clientId]
+                    ) : (
+                      "…"
+                    )}
+                  </td>
                   <td className="px-5 py-4">
                     <button
                       onClick={() => setOpenId(c.clientId)}
