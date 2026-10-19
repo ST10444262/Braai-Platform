@@ -126,6 +126,7 @@ export default function LeadsPage() {
           {TABS.map((t) => (
             <button
               key={t}
+              aria-pressed={tab === t}
               onClick={() => {
                 setTab(t);
                 setPage(1);
@@ -143,6 +144,7 @@ export default function LeadsPage() {
                     "h-1.5 w-1.5 rounded-full",
                     dotColor(t),
                   )}
+                  aria-hidden="true"
                 />
               )}
 
@@ -164,7 +166,7 @@ export default function LeadsPage() {
 
         {/* Search */}
         <div className="relative w-full md:w-64">
-          <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted" />
+          <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted" aria-hidden="true" />
 
           <input
             value={search}
@@ -173,6 +175,7 @@ export default function LeadsPage() {
               setPage(1);
             }}
             placeholder="Search leads..."
+            aria-label="Search leads"
             className="w-full rounded-full border border-line bg-card py-2.5 pl-9 pr-4 text-base outline-none focus:bg-white md:py-2 md:text-xs"
           />
         </div>

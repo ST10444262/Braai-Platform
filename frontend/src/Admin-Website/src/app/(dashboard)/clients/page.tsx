@@ -65,7 +65,7 @@ export default function ClientsPage() {
 
       <div className="mb-4 space-y-3 md:flex md:flex-wrap md:items-center md:justify-between md:gap-3 md:space-y-0">
         <div className="relative w-full md:w-64">
-          <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted" />
+          <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted" aria-hidden="true" />
           <input
             value={search}
             onChange={(e) => {
@@ -73,6 +73,7 @@ export default function ClientsPage() {
               setPage(1);
             }}
             placeholder="Search clients..."
+            aria-label="Search clients"
             className="w-full rounded-full border border-line bg-card py-2.5 pl-9 pr-4 text-base outline-none focus:bg-white md:py-2 md:text-xs"
           />
         </div>
@@ -84,16 +85,17 @@ export default function ClientsPage() {
                 setFilter(e.target.value);
                 setPage(1);
               }}
+              aria-label="Filter clients by invoice status"
               className="h-full w-full appearance-none rounded-full border border-line bg-card py-2.5 pl-4 pr-9 text-base outline-none md:py-2 md:text-xs"
             >
               <option value="all">Filter by...</option>
               <option value="with">Has invoices</option>
               <option value="none">No invoices</option>
             </select>
-            <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted" />
+            <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted" aria-hidden="true" />
           </div>
           <Button onClick={() => setCreating(true)} className="shrink-0 md:ml-auto">
-            <Plus className="h-4 w-4" /> Create Client
+            <Plus className="h-4 w-4" aria-hidden="true" /> Create Client
           </Button>
         </div>
       </div>
