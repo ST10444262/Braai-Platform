@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using MediatR;
 using System.Threading.Tasks;
@@ -29,7 +30,7 @@ namespace Inflame_Backend.Controllers.Public
         {
             var result = await _mediator.Send(command);
 
-            return Ok(result);
+            return StatusCode(StatusCodes.Status201Created, result);
         }
     }
 }
