@@ -47,7 +47,7 @@ export default function ContactPage() {
             then show the success message box and if false show the contact form
             */}
             {submitted ? (
-              <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 p-6 rounded text-sm space-y-2">
+              <div role="status" aria-live="polite" className="bg-emerald-50 border border-emerald-200 text-emerald-800 p-6 rounded text-sm space-y-2">
                 <p className="font-semibold text-base">Thanks for reaching out!</p>
                 <p>We will be in touch shortly.</p>
               </div>
@@ -65,10 +65,12 @@ export default function ContactPage() {
                     value={firstName} //displaying the value from the hook state
                     onChange={(e) => setFirstName(e.target.value)} //updating the state when its typed into
                     placeholder="Your First Name"
+                    aria-invalid={!!errors.firstName}
+                    aria-describedby={errors.firstName ? 'firstName-error' : undefined}
                     className="w-full bg-white border border-stone-200 rounded px-4 py-3 text-stone-800 text-sm focus:outline-none focus:border-[#9E2016] transition-colors"
                   />
                   {/*displaying an error message if the validation for name input failed */}
-                  {errors.firstName && <p className="text-red-600 text-xs mt-1">{errors.firstName}</p>}
+                  {errors.firstName && <p id="firstName-error" role="alert" className="text-red-600 text-xs mt-1">{errors.firstName}</p>}
                 </div>
                 <div>
                   <label htmlFor="lastName" className="block text-[11px] uppercase tracking-wider font-bold text-stone-600 mb-1">
@@ -81,10 +83,12 @@ export default function ContactPage() {
                     value={lastName} //displaying the value from the hook state
                     onChange={(e) => setLastName(e.target.value)} //updating the state when its typed into
                     placeholder="Your Last Name"
+                    aria-invalid={!!errors.lastName}
+                    aria-describedby={errors.lastName ? 'lastName-error' : undefined}
                     className="w-full bg-white border border-stone-200 rounded px-4 py-3 text-stone-800 text-sm focus:outline-none focus:border-[#9E2016] transition-colors"
                   />
                   {/*displaying an error message if the validation for name input failed */}
-                  {errors.lastName && <p className="text-red-600 text-xs mt-1">{errors.lastName}</p>}
+                  {errors.lastName && <p id="lastName-error" role="alert" className="text-red-600 text-xs mt-1">{errors.lastName}</p>}
                 </div>
 
                 {/* Input for users email address */}
@@ -99,10 +103,12 @@ export default function ContactPage() {
                     value={email} //displaying the value from the hook state
                     onChange={(e) => setEmail(e.target.value)} //updating the state when the user types into it
                     placeholder="your@email.com"
+                    aria-invalid={!!errors.email}
+                    aria-describedby={errors.email ? 'email-error' : undefined}
                     className="w-full bg-white border border-stone-200 rounded px-4 py-3 text-stone-800 text-sm focus:outline-none focus:border-[#9E2016] transition-colors"
                   />
                   {/*displaying an error message if the validation for email input failed */}
-                  {errors.email && <p className="text-red-600 text-xs mt-1">{errors.email}</p>}
+                  {errors.email && <p id="email-error" role="alert" className="text-red-600 text-xs mt-1">{errors.email}</p>}
                 </div>
 
                 {/* Input for the users phone number */}
@@ -117,9 +123,11 @@ export default function ContactPage() {
                     value={phoneNumber}
                     onChange={(e) => setPhoneNumber(e.target.value)}
                     placeholder="(00) 000-0000"
+                    aria-invalid={!!errors.phoneNumber}
+                    aria-describedby={errors.phoneNumber ? 'phone-error' : undefined}
                     className="w-full bg-white border border-stone-200 rounded px-4 py-3 text-stone-800 text-sm focus:outline-none focus:border-[#9E2016] transition-colors"
                   />
-                  {errors.phoneNumber && <p className="text-red-600 text-xs mt-1">{errors.phoneNumber}</p>}
+                  {errors.phoneNumber && <p id="phone-error" role="alert" className="text-red-600 text-xs mt-1">{errors.phoneNumber}</p>}
                 </div>
 
                 {/* Input for the users message to inflame */}
@@ -134,13 +142,15 @@ export default function ContactPage() {
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
                     placeholder="How can we help you?"
+                    aria-invalid={!!errors.message}
+                    aria-describedby={errors.message ? 'message-error' : undefined}
                     className="w-full bg-white border border-stone-200 rounded px-4 py-3 text-stone-800 text-sm focus:outline-none focus:border-[#9E2016] transition-colors resize-none"
                   />
-                  {errors.message && <p className="text-red-600 text-xs mt-1">{errors.message}</p>}
+                  {errors.message && <p id="message-error" role="alert" className="text-red-600 text-xs mt-1">{errors.message}</p>}
                 </div>
 
                 {/* displaying error message from server if form submission fails */}
-                {submitError && <p className="text-red-600 text-sm">{submitError}</p>}
+                {submitError && <p role="alert" className="text-red-600 text-sm">{submitError}</p>}
 
                 {/* Button for user to submit the form */}
                 <button
