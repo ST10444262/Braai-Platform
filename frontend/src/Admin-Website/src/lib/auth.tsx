@@ -285,8 +285,8 @@ export function AuthProvider({
      * Fire-and-forget: we redirect regardless
      * of whether the request succeeds.
      */
-    void api
-      .post("/admin/account/logout")
+    void Promise.resolve()
+      .then(() => api.post("/admin/account/logout"))
       .catch(() => undefined)
       .finally(() => {
         if (
