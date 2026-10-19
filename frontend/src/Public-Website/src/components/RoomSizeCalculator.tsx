@@ -58,7 +58,7 @@ export default function RoomSizeCalculator() {
       </button>
 
       {result && (
-        <div className="mt-5 space-y-3">
+        <div role="status" aria-live="polite" className="mt-5 space-y-3">
           <div className="bg-white border rounded px-4 py-3 text-sm" style={{ borderColor: '#9E2016' }}>
             <p className="mb-1" style={{ color: '#9E2016' }}>
               Room volume: <strong style={{ color: '#9E2016' }}>{result.volume} m³</strong>

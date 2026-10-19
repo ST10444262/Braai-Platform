@@ -80,12 +80,13 @@ describe("table", () => {
     expect(within(rowFor("Cli3 Ent3")).getByText("1")).toBeInTheDocument();
   });
 
-  it("leaves the placeholder when a client's invoices cannot be loaded", async () => {
+  it("shows a warning badge when a client's invoices cannot be loaded", async () => {
     get.mockImplementation((p: string) => (p.includes("clientId=") ? Promise.reject(new Error("x")) : Promise.resolve([client(1)])));
     render(<ClientsPage />);
     await screen.findByText("Cli1 Ent1");
     await waitFor(() => expect(get.mock.calls.length).toBeGreaterThan(1));
-    expect(within(rowFor("Cli1 Ent1")).getByText("…")).toBeInTheDocument();
+    expect(within(rowFor("Cli1 Ent1")).getByRole("alert")).toBeInTheDocument();
+    expect(within(rowFor("Cli1 Ent1")).getByText("Unavailable")).toBeInTheDocument();
   });
 
   it("scrolls sideways instead of overflowing", async () => {
