@@ -54,10 +54,13 @@ export default function SpecialsPage() {
 
       {/* The navbar with filters for categories */}
       <section className="w-full bg-[#FAF6EE] py-4 px-6 sm:px-12 border-b border-stone-200/80 sticky top-0 z-20 backdrop-blur-md bg-[#FAF6EE]/90">
-        <div className="max-w-6xl mx-auto flex gap-8 text-xs font-bold uppercase tracking-wider">
+        <div role="tablist" aria-label="Specials categories" className="max-w-6xl mx-auto flex gap-8 text-xs font-bold uppercase tracking-wider">
           {TABS.map((tab) => (
             <button
               key={tab.key}
+              role="tab"
+              aria-selected={activeTab === tab.key}
+              aria-controls="specials-tabpanel"
               onClick={() => setActiveTab(tab.key)}
               className={`pb-2 transition-all relative ${
                 activeTab === tab.key
@@ -85,9 +88,9 @@ export default function SpecialsPage() {
           <div className="w-8 h-[1px] bg-stone-300 mx-auto mt-4" />
         </div>
 
-        <div className="max-w-6xl mx-auto">
+        <div id="specials-tabpanel" role="tabpanel" aria-label={currentTabLabel} className="max-w-6xl mx-auto">
           {loading ? (
-            <div className="flex flex-col items-center justify-center py-24 space-y-3">
+            <div role="status" aria-label="Loading specials" className="flex flex-col items-center justify-center py-24 space-y-3">
               <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-stone-300 border-t-[#9E2016]" />
               <p className="text-stone-500 text-xs sm:text-sm font-medium tracking-wide">
                 Loading specials...
@@ -185,10 +188,11 @@ export default function SpecialsPage() {
 
           {/* Pagination  */}
           {!loading && totalPages > 1 && (
-            <div className="flex justify-center items-center gap-2 mt-12 text-xs font-bold text-stone-600">
+            <nav aria-label="Specials pagination" className="flex justify-center items-center gap-2 mt-12 text-xs font-bold text-stone-600">
               <button
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page === 1}
+                aria-label="Previous page"
                 className="px-3 py-1.5 hover:text-[#9E2016] disabled:opacity-30 uppercase tracking-wider transition-colors cursor-pointer disabled:cursor-not-allowed"
               >
                 &lsaquo;
@@ -198,6 +202,8 @@ export default function SpecialsPage() {
                 <button
                   key={num}
                   onClick={() => setPage(num)}
+                  aria-label={num === page ? `Page ${num}, current page` : `Go to page ${num}`}
+                  aria-current={num === page ? 'page' : undefined}
                   className={`w-8 h-8 rounded-xs transition-colors cursor-pointer ${
                     num === page
                       ? 'bg-[#9E2016] text-white shadow-xs'
@@ -211,11 +217,12 @@ export default function SpecialsPage() {
               <button
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                 disabled={page === totalPages}
+                aria-label="Next page"
                 className="px-3 py-1.5 hover:text-[#9E2016] disabled:opacity-30 uppercase tracking-wider transition-colors cursor-pointer disabled:cursor-not-allowed"
               >
                 &rsaquo;
               </button>
-            </div>
+            </nav>
           )}
         </div>
       </section>

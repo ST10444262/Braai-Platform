@@ -32,13 +32,14 @@ export default function Navbar() {
       </Link>
 
       {/* Section for navigation links */}
-      <nav className="hidden lg:flex items-center gap-6 sm:gap-8 text-xs sm:text-sm font-bold tracking-wider">
+      <nav aria-label="Main Navigation" className="hidden lg:flex items-center gap-6 sm:gap-8 text-xs sm:text-sm font-bold tracking-wider">
         {navigationLinks.map((link) => {
           const isActive = pathName === link.href;
           return (
             <Link
               key={link.name}
               href={link.href}
+              aria-current={isActive ? 'page' : undefined}
               className={`transition-colors duration-150 whitespace-nowrap ${
                 isActive
                   ? 'text-[#9E2016]'
@@ -55,9 +56,11 @@ export default function Navbar() {
       <button
         onClick={() => setOpenNavMenu((prev) => !prev)}
         className="lg:hidden text-stone-700 p-2"
-        aria-label="Toggle menu"
+        aria-label="Toggle navigation menu"
+        aria-expanded={openNavMenu}
+        aria-controls="mobile-nav"
       >
-        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg aria-hidden="true" className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           {openNavMenu ? (
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           ) : (
@@ -68,13 +71,14 @@ export default function Navbar() {
 
       {/* code for the dropdown menu */}
       {openNavMenu && (
-        <nav className="lg:hidden absolute top-full left-0 w-full bg-[#FAF6EE] border-b border-stone-200 shadow-sm flex flex-col px-6 py-4 gap-4 text-sm font-bold tracking-wider z-50">
+        <nav id="mobile-nav" aria-label="Mobile Navigation" className="lg:hidden absolute top-full left-0 w-full bg-[#FAF6EE] border-b border-stone-200 shadow-sm flex flex-col px-6 py-4 gap-4 text-sm font-bold tracking-wider z-50">
           {navigationLinks.map((link) => {
             const isActive = pathName === link.href;
             return (
               <Link
                 key={link.name}
                 href={link.href}
+                aria-current={isActive ? 'page' : undefined}
                 onClick={() => setOpenNavMenu(false)}
                 className={`transition-colors duration-150 ${
                   isActive

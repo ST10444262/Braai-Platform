@@ -48,7 +48,7 @@ export default function FireplacesPage() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           
           {/* the side bars with filters */}
-          <aside className="lg:col-span-3 bg-stone-100/60 border border-stone-200/80 rounded-sm p-5 space-y-5">
+          <aside aria-label="Product filters" className="lg:col-span-3 bg-stone-100/60 border border-stone-200/80 rounded-sm p-5 space-y-5">
             <div className="flex items-center justify-between pb-2 border-b border-stone-200">
               <h3 className="text-xs font-serif font-bold text-[#9E2016] uppercase tracking-wider">
                 Filters
@@ -63,10 +63,11 @@ export default function FireplacesPage() {
 
             {/* the filter for product type */}
             <div className="space-y-1.5">
-              <label className="block text-[11px] font-semibold uppercase tracking-wide text-stone-700">
+              <label htmlFor="fireplaceTypeFilter" className="block text-[11px] font-semibold uppercase tracking-wide text-stone-700">
                 Product Type
               </label>
               <select
+                id="fireplaceTypeFilter"
                 value={fireplaceType}
                 onChange={(e) => setFireplaceType(e.target.value)}
                 className="w-full bg-white border border-stone-300 rounded-xs px-3 py-2 text-xs text-stone-800 focus:outline-none focus:border-[#9E2016]"
@@ -82,10 +83,11 @@ export default function FireplacesPage() {
 
             {/* the filter for kw power rating */}
             <div className="space-y-1.5">
-              <label className="block text-[11px] font-semibold uppercase tracking-wide text-stone-700">
+              <label htmlFor="powerRatingFilter" className="block text-[11px] font-semibold uppercase tracking-wide text-stone-700">
                 Power Rating
               </label>
               <select
+                id="powerRatingFilter"
                 value={powerRating}
                 onChange={(e) => setPowerRating(e.target.value)}
                 className="w-full bg-white border border-stone-300 rounded-xs px-3 py-2 text-xs text-stone-800 focus:outline-none focus:border-[#9E2016]"
@@ -101,10 +103,11 @@ export default function FireplacesPage() {
 
             {/* the filter for the fireplaces brand */}
             <div className="space-y-1.5">
-              <label className="block text-[11px] font-semibold uppercase tracking-wide text-stone-700">
+              <label htmlFor="fireplaceBrandFilter" className="block text-[11px] font-semibold uppercase tracking-wide text-stone-700">
                 Brand
               </label>
               <select
+                id="fireplaceBrandFilter"
                 value={brand}
                 onChange={(e) => setBrand(e.target.value)}
                 className="w-full bg-white border border-stone-300 rounded-xs px-3 py-2 text-xs text-stone-800 focus:outline-none focus:border-[#9E2016]"
@@ -131,6 +134,7 @@ export default function FireplacesPage() {
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder="Search fireplaces..."
+                  aria-label="Search fireplaces"
                   className="w-full bg-white border border-stone-300 rounded-xs pl-3 pr-4 py-2 text-xs text-stone-800 placeholder-stone-400 focus:outline-none focus:border-[#9E2016]"
                 />
               </div>
@@ -139,13 +143,14 @@ export default function FireplacesPage() {
               <div className="flex items-center gap-3">
                 <button
                   onClick={() => setShowCalculator((prev) => !prev)}
+                  aria-expanded={showCalculator}
                   className={`inline-flex items-center gap-1.5 border border-[#9E2016] px-3.5 py-2 rounded-xs text-[11px] font-bold uppercase tracking-wider transition-colors ${
                     showCalculator
                       ? 'bg-[#9E2016] text-white'
                       : 'text-[#9E2016] hover:bg-[#9E2016] hover:text-white'
                   }`}
                 >
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m-6 4h6m-6 4h6M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                   </svg>
                   Room Size Calculator
@@ -154,6 +159,7 @@ export default function FireplacesPage() {
                 <select
                   value={sort}
                   onChange={(e) => setSort(e.target.value)}
+                  aria-label="Sort fireplaces"
                   className="bg-white border border-stone-300 rounded-xs px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-stone-700 focus:outline-none focus:border-[#9E2016]"
                 >
                   <option value="name_asc">Sort By: Name A-Z</option>
