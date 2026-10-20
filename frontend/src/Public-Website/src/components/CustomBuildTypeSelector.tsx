@@ -29,7 +29,7 @@ export default function CustomBuildTypeSelector({
           aria-checked={selected === option.value}
           onClick={() => onSelect(option.value)}
           className={`relative h-56 rounded overflow-hidden text-left transition-all ${
-            selected === option.value ? 'ring-4 ring-[#9E2016]' : ''
+            selected === option.value ? 'ring-4 ring-brand-red' : ''
           }`}
         >
           <Image src={option.image} alt={option.label} fill className="object-cover" />
