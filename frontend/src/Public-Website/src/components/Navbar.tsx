@@ -18,7 +18,7 @@ export default function Navbar() {
   const pathName = usePathname();
   const [openNavMenu, setOpenNavMenu] = useState(false);
   return (
-    <header className="w-full bg-[#FAF6EE] border-b border-stone-200 shadow-sm px-6 sm:px-12 py-3 flex items-center justify-between relative">
+    <header className="w-full bg-brand-sand border-b border-stone-200 shadow-sm px-6 sm:px-12 py-3 flex items-center justify-between relative">
       {/* Section for image logo */}
       <Link href="/" className="flex-shrink-0 flex items-center">
         <Image
@@ -42,8 +42,8 @@ export default function Navbar() {
               aria-current={isActive ? 'page' : undefined}
               className={`transition-colors duration-150 whitespace-nowrap ${
                 isActive
-                  ? 'text-[#9E2016]'
-                  : 'text-stone-700 hover:text-[#9E2016]'
+                  ? 'text-brand-red'
+                  : 'text-stone-700 hover:text-brand-red'
               }`}
             >
               {link.name}
@@ -71,7 +71,7 @@ export default function Navbar() {
 
       {/* code for the dropdown menu */}
       {openNavMenu && (
-        <nav id="mobile-nav" aria-label="Mobile Navigation" className="lg:hidden absolute top-full left-0 w-full bg-[#FAF6EE] border-b border-stone-200 shadow-sm flex flex-col px-6 py-4 gap-4 text-sm font-bold tracking-wider z-50">
+        <nav id="mobile-nav" aria-label="Mobile Navigation" className="lg:hidden absolute top-full left-0 w-full bg-brand-sand border-b border-stone-200 shadow-sm flex flex-col px-6 py-4 gap-4 text-sm font-bold tracking-wider z-50">
           {navigationLinks.map((link) => {
             const isActive = pathName === link.href;
             return (
@@ -82,8 +82,8 @@ export default function Navbar() {
                 onClick={() => setOpenNavMenu(false)}
                 className={`transition-colors duration-150 ${
                   isActive
-                    ? 'text-[#9E2016]'
-                    : 'text-stone-700 hover:text-[#9E2016]'
+                    ? 'text-brand-red'
+                    : 'text-stone-700 hover:text-brand-red'
                 }`}
               >
                 {link.name}
