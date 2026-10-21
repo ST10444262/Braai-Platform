@@ -104,3 +104,21 @@ jobs:
             echo "Deployment trigger failed with HTTP $HTTP_STATUS."
             exit 1
           fi
+
+      - name: Verify Database Health Check Post-Deploy
+        env:
+          BACKEND_URL: ${{ secrets.RENDER_BACKEND_URL || 'https://inflame-backend.onrender.com' }}
+        run: |
+          echo "Waiting for backend service to stabilize (20s)..."
+          sleep 20
+          echo "Pinging health check endpoint at $BACKEND_URL/api/public/health..."
+          RESPONSE=$(curl -s -w "\n%{http_code}" "$BACKEND_URL/api/public/health" || true)
+          BODY=$(echo "$RESPONSE" | sed '$d')
+          STATUS=$(echo "$RESPONSE" | tail -n 1)
+          echo "Response HTTP Status: $STATUS"
+          echo "Response Body: $BODY"
+          if [ "$STATUS" = "200" ]; then
+            echo "Health check succeeded: Backend and database are healthy."
+          else
+            echo "::warning::Health check returned status $STATUS. The service may still be warming up or restarting on Render."
+          fi
