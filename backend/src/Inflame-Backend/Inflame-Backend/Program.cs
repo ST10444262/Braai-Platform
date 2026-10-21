@@ -139,6 +139,7 @@ builder.Services.AddScoped<IGalleryImageRepository>(sp => new CachedGalleryImage
 
 // Services
 builder.Services.AddScoped<Inflame_Backend.Services.IEmailService, Inflame_Backend.Services.SmtpEmailService>();
+builder.Services.AddScoped<Inflame_Backend.Services.IDatabaseHealthChecker, Inflame_Backend.Services.DatabaseHealthChecker>();
 builder.Services.AddScoped<TwoFactorChallengeService>();
 builder.Services.AddScoped<TrustedDeviceService>();
 
