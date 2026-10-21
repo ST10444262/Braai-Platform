@@ -359,6 +359,72 @@ This keeps the frontend communication with the backend structured and avoids exp
 
 ---
 
-# 10. AI Usage Declaration
+# 10. Part 2 feedback addressed
+
+
+### Database Migrations
+**Feedback:** "To lift this mark, add EF migrations for the business tables, keys and constraints, since only Identity is migrated."
+
+**How it was addressed:** `IdentityDbContext.cs` was expanded with a `DbSet` and fluent API mapping for every business entity (Clients, Quotes, QuoteItems, Invoices, Products, Leads, CustomBraaiOptions, FireplaceOptions, Enquiries and AnalyticsLogs). A new migration, `AddBusinessTablesAndConstraints`, was generated with the primary keys, foreign keys, indexes, default values and decimal precision.
+
+---
+
+### Rest Api: 201 created
+**Feedback:** "Creates such as POST /clients return 200 OK; new records should return 201 Created."
+
+**How it was addressed:** The create endpoints for clients, products, quotes, invoices, leads and user registration now return `201 Created`. Clients and products use `CreatedAtAction` so the response includes a `Location` header. The xUnit tests were updated to check for `201`.
+
+---
+
+### Security: JWT in httpOnly Cookie
+**Feedback:** "To cut XSS risk further, move the admin JWT from localStorage into an httpOnly cookie."
+
+**How it was addressed:** The backend now sets the JWT as an `httpOnly`, `Secure` cookie on login and 2FA verification, and deletes it on logout. JWT Bearer reads the token from this cookie when there is no `Authorization` header. On the admin site, `localStorage` is no longer used for the token. Requests are sent with `credentials: 'include'`, and the login state is checked by asking the server for the user's profile.
+
+---
+
+### UX: Failed Invoice Count Lookups
+**Feedback:** "The clients page swallows failed invoice-count lookups, so show the user an error instead."
+
+**How it was addressed:** Failed lookups were previously ignored with `catch(() => {})`. The clients page now tracks which rows failed and shows an "Unavailable (Failed to load)" badge with `role="alert"`. Refreshing the list clears the errors and tries again.
+
+---
+
+### Visual Design & Branding
+**Feedback:** "Clean branding, with admin site tokens and a consistent red and cream public palette. Next, remove the leftover create-next-app files and swap hard-coded colours for tokens."
+
+**How it was addressed:** Brand tokens (`--brand-red`, `--brand-red-dark`, `--brand-surface`, etc.) were added to `globals.css` and `tailwind.config.ts`. Hard-coded colours were replaced with these tokens in the Navbar, Footer, homepage, Room Size Calculator and Custom Build Type Selector. The admin pages now use theme variables too.
+
+
+---
+
+### Accessibility
+**Feedback:** "aria-label attributes are sparse and there are no roles, so add labels and ARIA, and run an accessibility audit."
+
+**How it was addressed:** ARIA labels and roles were added across both sites:
+- **Admin navigation:** `role="navigation"`, `aria-label`, `aria-current="page"`, and `aria-hidden` on decorative icons.
+- **Dialogs:** `role="dialog"`, `aria-modal="true"` and `aria-labelledby`.
+- **Admin pages:** `aria-label` on search bars and action buttons, and `aria-pressed` on filter tabs.
+- **Public catalogue pages:** `aria-live="polite"` and `role="status"` on pagination and filter changes.
+- **Public forms:** `aria-invalid`, `aria-describedby` and validation alerts.
+
+---
+
+### CI/CD: Deploy Step
+**Feedback:** "Good to see three passing workflows: a backend build and test, plus test runs for both sites. Next, focus on a deploy step in Actions; Vercel and Render deploy outside it."
+
+**How it was addressed:** A `deploy` job was added to `backend-ci.yml`. It triggers the Render deploy hook after a successful merge into `main` and checks the response status. `deploy` jobs for Vercel were also added to `admin-tests.yml` and `public-website-tests.yml`, running only when tests pass on `main`.
+
+---
+
+### Hosting: Database-Aware Health Check
+**Feedback:** "Credit for the documented hosting setup and UptimeRobot pinging /api/public/health. That check always returns OK, so make it test the database and run it after deploys."
+
+**How it was addressed:** A new `IDatabaseHealthChecker` service tests the database connection. `/api/public/health` now returns `200 OK` when the database is reachable and `503 Service Unavailable` when it is not. Three unit tests cover the connected, cannot-connect and exception cases. A "Verify Database Health Check Post-Deploy" step was also added to `backend-ci.yml` so the endpoint is checked after every deploy.
+
+
+---
+
+# 11. AI Usage Declaration
 
 Generative AI tools were used during the development of the Inflame platform as learning and productivity aid. AI assisted in generating boilerplate code such as the files needed for each repository, optimizing methods and debugging. The core architecture, business logic, service usage/integration, and design choices are entirely original to my group. The AI-assisted code which was used was thoroughly reviewed, modified, and tested to ensure that we understood what was being done and that it met the requirements of our project scope. 
