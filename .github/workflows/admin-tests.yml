@@ -39,27 +39,3 @@ jobs:
 
       - name: Run test coverage
         run: npm run test:coverage -- --runInBand
-
-  deploy:
-    name: Deploy to Vercel
-    needs: unit-tests
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Trigger Vercel Deploy Hook
-        env:
-          VERCEL_ADMIN_DEPLOY_HOOK: ${{ secrets.VERCEL_ADMIN_DEPLOY_HOOK }}
-        run: |
-          if [ -z "$VERCEL_ADMIN_DEPLOY_HOOK" ]; then
-            echo "::warning::VERCEL_ADMIN_DEPLOY_HOOK secret is not configured in repository settings. Set this secret to enable automatic deployment from Actions."
-            exit 0
-          fi
-          echo "Triggering deployment on Vercel for Admin Website..."
-          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$VERCEL_ADMIN_DEPLOY_HOOK")
-          if [ "$HTTP_STATUS" -ge 200 ] && [ "$HTTP_STATUS" -lt 300 ]; then
-            echo "Deployment successfully triggered (HTTP $HTTP_STATUS)."
-          else
-            echo "Deployment trigger failed with HTTP $HTTP_STATUS."
-            exit 1
-          fi

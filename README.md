@@ -410,17 +410,10 @@ This keeps the frontend communication with the backend structured and avoids exp
 
 ---
 
-### CI/CD: Deploy Step
-**Feedback:** "Good to see three passing workflows: a backend build and test, plus test runs for both sites. Next, focus on a deploy step in Actions; Vercel and Render deploy outside it."
-
-**How it was addressed:** A `deploy` job was added to `backend-ci.yml`. It triggers the Render deploy hook after a successful merge into `main` and checks the response status. `deploy` jobs for Vercel were also added to `admin-tests.yml` and `public-website-tests.yml`, running only when tests pass on `main`.
-
----
-
 ### Hosting: Database-Aware Health Check
 **Feedback:** "Credit for the documented hosting setup and UptimeRobot pinging /api/public/health. That check always returns OK, so make it test the database and run it after deploys."
 
-**How it was addressed:** A new `IDatabaseHealthChecker` service tests the database connection. `/api/public/health` now returns `200 OK` when the database is reachable and `503 Service Unavailable` when it is not. Three unit tests cover the connected, cannot-connect and exception cases. A "Verify Database Health Check Post-Deploy" step was also added to `backend-ci.yml` so the endpoint is checked after every deploy.
+**How it was addressed:** A new `IDatabaseHealthChecker` service tests the database connection. `/api/public/health` now returns `200 OK` when the database is reachable and `503 Service Unavailable` when it is not. Three unit tests cover the connected, cannot-connect and exception cases.
 
 
 ---
