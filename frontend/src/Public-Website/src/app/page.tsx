@@ -24,7 +24,7 @@ export default function HomePage() {
         <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/45 to-transparent -z-10" />
 
         <div className="relative max-w-2xl z-10 space-y-4 text-white">
-          <span className="text-xs tracking-widest uppercase text-[#E67E22] font-bold">
+          <span className="text-xs tracking-widest uppercase text-brand-orange font-bold">
             PREMIUM INSTALLATIONS
           </span>
           <h1 className="text-4xl sm:text-5xl font-serif font-semibold leading-tight">
@@ -36,7 +36,7 @@ export default function HomePage() {
           <div className="pt-4 flex flex-wrap gap-4">
             <Link
               href="/contact"
-              className="bg-[#9E2016] hover:bg-red-800 text-white text-xs font-bold px-6 py-3 rounded uppercase tracking-wider transition-colors"
+              className="bg-brand-red hover:bg-red-800 text-white text-xs font-bold px-6 py-3 rounded uppercase tracking-wider transition-colors"
             >
               Get an Estimate Quote &rarr;
             </Link>
@@ -51,8 +51,8 @@ export default function HomePage() {
       </section>
 
       {/* Range of products section */}
-      <section className="w-full bg-[#FAF6EE] py-16 px-6 sm:px-12 text-center">
-        <h2 className="text-2xl sm:text-3xl font-serif font-semibold text-[#9E2016] mb-2">
+      <section className="w-full bg-brand-sand py-16 px-6 sm:px-12 text-center">
+        <h2 className="text-2xl sm:text-3xl font-serif font-semibold text-brand-red mb-2">
           Discover Our Range
         </h2>
         <p className="text-stone-600 text-xs sm:text-sm max-w-2xl mx-auto mb-10 leading-relaxed">
@@ -79,7 +79,7 @@ export default function HomePage() {
                 )}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent z-10" />
                 <div className="absolute bottom-4 left-4 z-20 text-left">
-                  <h3 className="text-white font-semibold text-lg group-hover:text-[#FAF6EE] transition-colors">
+                  <h3 className="text-white font-semibold text-lg group-hover:text-brand-sand transition-colors">
                     {cat.title}
                   </h3>
                 </div>
@@ -90,9 +90,9 @@ export default function HomePage() {
       </section>
 
       {/* who we work with section */}
-      <section className="w-full bg-[#FAF6EE] pb-20 px-6 sm:px-12 text-center border-t border-stone-200/60">
+      <section className="w-full bg-brand-sand pb-20 px-6 sm:px-12 text-center border-t border-stone-200/60">
         <div className="pt-12 mb-8">
-          <h2 className="text-2xl sm:text-3xl font-serif font-semibold text-[#9E2016] mb-1">
+          <h2 className="text-2xl sm:text-3xl font-serif font-semibold text-brand-red mb-1">
             Who We Work With
           </h2>
           <p className="text-stone-500 text-xs sm:text-sm">
@@ -112,7 +112,7 @@ export default function HomePage() {
       </section>
 
 {/* mastering the elements section */}
-<section className="relative w-full min-h-[550px] bg-[#0F0F0F] text-white py-20 px-6 sm:px-16 overflow-hidden flex items-center">
+<section className="relative w-full min-h-[550px] bg-brand-dark text-white py-20 px-6 sm:px-16 overflow-hidden flex items-center">
   <Image
     src="/mastercraft.jpg"
     alt="Fire embers background"
@@ -122,7 +122,7 @@ export default function HomePage() {
   />
 
 
-  <div className="absolute inset-0 bg-gradient-to-r from-[#0F0F0F] via-[#0F0F0F]/80 to-transparent z-10 pointer-events-none" />
+  <div className="absolute inset-0 bg-gradient-to-r from-brand-dark via-brand-dark/80 to-transparent z-10 pointer-events-none" />
 
   
   <div className="relative max-w-2xl z-20 space-y-6">
@@ -134,7 +134,7 @@ export default function HomePage() {
     </p>
     <div className="pt-2 space-y-4">
       <div>
-        <p className="text-[#9E2016] text-3xl font-bold tracking-tight">30+</p>
+        <p className="text-brand-red text-3xl font-bold tracking-tight">30+</p>
         <p className="text-stone-400 text-xs font-semibold uppercase tracking-widest mt-1">
           YEARS EXPERIENCE
         </p>
@@ -142,7 +142,7 @@ export default function HomePage() {
       <div>
         <Link
           href="/contact"
-          className="inline-block border border-[#9E2016] text-[#9E2016] hover:bg-[#9E2016] hover:text-white text-xs font-bold px-6 py-3 rounded-sm uppercase tracking-wider transition-all"
+          className="inline-block border border-brand-red text-brand-red hover:bg-brand-red hover:text-white text-xs font-bold px-6 py-3 rounded-sm uppercase tracking-wider transition-all"
         >
           Get in Contact With Us
         </Link>

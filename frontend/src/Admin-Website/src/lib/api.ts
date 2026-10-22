@@ -1,24 +1,23 @@
 import type { Role } from "./types";
 
-const TOKEN_KEY = "inflame_admin_token";
-
+/*
+ * tokenStore is intentionally a no-op.
+ *
+ * The JWT is now stored in an httpOnly cookie set
+ * by the backend on login/2FA. JavaScript cannot
+ * read httpOnly cookies, so localStorage is no
+ * longer used. The browser sends the cookie
+ * automatically on every same-origin request.
+ *
+ * Kept as a stub so any existing imports compile
+ * without changes.
+ *
+ * @deprecated — do not call set/get/clear directly.
+ */
 export const tokenStore = {
-  get: () =>
-    typeof window === "undefined"
-      ? null
-      : localStorage.getItem(TOKEN_KEY),
-
-  set: (token: string) => {
-    if (typeof window !== "undefined") {
-      localStorage.setItem(TOKEN_KEY, token);
-    }
-  },
-
-  clear: () => {
-    if (typeof window !== "undefined") {
-      localStorage.removeItem(TOKEN_KEY);
-    }
-  },
+  get: (): string | null => null,
+  set: (_token: string): void => undefined,
+  clear: (): void => undefined,
 };
 
 export class ApiError extends Error {
@@ -37,6 +36,11 @@ const RANK: Role[] = [
   "Employee",
 ];
 
+/**
+ * @deprecated No longer needed now that the JWT
+ * lives in an httpOnly cookie and cannot be read
+ * by JavaScript. Kept for backward compatibility.
+ */
 export function decodeToken(
   token: string
 ): {
@@ -175,23 +179,6 @@ async function request<T>(
     init.headers
   );
 
-  /*
-   * Capture the token BEFORE the request.
-   *
-   * This is important because a 401 should
-   * only redirect to /login if this request
-   * was actually authenticated.
-   */
-  const tokenAtRequestStart =
-    tokenStore.get();
-
-  if (tokenAtRequestStart) {
-    headers.set(
-      "Authorization",
-      `Bearer ${tokenAtRequestStart}`
-    );
-  }
-
   if (
     typeof init.body === "string" &&
     !headers.has("Content-Type")
@@ -210,6 +197,12 @@ async function request<T>(
       {
         ...init,
         headers,
+        /*
+         * Ensures the browser attaches the
+         * httpOnly auth cookie on every request,
+         * including cross-origin scenarios.
+         */
+        credentials: "include",
       }
     );
   } catch {
@@ -235,24 +228,21 @@ async function request<T>(
   /*
    * IMPORTANT:
    *
-   * Redirect ONLY if:
+   * Redirect to /login on 401 ONLY if:
    *
    * 1. API returned 401
-   * 2. This request started with a token
-   * 3. This wasn't the login endpoint
+   * 2. This wasn't the login endpoint itself
    *
-   * Therefore an anonymous 401 does NOT
-   * redirect the browser.
+   * The browser's httpOnly cookie acts as the
+   * session indicator — we no longer gate this
+   * on a localStorage token.
    */
   if (
     response.status === 401 &&
-    Boolean(tokenAtRequestStart) &&
     !path.includes(
       "/account/login"
     )
   ) {
-    tokenStore.clear();
-
     if (
       typeof window !==
       "undefined"

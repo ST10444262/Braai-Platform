@@ -47,7 +47,7 @@ export default function BraaisPage() {
         <div className="flex flex-col lg:flex-row gap-8 items-start">
           
           {/* LEFT SIDEBAR: FILTERS */}
-          <aside className="w-full lg:w-64 bg-[#EFECE6] p-6 rounded-sm border border-stone-200/80 space-y-5 shrink-0">
+          <aside aria-label="Product filters" className="w-full lg:w-64 bg-[#EFECE6] p-6 rounded-sm border border-stone-200/80 space-y-5 shrink-0">
             <div className="flex items-center justify-between border-b border-stone-300/80 pb-3">
               <h3 className="text-base font-serif font-bold text-[#9E2016] tracking-wider uppercase">
                 FILTERS
@@ -62,10 +62,11 @@ export default function BraaisPage() {
 
             {/* Filter for product type */}
             <div className="space-y-1.5">
-              <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-700">
+              <label htmlFor="braaiTypeFilter" className="block text-[11px] font-bold uppercase tracking-wider text-stone-700">
                 Product Type
               </label>
               <select
+                id="braaiTypeFilter"
                 value={braaiType}
                 onChange={(e) => setBraaiType(e.target.value)}
                 className="w-full bg-white border border-stone-300 rounded-sm px-3 py-2 text-xs text-stone-800 focus:outline-none focus:border-[#9E2016] cursor-pointer"
@@ -81,10 +82,11 @@ export default function BraaisPage() {
 
             {/* Filter for fuel type */}
             <div className="space-y-1.5">
-              <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-700">
+              <label htmlFor="fuelTypeFilter" className="block text-[11px] font-bold uppercase tracking-wider text-stone-700">
                 Fuel Type
               </label>
               <select
+                id="fuelTypeFilter"
                 value={fuelType}
                 onChange={(e) => setFuelType(e.target.value)}
                 className="w-full bg-white border border-stone-300 rounded-sm px-3 py-2 text-xs text-stone-800 focus:outline-none focus:border-[#9E2016] cursor-pointer"
@@ -100,10 +102,11 @@ export default function BraaisPage() {
 
             {/* filter for brand */}
             <div className="space-y-1.5">
-              <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-700">
+              <label htmlFor="brandFilter" className="block text-[11px] font-bold uppercase tracking-wider text-stone-700">
                 Brand
               </label>
               <select
+                id="brandFilter"
                 value={brand}
                 onChange={(e) => setBrand(e.target.value)}
                 className="w-full bg-white border border-stone-300 rounded-sm px-3 py-2 text-xs text-stone-800 focus:outline-none focus:border-[#9E2016] cursor-pointer"
@@ -125,7 +128,7 @@ export default function BraaisPage() {
             <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
               <div className="relative w-full sm:flex-1">
                 <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-stone-400">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                   </svg>
                 </span>
@@ -134,6 +137,7 @@ export default function BraaisPage() {
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder="Search braais..."
+                  aria-label="Search braais"
                   className="w-full bg-white border border-stone-300 rounded-sm pl-10 pr-4 py-2 text-xs sm:text-sm text-stone-800 placeholder-stone-400 focus:outline-none focus:border-[#9E2016] transition-colors"
                 />
               </div>
@@ -141,6 +145,7 @@ export default function BraaisPage() {
               <select
                 value={sort}
                 onChange={(e) => setSort(e.target.value)}
+                aria-label="Sort braais"
                 className="w-full sm:w-auto bg-white border border-stone-300 rounded-sm px-4 py-2 text-xs font-bold uppercase tracking-wider text-stone-700 focus:outline-none focus:border-[#9E2016] cursor-pointer"
               >
                 <option value="name_asc">Name A-Z</option>

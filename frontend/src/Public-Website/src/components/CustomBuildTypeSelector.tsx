@@ -20,14 +20,16 @@ export default function CustomBuildTypeSelector({
   const colsClass = options.length >= 4 ? 'lg:grid-cols-4' : 'lg:grid-cols-3';
 
   return (
-    <div className={`grid grid-cols-1 sm:grid-cols-2 ${colsClass} gap-4`}>
+    <div role="radiogroup" aria-label="Build Type Selection" className={`grid grid-cols-1 sm:grid-cols-2 ${colsClass} gap-4`}>
       {options.map((option) => (
         <button
           key={option.value}
           type="button"
+          role="radio"
+          aria-checked={selected === option.value}
           onClick={() => onSelect(option.value)}
           className={`relative h-56 rounded overflow-hidden text-left transition-all ${
-            selected === option.value ? 'ring-4 ring-[#9E2016]' : ''
+            selected === option.value ? 'ring-4 ring-brand-red' : ''
           }`}
         >
           <Image src={option.image} alt={option.label} fill className="object-cover" />

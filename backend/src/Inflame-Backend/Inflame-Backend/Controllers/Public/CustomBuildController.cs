@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using MediatR;
 using System.Threading.Tasks;
@@ -32,7 +33,7 @@ namespace Inflame_Backend.Controllers.Public
             var command = new CreateCustomBuildCommand(request);
             var enquiryId = await _mediator.Send(command);
 
-            return Ok(enquiryId);
+            return StatusCode(StatusCodes.Status201Created, enquiryId);
         }
     }
 }

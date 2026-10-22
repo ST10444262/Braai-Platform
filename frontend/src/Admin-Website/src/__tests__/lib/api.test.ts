@@ -13,10 +13,10 @@ function mockFetch(status: number, body: unknown, raw = false) {
 }
 
 describe("tokenStore", () => {
-  it("sets, gets and clears the token", () => {
+  it("acts as a backward-compatible no-op stub since auth uses httpOnly cookies", () => {
     expect(tokenStore.get()).toBeNull();
     tokenStore.set("abc");
-    expect(tokenStore.get()).toBe("abc");
+    expect(tokenStore.get()).toBeNull();
     tokenStore.clear();
     expect(tokenStore.get()).toBeNull();
   });
@@ -55,11 +55,10 @@ describe("api request", () => {
     expect(f.mock.calls[0][0]).toBe("/api/admin/overview");
   });
 
-  it("attaches the bearer token when present", async () => {
-    tokenStore.set("tok");
+  it("sends credentials: include on requests for cookie-based authentication", async () => {
     const f = mockFetch(200, {});
     await api.get("/x");
-    expect((f.mock.calls[0][1].headers as Headers).get("Authorization")).toBe("Bearer tok");
+    expect(f.mock.calls[0][1].credentials).toBe("include");
   });
 
   it("JSON-encodes POST bodies and sets the content type", async () => {
@@ -155,9 +154,7 @@ describe("401 handling", () => {
     errSpy.mockRestore();
   });
 
-  it("clears the token and redirects to /login", async () => {
-    tokenStore.set("tok");
-
+  it("redirects to /login on 401 for protected endpoints", async () => {
     mockFetch(401, {
       message: "Expired",
     });
@@ -166,13 +163,10 @@ describe("401 handling", () => {
       api.get("/admin/overview")
     ).rejects.toThrow("Expired");
 
-    expect(tokenStore.get()).toBeNull();
     expect(navigated()).toBe(true);
   });
 
   it("does not redirect for a failed login attempt", async () => {
-    tokenStore.set("tok");
-
     mockFetch(401, {
       message: "Bad credentials",
     });
@@ -181,26 +175,6 @@ describe("401 handling", () => {
       api.post("/admin/account/login", {})
     ).rejects.toThrow("Bad credentials");
 
-    // Login failures must not clear an existing token
-    // through the generic 401 handler.
-    expect(tokenStore.get()).toBe("tok");
-
-    expect(navigated()).toBe(false);
-  });
-
-  it("does not redirect when there was no token to begin with", async () => {
-    // Explicitly verify the condition this test is testing.
-    expect(tokenStore.get()).toBeNull();
-
-    mockFetch(401, {
-      message: "Unauthorised",
-    });
-
-    await expect(
-      api.get("/x")
-    ).rejects.toThrow("Unauthorised");
-
-    expect(tokenStore.get()).toBeNull();
     expect(navigated()).toBe(false);
   });
 });

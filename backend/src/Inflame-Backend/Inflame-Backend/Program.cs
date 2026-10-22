@@ -139,6 +139,7 @@ builder.Services.AddScoped<IGalleryImageRepository>(sp => new CachedGalleryImage
 
 // Services
 builder.Services.AddScoped<Inflame_Backend.Services.IEmailService, Inflame_Backend.Services.SmtpEmailService>();
+builder.Services.AddScoped<Inflame_Backend.Services.IDatabaseHealthChecker, Inflame_Backend.Services.DatabaseHealthChecker>();
 builder.Services.AddScoped<TwoFactorChallengeService>();
 builder.Services.AddScoped<TrustedDeviceService>();
 
@@ -166,7 +167,8 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
 
 // Identity Database
 var identityConnectionString =
-    builder.Configuration.GetConnectionString("IdentityDatabase");
+    builder.Configuration.GetConnectionString("IdentityDatabase")
+    ?? "Host=localhost;Database=inflame;Username=postgres;Password=postgres";
 
 builder.Services.AddDbContext<IdentityDbContext>(options =>
 {
@@ -214,7 +216,8 @@ builder.Services
     .AddJwtBearer(options =>
     {
         var jwtKey =
-            builder.Configuration["Jwt:Key"];
+            builder.Configuration["Jwt:Key"]
+            ?? (builder.Environment.IsDevelopment() ? "development_secret_key_that_is_at_least_32_bytes_long_12345!" : null);
 
         if (string.IsNullOrWhiteSpace(jwtKey))
         {
@@ -233,16 +236,30 @@ builder.Services
 
                 ValidateIssuer = true,
                 ValidIssuer =
-                    builder.Configuration["Jwt:Issuer"],
+                    builder.Configuration["Jwt:Issuer"] ?? "Inflame-Backend",
 
                 ValidateAudience = true,
                 ValidAudience =
-                    builder.Configuration["Jwt:Audience"],
+                    builder.Configuration["Jwt:Audience"] ?? "Inflame-Client",
 
                 ValidateLifetime = true,
 
                 ClockSkew = TimeSpan.Zero
             };
+
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                // Fall back to reading the JWT from the httpOnly cookie if Authorization header is not set
+                if (string.IsNullOrEmpty(context.Token) &&
+                    context.Request.Cookies.TryGetValue("inflame_admin_token", out var cookieToken))
+                {
+                    context.Token = cookieToken;
+                }
+                return Task.CompletedTask;
+            }
+        };
     });
 
 builder.Services.AddAuthorization();
@@ -255,27 +272,39 @@ var app = builder.Build();
 app.UseForwardedHeaders();
 
 // Seed identity roles and initial SuperAdmin at application startup
-using (var scope = app.Services.CreateScope())
+if (!string.IsNullOrWhiteSpace(builder.Configuration.GetConnectionString("IdentityDatabase")))
 {
-    var roleManager =
-        scope.ServiceProvider
-            .GetRequiredService<RoleManager<IdentityRole<Guid>>>();
+    try
+    {
+        using var scope = app.Services.CreateScope();
+        var roleManager =
+            scope.ServiceProvider
+                .GetRequiredService<RoleManager<IdentityRole<Guid>>>();
 
-    var userManager =
-        scope.ServiceProvider
-            .GetRequiredService<UserManager<ApplicationUser>>();
+        var userManager =
+            scope.ServiceProvider
+                .GetRequiredService<UserManager<ApplicationUser>>();
 
-    var staffAccountRepository =
-        scope.ServiceProvider
-            .GetRequiredService<Inflame_Backend.Data.Repositories.CRM.IStaffAccountRepository>();
+        var staffAccountRepository =
+            scope.ServiceProvider
+                .GetRequiredService<Inflame_Backend.Data.Repositories.CRM.IStaffAccountRepository>();
 
-    await IdentitySeeder.SeedRolesAsync(roleManager);
+        await IdentitySeeder.SeedRolesAsync(roleManager);
 
-    await IdentitySeeder.SeedSuperAdminAsync(
-        userManager,
-        roleManager,
-        app.Configuration,
-        staffAccountRepository);
+        await IdentitySeeder.SeedSuperAdminAsync(
+            userManager,
+            roleManager,
+            app.Configuration,
+            staffAccountRepository);
+    }
+    catch (Exception ex)
+    {
+        app.Logger.LogWarning(ex, "Could not complete identity seeding on startup. Ensure database is accessible.");
+    }
+}
+else
+{
+    app.Logger.LogInformation("ConnectionStrings:IdentityDatabase not configured. Skipping identity seeding.");
 }
 
 // Configure the HTTP request pipeline.
