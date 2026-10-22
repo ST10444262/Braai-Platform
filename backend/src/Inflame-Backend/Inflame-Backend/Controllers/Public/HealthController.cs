@@ -19,11 +19,6 @@ namespace Inflame_Backend.Controllers.Public
     {
         private readonly IDatabaseHealthChecker _healthChecker;
 
-        public HealthController(IdentityDbContext dbContext)
-            : this(new DatabaseHealthChecker(dbContext))
-        {
-        }
-
         public HealthController(IDatabaseHealthChecker healthChecker)
         {
             _healthChecker = healthChecker;

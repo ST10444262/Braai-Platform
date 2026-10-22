@@ -1,4 +1,4 @@
-﻿using StackExchange.Redis;
+using StackExchange.Redis;
 
 namespace Inflame_Backend.Data.Instances
 {
@@ -14,7 +14,13 @@ namespace Inflame_Backend.Data.Instances
         {
             _lazyConnection = new Lazy<ConnectionMultiplexer>(() =>
             {
-                var uri = new Uri(connectionString);
+                var formatted = connectionString.Contains("://") ? connectionString : $"redis://{connectionString}";
+                if (!Uri.TryCreate(formatted, UriKind.Absolute, out var uri))
+                {
+                    uri = new Uri("redis://127.0.0.1:6379");
+                }
+
+                var port = uri.Port > 0 ? uri.Port : 6379;
 
                 var options = new ConfigurationOptions
                 {
@@ -22,7 +28,7 @@ namespace Inflame_Backend.Data.Instances
                     {
                         {
                             uri.Host,
-                            uri.Port
+                            port
                         }
                     },
 

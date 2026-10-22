@@ -1,4 +1,4 @@
-﻿using System.IdentityModel.Tokens.Jwt;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Inflame_Backend.Identity;
@@ -65,7 +65,8 @@ namespace Inflame_Backend.Identity
                     new Claim(ClaimTypes.Role, role));
             }
 
-            var key = _configuration["Jwt:Key"];
+            var key = _configuration["Jwt:Key"]
+                ?? (_configuration["ASPNETCORE_ENVIRONMENT"] == "Development" ? "development_secret_key_that_is_at_least_32_bytes_long_12345!" : null);
 
             if (string.IsNullOrWhiteSpace(key))
             {
@@ -87,11 +88,11 @@ namespace Inflame_Backend.Identity
                     "Jwt:ExpiryMinutes");
 
             var token = new JwtSecurityToken(
-                issuer: _configuration["Jwt:Issuer"],
-                audience: _configuration["Jwt:Audience"],
+                issuer: _configuration["Jwt:Issuer"] ?? "Inflame-Backend",
+                audience: _configuration["Jwt:Audience"] ?? "Inflame-Client",
                 claims: claims,
                 expires: DateTime.UtcNow.AddMinutes(
-                    expiryMinutes),
+                    expiryMinutes > 0 ? expiryMinutes : 60),
                 signingCredentials: credentials);
 
             return new JwtSecurityTokenHandler()
