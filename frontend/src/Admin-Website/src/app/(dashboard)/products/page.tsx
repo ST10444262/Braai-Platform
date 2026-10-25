@@ -61,6 +61,7 @@ export default function ProductsPage() {
         {TABS.map((t) => (
           <button
             key={t.key}
+            aria-pressed={tab === t.key}
             onClick={() => {
               setTab(t.key);
               setPage(1);

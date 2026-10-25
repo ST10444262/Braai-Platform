@@ -20,7 +20,7 @@ export default function Footer() {
   };
 
   return (
-    <footer className="w-full bg-[#141414] text-stone-300">
+    <footer className="w-full bg-brand-surface text-stone-300">
       {/* Main Footer Container - Spread Across Outer Edges */}
       <div className="w-full px-6 sm:px-12 pt-12 pb-10 flex flex-col md:flex-row justify-between items-start gap-8 text-sm">
         

@@ -124,7 +124,7 @@ namespace Inflame_Backend.Tests.Controllers
         }
 
         [Fact]
-        public async Task CreateProduct_WhenCalledBySuperAdmin_ShouldReturn200Ok()
+        public async Task CreateProduct_WhenCalledBySuperAdmin_ShouldReturn201Created()
         {
             // Arrange
             var mockMediator = new Mock<IMediator>();
@@ -151,7 +151,7 @@ namespace Inflame_Backend.Tests.Controllers
             });
 
             // Assert
-            actionResult.Result.Should().BeOfType<OkObjectResult>(
+            actionResult.Result.Should().BeOfType<CreatedAtActionResult>(
                 because: "a SuperAdmin must be able to create products");
         }
 
