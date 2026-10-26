@@ -49,7 +49,8 @@ builder.Services.AddCors(options =>
                 .Get<string[]>()
                 ?? (builder.Environment.IsDevelopment()
                     ? new[] { "http://localhost:3000", "http://localhost:3001" }
-                    : new[] { "https://inflame.co.za", "https://admin.inflame.co.za" });
+                    
+                    : Array.Empty<string>());
 
             policy.WithOrigins(allowedOrigins)
                   .AllowAnyHeader()
