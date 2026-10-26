@@ -49,14 +49,7 @@ builder.Services.AddCors(options =>
                 .Get<string[]>()
                 ?? (builder.Environment.IsDevelopment()
                     ? new[] { "http://localhost:3000", "http://localhost:3001" }
-                    : Array.Empty<string>());
-
-            if (allowedOrigins.Length == 0)
-            {
-                throw new InvalidOperationException(
-                    "AllowedOrigins must be configured in production. " +
-                    "Set the exact Vercel domain(s) — no wildcards.");
-            }
+                    : new[] { "https://inflame.co.za", "https://admin.inflame.co.za" });
 
             policy.WithOrigins(allowedOrigins)
                   .AllowAnyHeader()
