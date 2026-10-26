@@ -35,17 +35,38 @@ builder.Services.AddMediatR(config =>
 //------------------------------------------------------------------------------------------//
 #region CORS Configuration
 
-// Configure CORS
+// CORS is restricted to the exact Vercel production domains for the public site and admin portal,
+// plus localhost origins for local development. No wildcard origins are permitted.
+// Production URLs are configured via the AllowedOrigins array in appsettings / environment variables.
+// Example appsettings.Production.json entry:
+//   "AllowedOrigins": [
+//     "https://inflame.co.za",
+//     "https://www.inflame.co.za",
+//     "https://admin.inflame.co.za"
+//   ]
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend",
         policy =>
         {
-            var allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>() ?? new[] { "http://localhost:3000", "http://localhost:3001", "https://your-frontend-domain.com" };
+            var allowedOrigins = builder.Configuration
+                .GetSection("AllowedOrigins")
+                .Get<string[]>()
+                ?? (builder.Environment.IsDevelopment()
+                    ? new[] { "http://localhost:3000", "http://localhost:3001" }
+                    : Array.Empty<string>());
+
+            if (allowedOrigins.Length == 0)
+            {
+                throw new InvalidOperationException(
+                    "AllowedOrigins must be configured in production. " +
+                    "Set the exact Vercel domain(s) — no wildcards.");
+            }
+
             policy.WithOrigins(allowedOrigins)
                   .AllowAnyHeader()
                   .AllowAnyMethod()
-                  .AllowCredentials(); 
+                  .AllowCredentials();
         });
 });
 
