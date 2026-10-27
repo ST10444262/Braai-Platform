@@ -146,6 +146,27 @@ export default function LoginPage() {
 
         {!isSettingUp && !userId && (
           <>
+            {/* ------------------------------------------------------------------ */}
+            {/* Legal warning banner — Cybercrimes Act 19 of 2020 / POPIA consent  */}
+            <div
+              role="alert"
+              className="rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-xs leading-relaxed text-amber-900"
+            >
+              <p className="font-semibold uppercase tracking-wide mb-1">
+                Restricted Corporate Portal — Authorised Inflame Staff Only
+              </p>
+              <p>
+                Unauthorised access, credential stuffing, or attempts to bypass
+                authentication or Two-Factor Authentication are prohibited and
+                constitute a criminal offence under the{" "}
+                <strong>Cybercrimes Act 19 of 2020</strong>. By logging in, you
+                consent to the logging of your IP address, session activity,
+                client record views, enquiry status changes, notes and file
+                uploads for security auditing, in accordance with{" "}
+                <strong>POPIA</strong>.
+              </p>
+            </div>
+            {/* ------------------------------------------------------------------ */}
             <Field label="Email">
               <TextInput
                 type="email"

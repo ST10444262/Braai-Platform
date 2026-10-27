@@ -35,17 +35,26 @@ builder.Services.AddMediatR(config =>
 //------------------------------------------------------------------------------------------//
 #region CORS Configuration
 
-// Configure CORS
+// CORS is restricted to the exact Vercel production domains for the public site and admin portal,
+// plus localhost origins for local development. No wildcard origins are permitted.
+// Production URLs are configured via the AllowedOrigins array in appsettings / environment variables.
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend",
         policy =>
         {
-            var allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>() ?? new[] { "http://localhost:3000", "http://localhost:3001", "https://your-frontend-domain.com" };
+            var allowedOrigins = builder.Configuration
+                .GetSection("AllowedOrigins")
+                .Get<string[]>()
+                ?? (builder.Environment.IsDevelopment()
+                    ? new[] { "http://localhost:3000", "http://localhost:3001" }
+                    : Array.Empty<string>());
+
             policy.WithOrigins(allowedOrigins)
                   .AllowAnyHeader()
                   .AllowAnyMethod()
-                  .AllowCredentials(); 
+                  .AllowCredentials();
         });
 });
 
@@ -155,7 +164,7 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
     // Render uses a reverse proxy, so we need to forward headers to get the actual client IP for rate limiting
     options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
     // Clear known networks and proxies so it accepts X-Forwarded-For from any Render proxy
-    options.KnownNetworks.Clear();
+    options.KnownIPNetworks.Clear();
     options.KnownProxies.Clear();
 });
 
