@@ -49,7 +49,6 @@ builder.Services.AddCors(options =>
                 .Get<string[]>()
                 ?? (builder.Environment.IsDevelopment()
                     ? new[] { "http://localhost:3000", "http://localhost:3001" }
-                    
                     : Array.Empty<string>());
 
             policy.WithOrigins(allowedOrigins)
@@ -165,7 +164,7 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
     // Render uses a reverse proxy, so we need to forward headers to get the actual client IP for rate limiting
     options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
     // Clear known networks and proxies so it accepts X-Forwarded-For from any Render proxy
-    options.KnownNetworks.Clear();
+    options.KnownIPNetworks.Clear();
     options.KnownProxies.Clear();
 });
 
