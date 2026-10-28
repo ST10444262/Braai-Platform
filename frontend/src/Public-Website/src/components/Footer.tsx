@@ -112,12 +112,15 @@ export default function Footer() {
         </div>
       </div>
 
-      {/* copywrite bar */}
-      <div className="border-t border-stone-800/80">
-        <div className="w-full px-6 sm:px-12 py-4 text-xs text-stone-500">
-          © {new Date().getFullYear()} Inflame
-        </div>
+      {/* copywrite bar with a link to the privacy policy*/}
+    <div className="border-t border-stone-800/80">
+      <div className="w-full px-6 sm:px-12 py-4 text-xs text-stone-500 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+        <span>© {new Date().getFullYear()} Inflame</span>
+        <Link href="/privacy-policy" className="hover:text-white transition-colors">
+          Privacy Policy
+        </Link>
       </div>
+    </div>
     </footer>
   );
 }
