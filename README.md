@@ -213,11 +213,26 @@ The backend uses xUnit tests, while the Next.js applications are checked using:
 npm run lint
 ```
 
-This helps identify problems before changes are merged.
+This helps identify problems before changes are merged. All tests are required to pass before a merge can be done as per the rule on `main` and `develop`:
+
+<img width="696" height="887" alt="image" src="https://github.com/user-attachments/assets/3e504c35-24ed-4780-919a-9c0834bd6783" />
+
 
 ### Continuous Deployment
 
-After changes are merged into `main`, the deployment process is triggered.
+Backend Staging is triggered after a PR has passed all checks and has been merged to develop:
+
+<img width="650" height="181" alt="image" src="https://github.com/user-attachments/assets/e07cf560-24ad-4520-985f-22ea3546b948" />
+
+Whereas Vercel Previews are automatically created on every branch :
+
+<img width="1637" height="411" alt="image" src="https://github.com/user-attachments/assets/82b9a665-8b05-491f-a1c7-cfaac1bd6272" />
+
+<img width="1623" height="417" alt="image" src="https://github.com/user-attachments/assets/3ab20edf-a839-4b2b-bb4f-cd3711a618b6" />
+
+
+
+After changes are merged into `main`, the deployment process is triggered. Where the backend api and frontend applications are both automatically deployed to each of the production environments.
 
 <img width="122" height="232" alt="Untitled Diagram drawio (1)" src="https://github.com/user-attachments/assets/05a3c598-0f57-42df-945e-02c2ea074a6b" />
 
