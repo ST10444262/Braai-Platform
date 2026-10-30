@@ -215,7 +215,8 @@ npm run lint
 
 This helps identify problems before changes are merged. All tests are required to pass before a merge can be done as per the rule on `main` and `develop`:
 
-<img width="696" height="887" alt="image" src="https://github.com/user-attachments/assets/3e504c35-24ed-4780-919a-9c0834bd6783" />
+<img width="699" height="844" alt="image" src="https://github.com/user-attachments/assets/6ba64422-8af1-412f-9fb3-b73e4cf91e7e" />
+
 
 
 ### Continuous Deployment
