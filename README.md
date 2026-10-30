@@ -213,7 +213,10 @@ The backend uses xUnit tests, while the Next.js applications are checked using:
 npm run lint
 ```
 
-This helps identify problems before changes are merged.
+This helps identify problems before changes are merged. All tests are required to pass before a merge can be done as per the rule on `main` and `develop`:
+
+<img width="696" height="887" alt="image" src="https://github.com/user-attachments/assets/3e504c35-24ed-4780-919a-9c0834bd6783" />
+
 
 ### Continuous Deployment
 
