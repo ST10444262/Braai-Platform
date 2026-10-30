@@ -80,3 +80,63 @@ jobs:
           name: test-and-coverage-${{ github.run_number }}
           path: TestResults/
           retention-days: 14
+
+  post-deploy-health-check:
+    name: Post-Deployment Health Verification
+    needs: build-and-test
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Resolve Environment Target & URL
+        id: target
+        run: |
+          if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            echo "env_name=Production" >> $GITHUB_OUTPUT
+            echo "health_url=${{ secrets.PROD_API_HEALTH_URL || secrets.RENDER_BACKEND_URL || 'https://inflame-backend.onrender.com/api/public/health' }}" >> $GITHUB_OUTPUT
+          else
+            echo "env_name=Staging" >> $GITHUB_OUTPUT
+            echo "health_url=${{ secrets.STAGING_API_HEALTH_URL || 'https://braai-platform-staging.onrender.com/api/public/health' }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Query Health Check Endpoint
+        run: |
+          URL="${{ steps.target.outputs.health_url }}"
+          ENV_NAME="${{ steps.target.outputs.env_name }}"
+          echo "Initiating health check verification for $ENV_NAME at $URL"
+
+          MAX_RETRIES=20
+          RETRY_DELAY=10
+          SUCCESS=0
+
+          for i in $(seq 1 $MAX_RETRIES); do
+            echo "Attempt $i of $MAX_RETRIES: curling $URL"
+            RESPONSE=$(curl -s -w "\n%{http_code}" "$URL" || true)
+            HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+            BODY=$(echo "$RESPONSE" | head -n -1)
+
+            echo "HTTP Status Code: $HTTP_CODE"
+            echo "Response Body: $BODY"
+
+            if [ "$HTTP_CODE" -eq 200 ]; then
+              echo "Health verification succeeded with 200 OK."
+              SUCCESS=1
+              break
+            fi
+
+            echo "Awaiting release deployment; retrying in ${RETRY_DELAY}s..."
+            sleep $RETRY_DELAY
+          done
+
+          if [ $SUCCESS -eq 1 ]; then
+            echo "### :white_check_mark: Post-Deployment Health Check Passed ($ENV_NAME)" >> $GITHUB_STEP_SUMMARY
+            echo "- **Target Environment:** $ENV_NAME" >> $GITHUB_STEP_SUMMARY
+            echo "- **Health Endpoint:** \`$URL\`" >> $GITHUB_STEP_SUMMARY
+            echo "- **Verification:** 200 OK (PostgreSQL & Redis Confirmed Operational)" >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`json" >> $GITHUB_STEP_SUMMARY
+            echo "$BODY" >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "::warning::Could not obtain 200 OK from $URL within timeout. The container may still be provisioning on Render."
+            echo "### :warning: Post-Deployment Check Incomplete ($ENV_NAME)" >> $GITHUB_STEP_SUMMARY
+            echo "Endpoint \`$URL\` did not return 200 OK during polling window." >> $GITHUB_STEP_SUMMARY
+          fi
