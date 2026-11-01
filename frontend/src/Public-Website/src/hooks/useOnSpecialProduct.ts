@@ -23,10 +23,15 @@ export function useOnSpecialProducts(){
     //use effect is used when fetching data from an api
     useEffect(()=>{
         async function loadSpecials(){
-            setLoading(true);
-            const specialsProducts = await getOnSpecialProducts(); //gets the products on special from the api and saves it
-            setAllSpecials(specialsProducts); //saves the products into the state
-            setLoading(false); //turn off the loading indicator
+            try {
+                setLoading(true);
+                const specialsProducts = await getOnSpecialProducts(); //gets the products on special from the api and saves it
+                setAllSpecials(specialsProducts); //saves the products into the state
+            } catch (error) {
+                console.error("Failed to load on special products:", error);
+            } finally {
+                setLoading(false); //turn off the loading indicator
+            }
         }
         loadSpecials();
     },[]); //the empty array is used to tell react to only run this once when the component first appears on the screen and to not run it again(reduces amount of api calls to make)

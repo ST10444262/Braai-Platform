@@ -102,6 +102,654 @@ namespace Inflame_Backend.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
+            modelBuilder.Entity("Inflame_Backend.Identity.StaffTrustedDevice", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DeviceName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("IpAddress")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("LastUsedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("StaffTrustedDevices", (string)null);
+                });
+
+            modelBuilder.Entity("Inflame_Backend.Models.CRM.AnalyticsLog", b =>
+                {
+                    b.Property<Guid>("LogId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("log_id");
+
+                    b.Property<string>("Action")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("action");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<string>("Details")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("details");
+
+                    b.HasKey("LogId");
+
+                    b.ToTable("analytics_logs", (string)null);
+                });
+
+            modelBuilder.Entity("Inflame_Backend.Models.CRM.Client", b =>
+                {
+                    b.Property<Guid>("ClientId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("client_id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("email");
+
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("first_name");
+
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("last_name");
+
+                    b.Property<string>("Phone")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("phone");
+
+                    b.Property<string>("PhysicalAddress")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("physical_address");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.HasKey("ClientId");
+
+                    b.HasIndex("Email");
+
+                    b.ToTable("client", (string)null);
+                });
+
+            modelBuilder.Entity("Inflame_Backend.Models.CRM.Enquiry", b =>
+                {
+                    b.Property<Guid>("EnquiryId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("enquiry_id");
+
+                    b.Property<Guid?>("ClientId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("client_id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<Guid?>("CustomOptionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("custom_option_id");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("email");
+
+                    b.Property<string>("EnquiryType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("enquiry_type");
+
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("first_name");
+
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("last_name");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("message");
+
+                    b.Property<string>("Phone")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("phone");
+
+                    b.Property<Guid?>("ProductId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("product_id");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasDefaultValue("New")
+                        .HasColumnName("status");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.HasKey("EnquiryId");
+
+                    b.HasIndex("ClientId");
+
+                    b.HasIndex("CustomOptionId");
+
+                    b.HasIndex("ProductId");
+
+                    b.ToTable("enquiry", (string)null);
+                });
+
+            modelBuilder.Entity("Inflame_Backend.Models.CRM.InternalNote", b =>
+                {
+                    b.Property<Guid>("NoteId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("note_id");
+
+                    b.Property<Guid>("ClientId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("client_id");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("content");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<Guid>("StaffAccountId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("staff_account_id");
+
+                    b.HasKey("NoteId");
+
+                    b.HasIndex("ClientId");
+
+                    b.HasIndex("StaffAccountId");
+
+                    b.ToTable("internal_note", (string)null);
+                });
+
+            modelBuilder.Entity("Inflame_Backend.Models.CRM.InvoiceRecord", b =>
+                {
+                    b.Property<Guid>("InvoiceId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("invoice_id");
+
+                    b.Property<Guid>("ClientId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("client_id");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("file_name");
+
+                    b.Property<string>("FileUrl")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("file_url");
+
+                    b.Property<Guid>("StaffAccountId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("staff_account_id");
+
+                    b.Property<DateTime>("UploadedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("uploaded_at")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.HasKey("InvoiceId");
+
+                    b.HasIndex("ClientId");
+
+                    b.HasIndex("StaffAccountId");
+
+                    b.ToTable("invoice_record", (string)null);
+                });
+
+            modelBuilder.Entity("Inflame_Backend.Models.CRM.StaffAccount", b =>
+                {
+                    b.Property<Guid>("StaffId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("staff_id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("email");
+
+                    b.Property<string>("FullName")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("full_name");
+
+                    b.Property<Guid>("IdentityUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("identity_user_id");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("is_active");
+
+                    b.Property<string>("ProfileImageUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("profile_image_url");
+
+                    b.Property<bool>("ReceiveQuoteEmails")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("receive_quote_emails");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("role");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.HasKey("StaffId");
+
+                    b.HasIndex("Email")
+                        .IsUnique();
+
+                    b.HasIndex("IdentityUserId");
+
+                    b.ToTable("staff_account", (string)null);
+                });
+
+            modelBuilder.Entity("Inflame_Backend.Models.CustomBuild.CustomBraaiPart", b =>
+                {
+                    b.Property<Guid>("PartId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("part_id");
+
+                    b.Property<Guid>("CustomOptionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("custom_option_id");
+
+                    b.Property<string>("PartName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("part_name");
+
+                    b.HasKey("PartId");
+
+                    b.HasIndex("CustomOptionId");
+
+                    b.ToTable("custom_braai_part", (string)null);
+                });
+
+            modelBuilder.Entity("Inflame_Backend.Models.CustomBuild.CustomFireplacePart", b =>
+                {
+                    b.Property<Guid>("PartId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("part_id");
+
+                    b.Property<Guid>("CustomOptionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("custom_option_id");
+
+                    b.Property<string>("PartName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("part_name");
+
+                    b.HasKey("PartId");
+
+                    b.HasIndex("CustomOptionId");
+
+                    b.ToTable("custom_fireplace_part", (string)null);
+                });
+
+            modelBuilder.Entity("Inflame_Backend.Models.CustomBuild.CustomOption", b =>
+                {
+                    b.Property<Guid>("CustomOptionId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("custom_option_id");
+
+                    b.Property<string>("AdditionalMessage")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("additional_message");
+
+                    b.Property<int>("DepthMm")
+                        .HasColumnType("integer")
+                        .HasColumnName("depth_mm");
+
+                    b.Property<int>("HeightMm")
+                        .HasColumnType("integer")
+                        .HasColumnName("height_mm");
+
+                    b.Property<int>("IntelMm")
+                        .HasColumnType("integer")
+                        .HasColumnName("intel_mm");
+
+                    b.Property<string>("Material")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("material");
+
+                    b.Property<string>("OptionType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("option_type");
+
+                    b.Property<string>("StyleOption")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("style_option");
+
+                    b.Property<int>("WidthMm")
+                        .HasColumnType("integer")
+                        .HasColumnName("width_mm");
+
+                    b.HasKey("CustomOptionId");
+
+                    b.ToTable("custom_braai_option", (string)null);
+                });
+
+            modelBuilder.Entity("Inflame_Backend.Models.CustomBuild.GalleryImage", b =>
+                {
+                    b.Property<Guid>("PhotoId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("photo_id");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("description");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("title");
+
+                    b.Property<DateTime>("UploadedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("uploaded_at")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<Guid>("UploadedById")
+                        .HasColumnType("uuid")
+                        .HasColumnName("uploaded_by");
+
+                    b.Property<string>("Url")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("url");
+
+                    b.HasKey("PhotoId");
+
+                    b.HasIndex("UploadedById");
+
+                    b.ToTable("gallery_photo", (string)null);
+                });
+
+            modelBuilder.Entity("Inflame_Backend.Models.ProductCatalog.BraaiProduct", b =>
+                {
+                    b.Property<Guid>("ProductId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("product_id");
+
+                    b.Property<string>("BraaiType")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("braai_type");
+
+                    b.Property<string>("FuelType")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("fuel_type");
+
+                    b.HasKey("ProductId");
+
+                    b.ToTable("braai_product", (string)null);
+                });
+
+            modelBuilder.Entity("Inflame_Backend.Models.ProductCatalog.FireplaceProduct", b =>
+                {
+                    b.Property<Guid>("ProductId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("product_id");
+
+                    b.Property<string>("FireplaceType")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("fireplace_type");
+
+                    b.Property<decimal>("HeatOutputKw")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("heat_output_kw");
+
+                    b.HasKey("ProductId");
+
+                    b.ToTable("fireplace_product", (string)null);
+                });
+
+            modelBuilder.Entity("Inflame_Backend.Models.ProductCatalog.Product", b =>
+                {
+                    b.Property<Guid>("ProductId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("product_id");
+
+                    b.Property<string>("Brand")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("brand");
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("category");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("description");
+
+                    b.Property<bool>("IsCustomisable")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_customisable");
+
+                    b.Property<bool>("IsImported")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_imported");
+
+                    b.Property<bool>("IsVisible")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("is_visible");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("name");
+
+                    b.Property<decimal?>("OnSpecial")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("on_special");
+
+                    b.Property<decimal>("Price")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)")
+                        .HasColumnName("price");
+
+                    b.Property<string>("ProductType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("product_type");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.HasKey("ProductId");
+
+                    b.HasIndex("Category");
+
+                    b.HasIndex("ProductType");
+
+                    b.ToTable("product", (string)null);
+                });
+
+            modelBuilder.Entity("Inflame_Backend.Models.ProductCatalog.ProductImage", b =>
+                {
+                    b.Property<Guid>("ImageId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("image_id");
+
+                    b.Property<bool>("IsPrimary")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_primary");
+
+                    b.Property<Guid>("ProductId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("product_id");
+
+                    b.Property<string>("Url")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("url");
+
+                    b.HasKey("ImageId");
+
+                    b.HasIndex("ProductId");
+
+                    b.ToTable("product_image", (string)null);
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole<System.Guid>", b =>
                 {
                     b.Property<Guid>("Id")
@@ -232,6 +880,145 @@ namespace Inflame_Backend.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("Inflame_Backend.Identity.StaffTrustedDevice", b =>
+                {
+                    b.HasOne("Inflame_Backend.Identity.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Inflame_Backend.Models.CRM.Enquiry", b =>
+                {
+                    b.HasOne("Inflame_Backend.Models.CRM.Client", "Client")
+                        .WithMany("Enquiries")
+                        .HasForeignKey("ClientId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Inflame_Backend.Models.CustomBuild.CustomOption", "CustomOption")
+                        .WithMany()
+                        .HasForeignKey("CustomOptionId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Inflame_Backend.Models.ProductCatalog.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Client");
+
+                    b.Navigation("CustomOption");
+
+                    b.Navigation("Product");
+                });
+
+            modelBuilder.Entity("Inflame_Backend.Models.CRM.InternalNote", b =>
+                {
+                    b.HasOne("Inflame_Backend.Models.CRM.Client", "Client")
+                        .WithMany("InternalNotes")
+                        .HasForeignKey("ClientId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Inflame_Backend.Models.CRM.StaffAccount", "Author")
+                        .WithMany("InternalNotes")
+                        .HasForeignKey("StaffAccountId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Author");
+
+                    b.Navigation("Client");
+                });
+
+            modelBuilder.Entity("Inflame_Backend.Models.CRM.InvoiceRecord", b =>
+                {
+                    b.HasOne("Inflame_Backend.Models.CRM.Client", "Client")
+                        .WithMany("InvoiceRecords")
+                        .HasForeignKey("ClientId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Inflame_Backend.Models.CRM.StaffAccount", "Uploader")
+                        .WithMany("UploadedInvoices")
+                        .HasForeignKey("StaffAccountId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Client");
+
+                    b.Navigation("Uploader");
+                });
+
+            modelBuilder.Entity("Inflame_Backend.Models.CustomBuild.CustomBraaiPart", b =>
+                {
+                    b.HasOne("Inflame_Backend.Models.CustomBuild.CustomOption", "CustomOption")
+                        .WithMany("BraaiParts")
+                        .HasForeignKey("CustomOptionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CustomOption");
+                });
+
+            modelBuilder.Entity("Inflame_Backend.Models.CustomBuild.CustomFireplacePart", b =>
+                {
+                    b.HasOne("Inflame_Backend.Models.CustomBuild.CustomOption", "CustomOption")
+                        .WithMany("FireplaceParts")
+                        .HasForeignKey("CustomOptionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CustomOption");
+                });
+
+            modelBuilder.Entity("Inflame_Backend.Models.CustomBuild.GalleryImage", b =>
+                {
+                    b.HasOne("Inflame_Backend.Models.CRM.StaffAccount", "UploadedBy")
+                        .WithMany("UploadedPhotos")
+                        .HasForeignKey("UploadedById")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("UploadedBy");
+                });
+
+            modelBuilder.Entity("Inflame_Backend.Models.ProductCatalog.BraaiProduct", b =>
+                {
+                    b.HasOne("Inflame_Backend.Models.ProductCatalog.Product", "BaseProduct")
+                        .WithOne()
+                        .HasForeignKey("Inflame_Backend.Models.ProductCatalog.BraaiProduct", "ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("BaseProduct");
+                });
+
+            modelBuilder.Entity("Inflame_Backend.Models.ProductCatalog.FireplaceProduct", b =>
+                {
+                    b.HasOne("Inflame_Backend.Models.ProductCatalog.Product", "BaseProduct")
+                        .WithOne()
+                        .HasForeignKey("Inflame_Backend.Models.ProductCatalog.FireplaceProduct", "ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("BaseProduct");
+                });
+
+            modelBuilder.Entity("Inflame_Backend.Models.ProductCatalog.ProductImage", b =>
+                {
+                    b.HasOne("Inflame_Backend.Models.ProductCatalog.Product", "Product")
+                        .WithMany("Images")
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Product");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole<System.Guid>", null)
@@ -281,6 +1068,36 @@ namespace Inflame_Backend.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("Inflame_Backend.Models.CRM.Client", b =>
+                {
+                    b.Navigation("Enquiries");
+
+                    b.Navigation("InternalNotes");
+
+                    b.Navigation("InvoiceRecords");
+                });
+
+            modelBuilder.Entity("Inflame_Backend.Models.CRM.StaffAccount", b =>
+                {
+                    b.Navigation("InternalNotes");
+
+                    b.Navigation("UploadedInvoices");
+
+                    b.Navigation("UploadedPhotos");
+                });
+
+            modelBuilder.Entity("Inflame_Backend.Models.CustomBuild.CustomOption", b =>
+                {
+                    b.Navigation("BraaiParts");
+
+                    b.Navigation("FireplaceParts");
+                });
+
+            modelBuilder.Entity("Inflame_Backend.Models.ProductCatalog.Product", b =>
+                {
+                    b.Navigation("Images");
                 });
 #pragma warning restore 612, 618
         }

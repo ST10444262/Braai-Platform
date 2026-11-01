@@ -137,7 +137,7 @@ export default function QuoteRequestPage() {
             </div>
 
             {submitted ? (
-              <div className="py-8 text-center space-y-4">
+              <div role="status" aria-live="polite" className="py-8 text-center space-y-4">
                 <div className="w-12 h-12 bg-green-100 text-green-700 rounded-full flex items-center justify-center mx-auto text-xl font-bold">
                   ✓
                 </div>
@@ -160,16 +160,19 @@ export default function QuoteRequestPage() {
               <form onSubmit={handleSubmit} noValidate className="space-y-4">
                 
                 {/* Asking for the users full name*/}
-                  <div>
-                  <label htmlFor="fullName" className="block text-[10px] font-bold uppercase tracking-wider text-stone-500 mb-1">
+                <div>
+                  <label htmlFor="firstName" className="block text-[10px] font-bold uppercase tracking-wider text-stone-500 mb-1">
                     First Name
                   </label>
                   <input
-                    id="fullName"
+                    id="firstName"
+                    name="firstName"
                     type="text"
                     value={firstName}
                     onChange={(e) => setFirstName(e.target.value)}
-                    placeholder="Enter your full name"
+                    placeholder="Enter your first name"
+                    aria-invalid={!!errors.firstName}
+                    aria-describedby={errors.firstName ? 'firstName-error' : undefined}
                     className={`w-full bg-white border rounded-sm px-3.5 py-2.5 text-xs sm:text-sm text-stone-800 placeholder-stone-300 focus:outline-none transition-colors ${
                       errors.firstName
                         ? 'border-red-500 focus:border-red-600'
@@ -177,20 +180,23 @@ export default function QuoteRequestPage() {
                     }`}
                   />
                   {errors.firstName && (
-                    <p className="text-red-600 text-xs mt-1 font-medium">{errors.firstName}</p>
+                    <p id="firstName-error" role="alert" className="text-red-600 text-xs mt-1 font-medium">{errors.firstName}</p>
                   )}
                 </div>
 
                 <div>
-                  <label htmlFor="fullName" className="block text-[10px] font-bold uppercase tracking-wider text-stone-500 mb-1">
+                  <label htmlFor="lastName" className="block text-[10px] font-bold uppercase tracking-wider text-stone-500 mb-1">
                     Last Name
                   </label>
                   <input
                     id="lastName"
+                    name="lastName"
                     type="text"
                     value={lastName}
                     onChange={(e) => setLastName(e.target.value)}
-                    placeholder="Enter your full name"
+                    placeholder="Enter your last name"
+                    aria-invalid={!!errors.lastName}
+                    aria-describedby={errors.lastName ? 'lastName-error' : undefined}
                     className={`w-full bg-white border rounded-sm px-3.5 py-2.5 text-xs sm:text-sm text-stone-800 placeholder-stone-300 focus:outline-none transition-colors ${
                       errors.lastName
                         ? 'border-red-500 focus:border-red-600'
@@ -198,7 +204,7 @@ export default function QuoteRequestPage() {
                     }`}
                   />
                   {errors.lastName && (
-                    <p className="text-red-600 text-xs mt-1 font-medium">{errors.lastName}</p>
+                    <p id="lastName-error" role="alert" className="text-red-600 text-xs mt-1 font-medium">{errors.lastName}</p>
                   )}
                 </div>
 
@@ -209,10 +215,13 @@ export default function QuoteRequestPage() {
                   </label>
                   <input
                     id="email"
+                    name="email"
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="name@example.com"
+                    aria-invalid={!!errors.email}
+                    aria-describedby={errors.email ? 'email-error' : undefined}
                     className={`w-full bg-white border rounded-sm px-3.5 py-2.5 text-xs sm:text-sm text-stone-800 placeholder-stone-300 focus:outline-none transition-colors ${
                       errors.email
                         ? 'border-red-500 focus:border-red-600'
@@ -220,7 +229,7 @@ export default function QuoteRequestPage() {
                     }`}
                   />
                   {errors.email && (
-                    <p className="text-red-600 text-xs mt-1 font-medium">{errors.email}</p>
+                    <p id="email-error" role="alert" className="text-red-600 text-xs mt-1 font-medium">{errors.email}</p>
                   )}
                 </div>
 
@@ -231,10 +240,13 @@ export default function QuoteRequestPage() {
                   </label>
                   <input
                     id="phone"
+                    name="phone"
                     type="tel"
                     value={phoneNumber}
                     onChange={(e) => setPhoneNumber(e.target.value)}
                     placeholder="+27 00 000 0000"
+                    aria-invalid={!!errors.phoneNumber}
+                    aria-describedby={errors.phoneNumber ? 'phone-error' : undefined}
                     className={`w-full bg-white border rounded-sm px-3.5 py-2.5 text-xs sm:text-sm text-stone-800 placeholder-stone-300 focus:outline-none transition-colors ${
                       errors.phoneNumber
                         ? 'border-red-500 focus:border-red-600'
@@ -242,7 +254,7 @@ export default function QuoteRequestPage() {
                     }`}
                   />
                   {errors.phoneNumber && (
-                    <p className="text-red-600 text-xs mt-1 font-medium">{errors.phoneNumber}</p>
+                    <p id="phone-error" role="alert" className="text-red-600 text-xs mt-1 font-medium">{errors.phoneNumber}</p>
                   )}
                 </div>
 
@@ -253,6 +265,7 @@ export default function QuoteRequestPage() {
                   </label>
                   <textarea
                     id="notes"
+                    name="notes"
                     rows={4}
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
@@ -263,7 +276,7 @@ export default function QuoteRequestPage() {
 
                 {/* Displaying error from api if an error occurs */}
                 {submitError && (
-                  <div className="p-3 bg-red-50 border border-red-200 rounded-sm">
+                  <div role="alert" className="p-3 bg-red-50 border border-red-200 rounded-sm">
                     <p className="text-red-600 text-xs font-medium">{submitError}</p>
                   </div>
                 )}

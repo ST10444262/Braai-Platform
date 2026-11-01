@@ -4,6 +4,7 @@ using Inflame_Backend.Features.Product.Queries;
 using Inflame_Backend.Models.ProductCatalog;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -57,7 +58,7 @@ namespace Inflame_Backend.Controllers.Admin
                 return BadRequest(result);
             }
 
-            return Ok(result);
+            return CreatedAtAction(nameof(GetProducts), new { ProductId = result.ProductId }, result);
         }
 
         //------------------------------------------------------------------------------------------//

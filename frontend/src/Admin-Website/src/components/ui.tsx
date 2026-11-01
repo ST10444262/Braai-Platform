@@ -31,10 +31,16 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   return (
     <ToastCtx.Provider value={push}>
       {children}
-      <div className="pointer-events-none fixed inset-x-4 bottom-[max(1rem,env(safe-area-inset-bottom))] z-[100] flex flex-col items-stretch gap-2 sm:inset-x-auto sm:bottom-5 sm:right-5 sm:items-end">
+      <div
+        role="region"
+        aria-label="Notifications"
+        aria-live="polite"
+        className="pointer-events-none fixed inset-x-4 bottom-[max(1rem,env(safe-area-inset-bottom))] z-[100] flex flex-col items-stretch gap-2 sm:inset-x-auto sm:bottom-5 sm:right-5 sm:items-end"
+      >
         {items.map((t) => (
           <div
             key={t.id}
+            role={t.type === "err" ? "alert" : "status"}
             className={cn(
               "pointer-events-auto w-full rounded-lg px-4 py-3 text-sm text-white shadow-lg sm:max-w-sm",
               t.type === "err" ? "bg-red-600" : "bg-ink",
@@ -171,13 +177,14 @@ export function Chips({
   disabled?: boolean;
 }) {
   return (
-    <div className="flex flex-wrap gap-2">
+    <div role="group" aria-label="Filter options" className="flex flex-wrap gap-2">
       {options.map((o) => (
         <button
           key={o}
           type="button"
           disabled={disabled}
           onClick={() => onChange(o)}
+          aria-pressed={value === o}
           className={cn(
             "rounded-full border px-3.5 py-2 text-xs font-medium transition disabled:cursor-not-allowed md:px-3 md:py-1.5",
             value === o ? "border-ink bg-ink text-white" : "border-line bg-white text-ink hover:bg-card",
@@ -192,14 +199,19 @@ export function Chips({
 
 export function Spinner({ className }: { className?: string }) {
   return (
-    <div className={cn("grid place-items-center py-16 text-muted", className)}>
-      <LoaderCircle className="h-6 w-6 animate-spin" />
+    <div role="status" aria-label="Loading" className={cn("grid place-items-center py-16 text-muted", className)}>
+      <LoaderCircle className="h-6 w-6 animate-spin" aria-hidden="true" />
+      <span className="sr-only">Loading...</span>
     </div>
   );
 }
 
 export function ErrorNote({ message }: { message: string }) {
-  return <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{message}</div>;
+  return (
+    <div role="alert" className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+      {message}
+    </div>
+  );
 }
 
 export function Pagination({
@@ -222,24 +234,29 @@ export function Pagination({
   const nums = Array.from({ length: Math.min(3, pages) }, (_, i) => start + i);
   const b = "grid h-9 w-9 place-items-center rounded-md border border-line bg-white text-xs disabled:opacity-40 md:h-7 md:w-7";
   return (
-    <div className="flex flex-col items-center gap-2 border-t border-line px-4 py-3 text-xs text-muted sm:flex-row sm:justify-between sm:px-5">
+    <nav aria-label="Pagination" className="flex flex-col items-center gap-2 border-t border-line px-4 py-3 text-xs text-muted sm:flex-row sm:justify-between sm:px-5">
       <span>
         Showing {from}-{to} of {total} {noun}
       </span>
       <div className="flex items-center gap-1.5">
         <button className={b} disabled={page <= 1} onClick={() => onChange(page - 1)} aria-label="Previous page">
-          <ChevronLeft className="h-3 w-3" />
+          <ChevronLeft className="h-3 w-3" aria-hidden="true" />
         </button>
         {nums.map((n) => (
-          <button key={n} onClick={() => onChange(n)} className={cn(b, n === page && "border-ink bg-ink text-white")}>
+          <button
+            key={n}
+            onClick={() => onChange(n)}
+            aria-current={n === page ? "page" : undefined}
+            className={cn(b, n === page && "border-ink bg-ink text-white")}
+          >
             {n}
           </button>
         ))}
         <button className={b} disabled={page >= pages} onClick={() => onChange(page + 1)} aria-label="Next page">
-          <ChevronRight className="h-3 w-3" />
+          <ChevronRight className="h-3 w-3" aria-hidden="true" />
         </button>
       </div>
-    </div>
+    </nav>
   );
 }
 
@@ -270,6 +287,9 @@ export function Drawer({
         className={cn("absolute inset-0 bg-black/20 backdrop-blur-[2px] transition-opacity", open ? "opacity-100" : "opacity-0")}
       />
       <aside
+        role="dialog"
+        aria-modal="true"
+        aria-label={typeof title === "string" ? title : "Details"}
         className={cn(
           "absolute right-0 top-0 flex h-dvh w-full flex-col bg-white shadow-2xl transition-transform duration-300",
           width,
@@ -284,7 +304,7 @@ export function Drawer({
           <div className="flex shrink-0 items-center gap-3">
             {headerRight}
             <button onClick={onClose} className="grid h-9 w-9 place-items-center rounded-lg text-muted hover:text-ink" aria-label="Close">
-              <X className="h-5 w-5" />
+              <X className="h-5 w-5" aria-hidden="true" />
             </button>
           </div>
         </div>
@@ -315,12 +335,17 @@ export function Modal({
   if (!open) return null;
   return (
     <div className="fixed inset-0 z-[60] grid place-items-center p-4">
-      <div onClick={onClose} className="absolute inset-0 bg-black/30" />
-      <div className="relative max-h-[90dvh] w-full max-w-md overflow-y-auto rounded-2xl bg-white p-5 shadow-2xl sm:p-6">
+      <div onClick={onClose} className="absolute inset-0 bg-black/30" aria-hidden="true" />
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-title"
+        className="relative max-h-[90dvh] w-full max-w-md overflow-y-auto rounded-2xl bg-white p-5 shadow-2xl sm:p-6"
+      >
         <div className="mb-4 flex items-center justify-between">
-          <h3 className="text-base font-semibold">{title}</h3>
+          <h3 id="modal-title" className="text-base font-semibold">{title}</h3>
           <button onClick={onClose} className="grid h-9 w-9 place-items-center text-muted hover:text-ink" aria-label="Close">
-            <X className="h-5 w-5" />
+            <X className="h-5 w-5" aria-hidden="true" />
           </button>
         </div>
         {children}

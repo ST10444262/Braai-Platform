@@ -383,8 +383,13 @@ export default function ProductDrawer({
                   {files.map((file, i) => (
                     <li key={i} className={cn("flex items-center justify-between rounded-lg bg-card px-3 py-1.5 text-xs")}>
                       <span className="truncate">{file.name}</span>
-                      <button onClick={() => setFiles((c) => c.filter((_, j) => j !== i))}>
-                        <X className="h-3 w-3" />
+                      <button
+                        type="button"
+                        onClick={() => setFiles((c) => c.filter((_, j) => j !== i))}
+                        aria-label={`Remove image ${file.name}`}
+                        className="p-1 text-muted hover:text-ink"
+                      >
+                        <X className="h-3 w-3" aria-hidden="true" />
                       </button>
                     </li>
                   ))}

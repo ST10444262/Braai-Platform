@@ -14,12 +14,17 @@ export function useFireplaceProductDetail(id: string){
     //fetching the individual product data
     useEffect(()=>{
         async function load(){
-            setLoading(true);
-            const individualFireplaceProduct = await getFireplaceProductById(id);
-            //saving the product details into the state
-            setProduct(individualFireplaceProduct);
-            //turning the loading status to false now that the data is ready
-            setLoading(false);
+            try {
+                setLoading(true);
+                const individualFireplaceProduct = await getFireplaceProductById(id);
+                //saving the product details into the state
+                setProduct(individualFireplaceProduct);
+            } catch (error) {
+                console.error("Failed to load fireplace product details:", error);
+            } finally {
+                //turning the loading status to false now that the data is ready
+                setLoading(false);
+            }
         }
         load();
     }, [id]); //rerunning this code everytime the id changes

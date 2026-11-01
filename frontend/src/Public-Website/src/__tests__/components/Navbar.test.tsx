@@ -16,7 +16,7 @@ describe('Navbar', () => {
 
   it('opens the mobile menu when the burger button is clicked', () => {
     render(<Navbar />);
-    fireEvent.click(screen.getByLabelText('Toggle menu'));
+    fireEvent.click(screen.getByLabelText(/toggle (navigation )?menu/i));
     // links render a second time inside the opened mobile dropdown
     expect(screen.getAllByText('HOME').length).toBeGreaterThan(1);
   });

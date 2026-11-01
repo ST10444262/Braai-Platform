@@ -32,39 +32,38 @@ export default function RoomSizeCalculator() {
   }
 
   return (
-    <div className="border rounded p-5 mb-6" style={{ backgroundColor: '#faf6ee', borderColor: '#9E2016' }}>
+    <div className="border border-brand-red bg-brand-sand rounded p-5 mb-6">
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
         <div>
-          <label htmlFor="roomLength" className="block text-xs uppercase mb-1 font-semibold" style={{ color: '#9E2016' }}>Length (m)</label>
+          <label htmlFor="roomLength" className="block text-xs uppercase mb-1 font-semibold text-brand-red">Length (m)</label>
           <input id = "roomLength" type="number" value={length} onChange={(e) => setLength(e.target.value)}
-            className="w-full border rounded px-3 py-2 text-sm bg-white" style={{ borderColor: '#9E2016', color: '#9E2016' }} />
+            className="w-full border border-brand-red text-brand-red rounded px-3 py-2 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-brand-red" />
         </div>
         <div>
-          <label htmlFor="roomWidth" className="block text-xs uppercase mb-1 font-semibold" style={{ color: '#9E2016' }}>Width (m)</label>
+          <label htmlFor="roomWidth" className="block text-xs uppercase mb-1 font-semibold text-brand-red">Width (m)</label>
           <input id="roomWidth" type="number" value={width} onChange={(e) => setWidth(e.target.value)}
-            className="w-full border rounded px-3 py-2 text-sm bg-white" style={{ borderColor: '#9E2016', color: '#9E2016' }} />
+            className="w-full border border-brand-red text-brand-red rounded px-3 py-2 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-brand-red" />
         </div>
         <div>
-          <label htmlFor="roomHeight" className="block text-xs uppercase mb-1 font-semibold" style={{ color: '#9E2016' }}>Height (m)</label>
+          <label htmlFor="roomHeight" className="block text-xs uppercase mb-1 font-semibold text-brand-red">Height (m)</label>
           <input id="roomHeight" type="number" value={height} onChange={(e) => setHeight(e.target.value)}
-            className="w-full border rounded px-3 py-2 text-sm bg-white" style={{ borderColor: '#9E2016', color: '#9E2016' }} />
+            className="w-full border border-brand-red text-brand-red rounded px-3 py-2 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-brand-red" />
         </div>
       </div>
 
       <button onClick={handleCalculate}
-        className="text-xs font-bold uppercase px-5 py-2 rounded transition-opacity hover:opacity-90"
-        style={{ backgroundColor: '#9E2016', color: '#faf6ee' }}>
+        className="bg-brand-red text-brand-sand text-xs font-bold uppercase px-5 py-2 rounded transition-opacity hover:opacity-90">
         Calculate
       </button>
 
       {result && (
-        <div className="mt-5 space-y-3">
-          <div className="bg-white border rounded px-4 py-3 text-sm" style={{ borderColor: '#9E2016' }}>
-            <p className="mb-1" style={{ color: '#9E2016' }}>
-              Room volume: <strong style={{ color: '#9E2016' }}>{result.volume} m³</strong>
+        <div role="status" aria-live="polite" className="mt-5 space-y-3">
+          <div className="bg-white border border-brand-red rounded px-4 py-3 text-sm">
+            <p className="mb-1 text-brand-red">
+              Room volume: <strong className="text-brand-red">{result.volume} m³</strong>
             </p>
-            <p style={{ color: '#9E2016' }}>
-              Best fit for your space: <strong style={{ color: '#9E2016' }}>{result.kw} kW— {result.kw}kW/{result.maxVolume}m³</strong>
+            <p className="text-brand-red">
+              Best fit for your space: <strong className="text-brand-red">{result.kw} kW— {result.kw}kW/{result.maxVolume}m³</strong>
             </p>
           </div>
         </div>

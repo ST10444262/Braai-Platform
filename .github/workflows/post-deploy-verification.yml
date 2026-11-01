@@ -1,0 +1,89 @@
+name: Post-Deployment Health & Smoke Verification
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_environment:
+        description: 'Target deployment environment to verify'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - production
+          - staging
+      override_url:
+        description: 'Optional custom health check URL override'
+        required: false
+        default: ''
+        type: string
+  schedule:
+    # Run once daily at 06:00 UTC to ensure live service and dependencies remain operational
+    - cron: '0 6 * * *'
+
+jobs:
+  verify-deployment-health:
+    name: Verify Service & Dependency Health
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Determine Health Check URL
+        id: config
+        run: |
+          TARGET="${{ inputs.target_environment || 'production' }}"
+          CUSTOM_URL="${{ inputs.override_url || '' }}"
+
+          if [ -n "$CUSTOM_URL" ]; then
+            URL="$CUSTOM_URL"
+          elif [ "$TARGET" = "staging" ]; then
+            URL="${{ secrets.STAGING_API_HEALTH_URL || 'https://braai-platform-staging.onrender.com/api/public/health' }}"
+          else
+            URL="${{ secrets.PROD_API_HEALTH_URL || secrets.RENDER_BACKEND_URL || 'https://inflame-backend.onrender.com/api/public/health' }}"
+          fi
+
+          echo "target_env=$TARGET" >> $GITHUB_OUTPUT
+          echo "health_url=$URL" >> $GITHUB_OUTPUT
+
+      - name: Probe Health Endpoint & Dependencies
+        run: |
+          URL="${{ steps.config.outputs.health_url }}"
+          ENV_NAME="${{ steps.config.outputs.target_env }}"
+          echo "Probing $ENV_NAME deployment health at: $URL"
+
+          MAX_ATTEMPTS=25
+          INTERVAL=10
+          SUCCESS=0
+
+          for i in $(seq 1 $MAX_ATTEMPTS); do
+            echo "--- Attempt $i/$MAX_ATTEMPTS ---"
+            RESPONSE=$(curl -s -S -w "\n%{http_code}" "$URL" || true)
+            HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+            BODY=$(echo "$RESPONSE" | sed '$d')
+
+            echo "HTTP Status: $HTTP_CODE"
+            echo "Body: $BODY"
+
+            if [ "$HTTP_CODE" = "200" ]; then
+              echo "Health check returned 200 OK."
+              SUCCESS=1
+              break
+            fi
+
+            echo "Awaiting release readiness; sleeping ${INTERVAL}s..."
+            sleep $INTERVAL
+          done
+
+          if [ "$SUCCESS" -eq 1 ]; then
+            echo "### :white_check_mark: Post-Deployment Verification Passed" >> $GITHUB_STEP_SUMMARY
+            echo "- **Environment:** $ENV_NAME" >> $GITHUB_STEP_SUMMARY
+            echo "- **Health Endpoint:** \`$URL\`" >> $GITHUB_STEP_SUMMARY
+            echo "- **Verification Status:** Operational (Database & Redis Connected)" >> $GITHUB_STEP_SUMMARY
+            echo "#### Health Check Diagnostics" >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`json" >> $GITHUB_STEP_SUMMARY
+            echo "$BODY" >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### :x: Post-Deployment Verification Failed" >> $GITHUB_STEP_SUMMARY
+            echo "Could not verify healthy response from \`$URL\` within $MAX_ATTEMPTS attempts." >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
+

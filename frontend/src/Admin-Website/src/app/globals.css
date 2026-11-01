@@ -12,8 +12,8 @@
 
 html,
 body {
-  background: #ffffff;
-  color: #111111;
+  background: var(--color-white, #ffffff);
+  color: var(--color-ink);
   font-family: var(--font-geist-sans), system-ui, sans-serif;
   -webkit-text-size-adjust: 100%;
   -webkit-tap-highlight-color: transparent;

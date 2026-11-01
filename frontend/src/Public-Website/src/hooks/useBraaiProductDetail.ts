@@ -12,12 +12,17 @@ export function useBraaiProductDetail(id: string){
     //fetching the individual product data
     useEffect(()=>{
         async function load(){
-            setLoading(true);
-            const individualProduct = await getBraaiProductById(id);
-            //saving the product details into the state
-            setProduct(individualProduct);
-            //turning the loading status to false now that the data is ready
-            setLoading(false);
+            try {
+                setLoading(true);
+                const individualProduct = await getBraaiProductById(id);
+                //saving the product details into the state
+                setProduct(individualProduct);
+            } catch (error) {
+                console.error("Failed to load braai product details:", error);
+            } finally {
+                //turning the loading status to false now that the data is ready
+                setLoading(false);
+            }
         }
         load();
     }, [id]); //rerunning this code everytime the id changes

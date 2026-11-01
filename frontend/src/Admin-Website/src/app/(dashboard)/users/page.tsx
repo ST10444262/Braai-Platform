@@ -58,6 +58,7 @@ export default function UsersPage() {
               setPage(1);
             }}
             placeholder="Search Users"
+            aria-label="Search users"
             className="w-full rounded-full border border-line bg-card py-2.5 pl-9 pr-4 text-base outline-none focus:bg-white md:py-2 md:text-xs"
           />
         </div>
@@ -72,6 +73,7 @@ export default function UsersPage() {
         {TABS.map((t) => (
           <button
             key={t}
+            aria-pressed={tab === t}
             onClick={() => {
               setTab(t);
               setPage(1);

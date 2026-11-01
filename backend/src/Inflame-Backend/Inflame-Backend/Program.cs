@@ -35,17 +35,26 @@ builder.Services.AddMediatR(config =>
 //------------------------------------------------------------------------------------------//
 #region CORS Configuration
 
-// Configure CORS
+// CORS is restricted to the exact Vercel production domains for the public site and admin portal,
+// plus localhost origins for local development. No wildcard origins are permitted.
+// Production URLs are configured via the AllowedOrigins array in appsettings / environment variables.
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend",
         policy =>
         {
-            var allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>() ?? new[] { "http://localhost:3000", "http://localhost:3001", "https://your-frontend-domain.com" };
+            var allowedOrigins = builder.Configuration
+                .GetSection("AllowedOrigins")
+                .Get<string[]>()
+                ?? (builder.Environment.IsDevelopment()
+                    ? new[] { "http://localhost:3000", "http://localhost:3001" }
+                    : Array.Empty<string>());
+
             policy.WithOrigins(allowedOrigins)
                   .AllowAnyHeader()
                   .AllowAnyMethod()
-                  .AllowCredentials(); 
+                  .AllowCredentials();
         });
 });
 
@@ -139,6 +148,7 @@ builder.Services.AddScoped<IGalleryImageRepository>(sp => new CachedGalleryImage
 
 // Services
 builder.Services.AddScoped<Inflame_Backend.Services.IEmailService, Inflame_Backend.Services.SmtpEmailService>();
+builder.Services.AddScoped<Inflame_Backend.Services.IDatabaseHealthChecker, Inflame_Backend.Services.DatabaseHealthChecker>();
 builder.Services.AddScoped<TwoFactorChallengeService>();
 builder.Services.AddScoped<TrustedDeviceService>();
 
@@ -154,7 +164,7 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
     // Render uses a reverse proxy, so we need to forward headers to get the actual client IP for rate limiting
     options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
     // Clear known networks and proxies so it accepts X-Forwarded-For from any Render proxy
-    options.KnownNetworks.Clear();
+    options.KnownIPNetworks.Clear();
     options.KnownProxies.Clear();
 });
 
@@ -166,7 +176,8 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
 
 // Identity Database
 var identityConnectionString =
-    builder.Configuration.GetConnectionString("IdentityDatabase");
+    builder.Configuration.GetConnectionString("IdentityDatabase")
+    ?? "Host=localhost;Database=inflame;Username=postgres;Password=postgres";
 
 builder.Services.AddDbContext<IdentityDbContext>(options =>
 {
@@ -214,7 +225,8 @@ builder.Services
     .AddJwtBearer(options =>
     {
         var jwtKey =
-            builder.Configuration["Jwt:Key"];
+            builder.Configuration["Jwt:Key"]
+            ?? (builder.Environment.IsDevelopment() ? "development_secret_key_that_is_at_least_32_bytes_long_12345!" : null);
 
         if (string.IsNullOrWhiteSpace(jwtKey))
         {
@@ -233,16 +245,30 @@ builder.Services
 
                 ValidateIssuer = true,
                 ValidIssuer =
-                    builder.Configuration["Jwt:Issuer"],
+                    builder.Configuration["Jwt:Issuer"] ?? "Inflame-Backend",
 
                 ValidateAudience = true,
                 ValidAudience =
-                    builder.Configuration["Jwt:Audience"],
+                    builder.Configuration["Jwt:Audience"] ?? "Inflame-Client",
 
                 ValidateLifetime = true,
 
                 ClockSkew = TimeSpan.Zero
             };
+
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                // Fall back to reading the JWT from the httpOnly cookie if Authorization header is not set
+                if (string.IsNullOrEmpty(context.Token) &&
+                    context.Request.Cookies.TryGetValue("inflame_admin_token", out var cookieToken))
+                {
+                    context.Token = cookieToken;
+                }
+                return Task.CompletedTask;
+            }
+        };
     });
 
 builder.Services.AddAuthorization();
@@ -255,27 +281,39 @@ var app = builder.Build();
 app.UseForwardedHeaders();
 
 // Seed identity roles and initial SuperAdmin at application startup
-using (var scope = app.Services.CreateScope())
+if (!string.IsNullOrWhiteSpace(builder.Configuration.GetConnectionString("IdentityDatabase")))
 {
-    var roleManager =
-        scope.ServiceProvider
-            .GetRequiredService<RoleManager<IdentityRole<Guid>>>();
+    try
+    {
+        using var scope = app.Services.CreateScope();
+        var roleManager =
+            scope.ServiceProvider
+                .GetRequiredService<RoleManager<IdentityRole<Guid>>>();
 
-    var userManager =
-        scope.ServiceProvider
-            .GetRequiredService<UserManager<ApplicationUser>>();
+        var userManager =
+            scope.ServiceProvider
+                .GetRequiredService<UserManager<ApplicationUser>>();
 
-    var staffAccountRepository =
-        scope.ServiceProvider
-            .GetRequiredService<Inflame_Backend.Data.Repositories.CRM.IStaffAccountRepository>();
+        var staffAccountRepository =
+            scope.ServiceProvider
+                .GetRequiredService<Inflame_Backend.Data.Repositories.CRM.IStaffAccountRepository>();
 
-    await IdentitySeeder.SeedRolesAsync(roleManager);
+        await IdentitySeeder.SeedRolesAsync(roleManager);
 
-    await IdentitySeeder.SeedSuperAdminAsync(
-        userManager,
-        roleManager,
-        app.Configuration,
-        staffAccountRepository);
+        await IdentitySeeder.SeedSuperAdminAsync(
+            userManager,
+            roleManager,
+            app.Configuration,
+            staffAccountRepository);
+    }
+    catch (Exception ex)
+    {
+        app.Logger.LogWarning(ex, "Could not complete identity seeding on startup. Ensure database is accessible.");
+    }
+}
+else
+{
+    app.Logger.LogInformation("ConnectionStrings:IdentityDatabase not configured. Skipping identity seeding.");
 }
 
 // Configure the HTTP request pipeline.

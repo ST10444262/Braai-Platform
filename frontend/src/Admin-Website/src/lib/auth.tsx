@@ -11,8 +11,6 @@ import {
 
 import {
   api,
-  decodeToken,
-  tokenStore,
 } from "./api";
 
 import type {
@@ -82,60 +80,27 @@ export function AuthProvider({
 
   const reloadMe =
     useCallback(async () => {
-      const token =
-        tokenStore.get();
-
-      const decoded = token
-        ? decodeToken(token)
-        : null;
-
-      /*
-       * No token, invalid token,
-       * or expired token.
-       */
-      if (
-        !token ||
-        !decoded ||
-        (
-          decoded.exp &&
-          decoded.exp * 1000 <
-            Date.now()
-        )
-      ) {
-        tokenStore.clear();
-
-        setMe(null);
-        setRole(null);
-
-        return;
-      }
-
-      setRole(decoded.role);
-
       try {
+        /*
+         * The httpOnly cookie is sent automatically
+         * by the browser. If the cookie is valid the
+         * backend returns the user; if not, it returns
+         * 401 which the api client handles below.
+         */
         const currentUser =
           await api.get<Me>(
             "/admin/account/me"
           );
 
         setMe(currentUser);
+        setRole(currentUser.role);
       } catch {
         /*
-         * If /me isn't available,
-         * use the JWT information.
+         * 401 or network error — treat as
+         * logged out.
          */
-        setMe({
-          staffId: null,
-          email:
-            decoded.email ?? "",
-          fullName:
-            decoded.email ??
-            "Staff",
-          role: decoded.role,
-          twoFactorEnabled: false,
-          receiveQuoteEmails:
-            false,
-        });
+        setMe(null);
+        setRole(null);
       }
     }, []);
 
@@ -151,15 +116,6 @@ export function AuthProvider({
       email,
       password
     ) => {
-      /*
-       * CRITICAL:
-       *
-       * A new login attempt must not
-       * inherit authentication from a
-       * previous user/session.
-       */
-      tokenStore.clear();
-
       setMe(null);
       setRole(null);
 
@@ -180,8 +136,6 @@ export function AuthProvider({
       if (
         res.requiresTwoFactorSetup
       ) {
-        tokenStore.clear();
-
         setMe(null);
         setRole(null);
 
@@ -209,8 +163,6 @@ export function AuthProvider({
        * Still NOT authenticated.
        */
       if (res.requiresTwoFactor) {
-        tokenStore.clear();
-
         setMe(null);
         setRole(null);
 
@@ -229,16 +181,11 @@ export function AuthProvider({
       }
 
       /*
-       * Normal successful login.
+       * Normal successful login — the backend
+       * has already set the httpOnly cookie.
+       * Call reloadMe() to hydrate user state
+       * via GET /admin/account/me.
        */
-      if (!res.token) {
-        throw new Error(
-          "Login failed."
-        );
-      }
-
-      tokenStore.set(res.token);
-
       await reloadMe();
 
       return {
@@ -255,26 +202,21 @@ export function AuthProvider({
       challenge,
       rememberDevice = false
     ) => {
-      const res =
-        await api.post<{
-          token?: string;
-        }>(
-          "/admin/account/login/2fa",
-          {
-            userId,
-            code,
-            challenge,
-            rememberDevice,
-          }
-        );
-
-      if (!res.token) {
-        throw new Error(
-          "Verification failed."
-        );
-      }
-
-      tokenStore.set(res.token);
+      /*
+       * Backend validates the code and sets
+       * the httpOnly auth cookie on success.
+       * The api call will throw an ApiError
+       * if the code is invalid (non-2xx).
+       */
+      await api.post(
+        "/admin/account/login/2fa",
+        {
+          userId,
+          code,
+          challenge,
+          rememberDevice,
+        }
+      );
 
       await reloadMe();
     };
@@ -330,18 +272,31 @@ export function AuthProvider({
     };
 
   const logout = () => {
-    tokenStore.clear();
-
     setMe(null);
     setRole(null);
 
-    if (
-      typeof window !==
-      "undefined"
-    ) {
-      window.location.href =
-        "/login";
-    }
+    /*
+     * The JWT lives in an httpOnly cookie —
+     * JavaScript cannot clear it directly.
+     * Call the backend logout endpoint which
+     * responds with an expired Set-Cookie header
+     * to instruct the browser to delete it.
+     *
+     * Fire-and-forget: we redirect regardless
+     * of whether the request succeeds.
+     */
+    void Promise.resolve()
+      .then(() => api.post("/admin/account/logout"))
+      .catch(() => undefined)
+      .finally(() => {
+        if (
+          typeof window !==
+          "undefined"
+        ) {
+          window.location.href =
+            "/login";
+        }
+      });
   };
 
   return (

@@ -1,0 +1,5 @@
+# Inflame Admin Portal — private staff application.
+# Search engines must not crawl or index any page.
+User-agent: *
+Disallow: /
+

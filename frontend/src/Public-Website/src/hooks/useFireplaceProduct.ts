@@ -29,10 +29,15 @@ export function useFireplaceProducts(){
     //use effect is used when fetching data from an api
     useEffect(()=>{
         async function loadProducts(){
-            setLoading(true);
-            const fireplaceProducts = await getFireplaceProducts(); //gets the products from the api and saves it
-            setAllProducts(fireplaceProducts); //saves the products into the state
-            setLoading(false); //turn off the loading indicator
+            try {
+                setLoading(true);
+                const fireplaceProducts = await getFireplaceProducts(); //gets the products from the api and saves it
+                setAllProducts(fireplaceProducts); //saves the products into the state
+            } catch (error) {
+                console.error("Failed to load fireplace products:", error);
+            } finally {
+                setLoading(false); //turn off the loading indicator
+            }
         }
         loadProducts();
     },[]); //the empty array is used to tell react to only run this once when the component first appears on the screen and to not run it again(reduces amount of api calls to make)

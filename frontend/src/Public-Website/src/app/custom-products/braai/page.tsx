@@ -38,22 +38,31 @@ export default function CustomBraaiPage() {
             <p className="text-stone-700 text-sm mb-5">Provide estimated dimensions to help our engineers begin the drafting process.</p>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
-                <label className="block text-xs uppercase text-stone-700 font-semibold mb-1">Width (mm)</label>
-                <input type="number" step="1" value={widthMm} onChange={(e) => setWidthMm(e.target.value)}
-                  placeholder="e.g. 1200" className="w-full border border-stone-300 rounded px-3 py-2 text-sm bg-white text-stone-900 placeholder:text-stone-400" />
-                {errors.widthMm && <p className="text-red-600 text-xs mt-1">{errors.widthMm}</p>}
+                <label htmlFor="widthMm" className="block text-xs uppercase text-stone-700 font-semibold mb-1">Width (mm)</label>
+                <input id="widthMm" name="widthMm" type="number" step="1" value={widthMm} onChange={(e) => setWidthMm(e.target.value)}
+                  placeholder="e.g. 1200"
+                  aria-invalid={!!errors.widthMm}
+                  aria-describedby={errors.widthMm ? 'widthMm-error' : undefined}
+                  className="w-full border border-stone-300 rounded px-3 py-2 text-sm bg-white text-stone-900 placeholder:text-stone-400" />
+                {errors.widthMm && <p id="widthMm-error" role="alert" className="text-red-600 text-xs mt-1">{errors.widthMm}</p>}
               </div>
               <div>
-                <label className="block text-xs uppercase text-stone-700 font-semibold mb-1">Height (mm)</label>
-                <input type="number" step="1" value={heightMm} onChange={(e) => setHeightMm(e.target.value)}
-                  placeholder="e.g. 800" className="w-full border border-stone-300 rounded px-3 py-2 text-sm bg-white text-stone-900 placeholder:text-stone-400" />
-                {errors.heightMm && <p className="text-red-600 text-xs mt-1">{errors.heightMm}</p>}
+                <label htmlFor="heightMm" className="block text-xs uppercase text-stone-700 font-semibold mb-1">Height (mm)</label>
+                <input id="heightMm" name="heightMm" type="number" step="1" value={heightMm} onChange={(e) => setHeightMm(e.target.value)}
+                  placeholder="e.g. 800"
+                  aria-invalid={!!errors.heightMm}
+                  aria-describedby={errors.heightMm ? 'heightMm-error' : undefined}
+                  className="w-full border border-stone-300 rounded px-3 py-2 text-sm bg-white text-stone-900 placeholder:text-stone-400" />
+                {errors.heightMm && <p id="heightMm-error" role="alert" className="text-red-600 text-xs mt-1">{errors.heightMm}</p>}
               </div>
               <div>
-                <label className="block text-xs uppercase text-stone-700 font-semibold mb-1">Depth (mm)</label>
-                <input type="number" step="1" value={depthMm} onChange={(e) => setDepthMm(e.target.value)}
-                  placeholder="e.g. 500" className="w-full border border-stone-300 rounded px-3 py-2 text-sm bg-white text-stone-900 placeholder:text-stone-400" />
-                {errors.depthMm && <p className="text-red-600 text-xs mt-1">{errors.depthMm}</p>}
+                <label htmlFor="depthMm" className="block text-xs uppercase text-stone-700 font-semibold mb-1">Depth (mm)</label>
+                <input id="depthMm" name="depthMm" type="number" step="1" value={depthMm} onChange={(e) => setDepthMm(e.target.value)}
+                  placeholder="e.g. 500"
+                  aria-invalid={!!errors.depthMm}
+                  aria-describedby={errors.depthMm ? 'depthMm-error' : undefined}
+                  className="w-full border border-stone-300 rounded px-3 py-2 text-sm bg-white text-stone-900 placeholder:text-stone-400" />
+                {errors.depthMm && <p id="depthMm-error" role="alert" className="text-red-600 text-xs mt-1">{errors.depthMm}</p>}
               </div>
             </div>
           </div>
@@ -63,42 +72,50 @@ export default function CustomBraaiPage() {
             <p className="text-stone-700 text-sm mb-5">Where should we send your preliminary engineering assessment?</p>
 
             {submitted ? (
-              <p className="text-green-700 text-sm">
+              <p role="status" aria-live="polite" className="text-green-700 text-sm">
                 Thanks! Your design enquiry has been sent &mdash; our team will be in touch shortly.
               </p>
             ) : (
               <form onSubmit={handleSubmit} noValidate className="space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs uppercase text-stone-700 font-semibold mb-1">First Name</label>
-                    <input type="text" value={firstName} onChange={(e) => setFirstName(e.target.value)}
+                    <label htmlFor="firstName" className="block text-xs uppercase text-stone-700 font-semibold mb-1">First Name</label>
+                    <input id="firstName" name="firstName" type="text" value={firstName} onChange={(e) => setFirstName(e.target.value)}
+                      aria-invalid={!!errors.firstName}
+                      aria-describedby={errors.firstName ? 'firstName-error' : undefined}
                       className="w-full border border-stone-300 rounded px-3 py-2 text-sm bg-white text-stone-900 placeholder:text-stone-400" />
-                    {errors.firstName && <p className="text-red-600 text-xs mt-1">{errors.firstName}</p>}
+                    {errors.firstName && <p id="firstName-error" role="alert" className="text-red-600 text-xs mt-1">{errors.firstName}</p>}
                   </div>
                   <div>
-                    <label className="block text-xs uppercase text-stone-700 font-semibold mb-1">Last Name</label>
-                    <input type="text" value={lastName} onChange={(e) => setLastName(e.target.value)}
+                    <label htmlFor="lastName" className="block text-xs uppercase text-stone-700 font-semibold mb-1">Last Name</label>
+                    <input id="lastName" name="lastName" type="text" value={lastName} onChange={(e) => setLastName(e.target.value)}
+                      aria-invalid={!!errors.lastName}
+                      aria-describedby={errors.lastName ? 'lastName-error' : undefined}
                       className="w-full border border-stone-300 rounded px-3 py-2 text-sm bg-white text-stone-900 placeholder:text-stone-400" />
-                    {errors.lastName && <p className="text-red-600 text-xs mt-1">{errors.lastName}</p>}
+                    {errors.lastName && <p id="lastName-error" role="alert" className="text-red-600 text-xs mt-1">{errors.lastName}</p>}
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs uppercase text-stone-700 font-semibold mb-1">Email Address</label>
-                    <input type="email" value={email} onChange={(e) => setEmail(e.target.value)}
+                    <label htmlFor="email" className="block text-xs uppercase text-stone-700 font-semibold mb-1">Email Address</label>
+                    <input id="email" name="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)}
+                      aria-invalid={!!errors.email}
+                      aria-describedby={errors.email ? 'email-error' : undefined}
                       className="w-full border border-stone-300 rounded px-3 py-2 text-sm bg-white text-stone-900 placeholder:text-stone-400" />
-                    {errors.email && <p className="text-red-600 text-xs mt-1">{errors.email}</p>}
+                    {errors.email && <p id="email-error" role="alert" className="text-red-600 text-xs mt-1">{errors.email}</p>}
                   </div>
                   <div>
-                    <label className="block text-xs uppercase text-stone-700 font-semibold mb-1">Phone Number</label>
-                    <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)}
+                    <label htmlFor="phone" className="block text-xs uppercase text-stone-700 font-semibold mb-1">Phone Number</label>
+                    <input id="phone" name="phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)}
+                      aria-invalid={!!errors.phone}
+                      aria-describedby={errors.phone ? 'phone-error' : undefined}
                       className="w-full border border-stone-300 rounded px-3 py-2 text-sm bg-white text-stone-900 placeholder:text-stone-400" />
-                    {errors.phone && <p className="text-red-600 text-xs mt-1">{errors.phone}</p>}
+                    {errors.phone && <p id="phone-error" role="alert" className="text-red-600 text-xs mt-1">{errors.phone}</p>}
                   </div>
                 </div>
 
-                {submitError && <p className="text-red-600 text-sm">{submitError}</p>}
+                {submitError && <p role="alert" className="text-red-600 text-sm">{submitError}</p>}
 
                 <button type="submit" disabled={submitting}
                   className="bg-[#9E2016] hover:bg-red-800 disabled:opacity-60 text-white text-xs font-bold uppercase tracking-wider px-6 py-3 rounded">

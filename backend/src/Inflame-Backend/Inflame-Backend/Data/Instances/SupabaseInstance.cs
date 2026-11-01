@@ -1,4 +1,4 @@
-﻿using Supabase;
+using Supabase;
 
 namespace Inflame_Backend.Data.Instances
 {
@@ -7,22 +7,30 @@ namespace Inflame_Backend.Data.Instances
     /// </summary>
     public class SupabaseInstance
     {
-        private readonly Client _client;
+        private readonly Lazy<Client?> _lazyClient;
         //------------------------------------------------------------------------------------------//
         public SupabaseInstance(string url, string key)
         {
-            var options = new SupabaseOptions
+            _lazyClient = new Lazy<Client?>(() =>
             {
-                AutoRefreshToken = true,
-                AutoConnectRealtime = true
-            };
+                if (string.IsNullOrWhiteSpace(url) || !Uri.TryCreate(url, UriKind.Absolute, out _))
+                {
+                    return null;
+                }
 
-            _client = new Client(url, key, options);
-            // Synchronously initializing for dependency injection startup safety
-            _client.InitializeAsync().Wait();
+                var options = new SupabaseOptions
+                {
+                    AutoRefreshToken = true,
+                    AutoConnectRealtime = true
+                };
+
+                var client = new Client(url, key, options);
+                client.InitializeAsync().Wait();
+                return client;
+            });
         }
         //------------------------------------------------------------------------------------------//
-        public Client Client => _client;
+        public Client Client => _lazyClient.Value ?? throw new InvalidOperationException("Supabase is not configured. Please set Supabase:Url and Supabase:Key in your configuration.");
     }
 }
 //---------------------END OF FILE------------------------------------------------------------------//

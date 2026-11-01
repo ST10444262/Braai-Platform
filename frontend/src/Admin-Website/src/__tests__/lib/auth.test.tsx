@@ -36,16 +36,16 @@ describe("useAuth", () => {
 });
 
 describe("AuthProvider – initial load", () => {
-  it("is ready and signed out when there is no token", async () => {
+  it("is ready and signed out when /me returns unauthenticated", async () => {
+    get.mockRejectedValue(new Error("401"));
     const { result } = await setup();
+    expect(get).toHaveBeenCalledWith("/admin/account/me");
     expect(result.current.role).toBeNull();
     expect(result.current.me).toBeNull();
     expect(result.current.isAdmin).toBe(false);
-    expect(get).not.toHaveBeenCalled();
   });
 
-  it("loads /me for a valid token", async () => {
-    tokenStore.set(adminToken());
+  it("loads /me for an authenticated session", async () => {
     get.mockResolvedValue({ staffId: "s1", email: "boss@inflame.co.za", fullName: "The Boss", role: "Admin", twoFactorEnabled: true, receiveQuoteEmails: false });
     const { result } = await setup();
     expect(get).toHaveBeenCalledWith("/admin/account/me");
@@ -54,33 +54,11 @@ describe("AuthProvider – initial load", () => {
     expect(result.current.me?.fullName).toBe("The Boss");
   });
 
-  it("falls back to token details when /me fails", async () => {
-    tokenStore.set(adminToken());
-    get.mockRejectedValue(new Error("404"));
-    const { result } = await setup();
-    expect(result.current.me).toMatchObject({ staffId: null, email: "boss@inflame.co.za", fullName: "boss@inflame.co.za", role: "Admin" });
-  });
-
-  it("clears an expired token", async () => {
-    tokenStore.set(makeToken({ role: "Admin", exp: Math.floor(Date.now() / 1000) - 10 }));
-    const { result } = await setup();
-    expect(result.current.role).toBeNull();
-    expect(tokenStore.get()).toBeNull();
-  });
-
-  it("clears a token with no recognised role", async () => {
-    tokenStore.set(makeToken({ role: "Guest", exp: futureExp() }));
-    const { result } = await setup();
-    expect(result.current.role).toBeNull();
-    expect(tokenStore.get()).toBeNull();
-  });
-
   it.each([
     ["SuperAdmin", true],
     ["Admin", true],
     ["Employee", false],
   ] as const)("isAdmin for %s is %s", async (role, expected) => {
-    tokenStore.set(makeToken({ role, exp: futureExp() }));
     get.mockResolvedValue({ staffId: "s", email: "e", fullName: "n", role, twoFactorEnabled: false, receiveQuoteEmails: false });
     const { result } = await setup();
     expect(result.current.isAdmin).toBe(expected);
@@ -88,8 +66,8 @@ describe("AuthProvider – initial load", () => {
 });
 
 describe("AuthProvider – login", () => {
-  it("stores the token and reloads the profile on success", async () => {
-    post.mockResolvedValue({ success: true, requiresTwoFactor: false, token: adminToken() });
+  it("authenticates and reloads the profile on success", async () => {
+    post.mockResolvedValue({ success: true, requiresTwoFactor: false });
     get.mockResolvedValue({ staffId: "s1", email: "x", fullName: "X", role: "Admin", twoFactorEnabled: false, receiveQuoteEmails: false });
     const { result } = await setup();
     let res;
@@ -98,7 +76,6 @@ describe("AuthProvider – login", () => {
     });
     expect(post).toHaveBeenCalledWith("/admin/account/login", { email: "a@b.co", password: "pw" });
     expect(res).toEqual({ requiresTwoFactor: false });
-    expect(tokenStore.get()).not.toBeNull();
     expect(result.current.role).toBe("Admin");
   });
 
@@ -110,7 +87,7 @@ describe("AuthProvider – login", () => {
       res = await result.current.login("a@b.co", "pw");
     });
     expect(res).toEqual({ requiresTwoFactor: false, requiresTwoFactorSetup: true, userId: "u1", twoFactorChallenge: "ch" });
-    expect(tokenStore.get()).toBeNull();
+    expect(result.current.me).toBeNull();
   });
 
   it("reports that a 2FA code is required", async () => {
@@ -121,12 +98,7 @@ describe("AuthProvider – login", () => {
       res = await result.current.login("a@b.co", "pw");
     });
     expect(res).toEqual({ requiresTwoFactor: true, userId: "u1", twoFactorChallenge: "ch" });
-  });
-
-  it("throws when no token comes back", async () => {
-    post.mockResolvedValue({ requiresTwoFactor: false });
-    const { result } = await setup();
-    await expect(result.current.login("a", "b")).rejects.toThrow("Login failed.");
+    expect(result.current.me).toBeNull();
   });
 
   it("propagates API errors", async () => {
@@ -137,21 +109,24 @@ describe("AuthProvider – login", () => {
 });
 
 describe("AuthProvider – two-factor", () => {
-  it("verifyTwoFactor posts the code and stores the token", async () => {
-    post.mockResolvedValue({ token: adminToken() });
+  it("verifyTwoFactor posts the code and reloads the profile", async () => {
+    post.mockResolvedValue({ success: true });
     get.mockResolvedValue({ staffId: "s1", email: "x", fullName: "X", role: "Admin", twoFactorEnabled: true, receiveQuoteEmails: false });
     const { result } = await setup();
     await act(async () => {
       await result.current.verifyTwoFactor("u1", "123456", "ch", true);
     });
     expect(post).toHaveBeenCalledWith("/admin/account/login/2fa", { userId: "u1", code: "123456", challenge: "ch", rememberDevice: true });
-    expect(tokenStore.get()).not.toBeNull();
+    expect(result.current.role).toBe("Admin");
   });
 
-  it("verifyTwoFactor defaults rememberDevice to false and throws without a token", async () => {
-    post.mockResolvedValue({});
+  it("verifyTwoFactor defaults rememberDevice to false", async () => {
+    post.mockResolvedValue({ success: true });
+    get.mockResolvedValue({ staffId: "s1", email: "x", fullName: "X", role: "Admin", twoFactorEnabled: true, receiveQuoteEmails: false });
     const { result } = await setup();
-    await expect(result.current.verifyTwoFactor("u1", "1", "ch")).rejects.toThrow("Verification failed.");
+    await act(async () => {
+      await result.current.verifyTwoFactor("u1", "1", "ch");
+    });
     expect(post).toHaveBeenCalledWith("/admin/account/login/2fa", expect.objectContaining({ rememberDevice: false }));
   });
 
@@ -179,13 +154,15 @@ describe("AuthProvider – two-factor", () => {
 });
 
 describe("AuthProvider – logout", () => {
-  it("clears the token and session state", async () => {
-    tokenStore.set(adminToken());
+  it("clears the session state and calls logout endpoint", async () => {
     get.mockResolvedValue({ staffId: "s1", email: "x", fullName: "X", role: "Admin", twoFactorEnabled: false, receiveQuoteEmails: false });
+    post.mockResolvedValue({ success: true });
     const { result } = await setup();
     expect(result.current.role).toBe("Admin");
-    act(() => result.current.logout());
-    expect(tokenStore.get()).toBeNull();
+    await act(async () => {
+      result.current.logout();
+    });
+    expect(post).toHaveBeenCalledWith("/admin/account/logout");
     expect(result.current.role).toBeNull();
     expect(result.current.me).toBeNull();
   });
