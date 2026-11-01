@@ -1,6 +1,6 @@
 import type { NextConfig } from "next";
 
-const backend = process.env.BACKEND_URL || process.env.NEXT_PUBLIC_API_BASE_URL;
+const backend = process.env.BACKEND_URL || process.env.NEXT_PUBLIC_API_BASE_URL || 'https://braai-platform-staging.onrender.com';
 
 const securityHeaders = [
   { key: 'X-DNS-Prefetch-Control', value: 'on' },
