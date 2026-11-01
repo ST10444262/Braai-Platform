@@ -6,6 +6,7 @@ import { useAuth } from "@/lib/auth";
 import { Logo } from "@/components/Shell";
 import { Button, ErrorNote, Field, TextInput } from "@/components/ui";
 import { QRCodeSVG } from "qrcode.react";
+import { Info } from "lucide-react";
 
 //------------------------------------------------------------------------------------------//
 export default function LoginPage() {
@@ -81,12 +82,30 @@ export default function LoginPage() {
           <h1 className="text-2xl font-bold">
             {isSettingUp ? "Set up 2FA" : userId ? "Two-factor check" : "Welcome back"}
           </h1>
-          <p className="mt-1 text-sm text-muted">
+          <p className="mt-1 text-sm text-muted inline-flex items-center justify-center gap-1">
             {isSettingUp
               ? "Scan this QR code with your authenticator app to secure your account."
               : userId
                 ? "Enter the 6-digit code from your authenticator app."
                 : "Sign in to the staff dashboard."}
+            {/* Legal notice tooltip — only shown on the initial credential step */}
+            {!isSettingUp && !userId && (
+              <span className="group relative inline-flex">
+                <Info className="h-3.5 w-3.5 cursor-help text-muted/60 hover:text-muted transition-colors" aria-label="Legal notice" />
+                <span
+                  role="tooltip"
+                  className="pointer-events-none absolute bottom-full left-1/2 z-50 mb-2 w-72 -translate-x-1/2 rounded-xl border border-stone-200 bg-white p-3.5 text-left text-[10px] leading-relaxed text-stone-600 shadow-lg opacity-0 transition-opacity group-hover:opacity-100"
+                >
+                  <span className="mb-1 block font-semibold text-stone-800">Restricted — Authorised Inflame Staff Only</span>
+                  Unauthorised access, credential stuffing, or attempts to bypass authentication or Two-Factor
+                  Authentication are prohibited and constitute a criminal offence under the{" "}
+                  <strong className="text-stone-700">Cybercrimes Act 19 of 2020</strong>. By logging in, you consent
+                  to the logging of your IP address, session activity, client record views, enquiry status changes,
+                  notes and file uploads for security auditing, in accordance with{" "}
+                  <strong className="text-stone-700">POPIA</strong>.
+                </span>
+              </span>
+            )}
           </p>
         </div>
 
@@ -146,27 +165,6 @@ export default function LoginPage() {
 
         {!isSettingUp && !userId && (
           <>
-            {/* ------------------------------------------------------------------ */}
-            {/* Legal warning banner — Cybercrimes Act 19 of 2020 / POPIA consent  */}
-            <div
-              role="alert"
-              className="rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-xs leading-relaxed text-amber-900"
-            >
-              <p className="font-semibold uppercase tracking-wide mb-1">
-                Restricted Corporate Portal — Authorised Inflame Staff Only
-              </p>
-              <p>
-                Unauthorised access, credential stuffing, or attempts to bypass
-                authentication or Two-Factor Authentication are prohibited and
-                constitute a criminal offence under the{" "}
-                <strong>Cybercrimes Act 19 of 2020</strong>. By logging in, you
-                consent to the logging of your IP address, session activity,
-                client record views, enquiry status changes, notes and file
-                uploads for security auditing, in accordance with{" "}
-                <strong>POPIA</strong>.
-              </p>
-            </div>
-            {/* ------------------------------------------------------------------ */}
             <Field label="Email">
               <TextInput
                 type="email"
