@@ -239,16 +239,14 @@ async function request<T>(
    */
   if (
     response.status === 401 &&
-    !path.includes(
-      "/account/login"
-    )
+    !path.includes("/account/login") &&
+    !path.includes("/account/me")
   ) {
     if (
-      typeof window !==
-      "undefined"
+      typeof window !== "undefined" &&
+      !window.location.pathname.startsWith("/login")
     ) {
-      window.location.href =
-        "/login";
+      window.location.href = "/login";
     }
   }
 
