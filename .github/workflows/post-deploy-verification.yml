@@ -37,7 +37,7 @@ jobs:
           elif [ "$TARGET" = "staging" ]; then
             URL="${{ secrets.STAGING_API_HEALTH_URL || 'https://braai-platform-staging.onrender.com/api/public/health' }}"
           else
-            URL="${{ secrets.PROD_API_HEALTH_URL || secrets.RENDER_BACKEND_URL || 'https://inflame-backend.onrender.com/api/public/health' }}"
+            URL="${{ secrets.PROD_API_HEALTH_URL || secrets.RENDER_BACKEND_URL || 'https://api.inflame.co.za/api/public/health' }}"
           fi
 
           echo "target_env=$TARGET" >> $GITHUB_OUTPUT
