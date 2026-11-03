@@ -55,17 +55,22 @@ jobs:
 
           for i in $(seq 1 $MAX_ATTEMPTS); do
             echo "--- Attempt $i/$MAX_ATTEMPTS ---"
-            RESPONSE=$(curl -s -S -w "\n%{http_code}" "$URL" || true)
+            RESPONSE=$(curl -s -S --connect-timeout 5 --max-time 15 \
+              -A "BraaiPlatform-CI-HealthCheck/1.0" \
+              -H "Accept: application/json" \
+              -w "\n%{http_code}" "$URL" || true)
             HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
             BODY=$(echo "$RESPONSE" | sed '$d')
 
             echo "HTTP Status: $HTTP_CODE"
-            echo "Body: $BODY"
 
             if [ "$HTTP_CODE" = "200" ]; then
+              echo "Body: $BODY"
               echo "Health check returned 200 OK."
               SUCCESS=1
               break
+            else
+              echo "Body (truncated): $(echo "$BODY" | head -c 250)"
             fi
 
             echo "Awaiting release readiness; sleeping ${INTERVAL}s..."
@@ -86,4 +91,3 @@ jobs:
             echo "Could not verify healthy response from \`$URL\` within $MAX_ATTEMPTS attempts." >> $GITHUB_STEP_SUMMARY
             exit 1
           fi
-
